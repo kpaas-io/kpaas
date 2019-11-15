@@ -18,8 +18,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
-	"github.com/kpaas-io/kpaas/pkg/restful/api/v1/deploy"
-	_ "github.com/kpaas-io/kpaas/pkg/restful/swaggerdocs"
+	"github.com/kpaas-io/kpaas/pkg/api/v1/deploy"
+	_ "github.com/kpaas-io/kpaas/pkg/swaggerdocs"
 )
 
 func (a *app) setRoutes() {

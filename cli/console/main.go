@@ -12,44 +12,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// @title kpaasRestfulApi
+// @version 0.1
+// @description KPaaS RESTful API service for frontend and using Deploy service API to deployment kubernetes cluster.
+
+// @contact.name Support
+// @contact.url http://github.com/kpaas-io/kpaas/issues
+// @contact.email support@kpaas.io
+
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @host localhost:8080
+// @BasePath /api
+
 package main
 
 import (
-	goflag "flag"
-	"math/rand"
 	"os"
-	"time"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
+	"github.com/kpaas-io/kpaas/pkg/application"
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
 
-	command := getCommand()
-	decorateFlags(command)
-
-	pflag.CommandLine.AddGoFlagSet(goflag.CommandLine)
-
-	if err := command.Execute(); err != nil {
+	if err := application.GetCommand().Execute(); err != nil {
 		os.Exit(1)
-	}
-}
-
-func decorateFlags(command *cobra.Command) {
-
-	command.Flags().Int16("port", 8080, "web service listening port")
-}
-
-func getCommand() *cobra.Command {
-
-	return &cobra.Command{
-		Use:   "portal",
-		Short: "portal is a tool for deploying Kubernetes",
-		Long:  `portal is a tool for deploying Kubernetes clusters using web interface`,
-		Run: func(cmd *cobra.Command, args []string) {
-			// Do Stuff Here
-		},
 	}
 }
