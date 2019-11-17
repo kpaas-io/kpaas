@@ -24,6 +24,25 @@ Let's deploy a Kubernetes Cluster.
 
 Not Yet
 
+## Development
+
+### Auto Add License Headers
+
+**VSCode**
+
+Install the [licenser](https://marketplace.visualstudio.com/items?itemName=ymotongpoo.licenser) extension. It will insert license header automatically when creatiing a new file. Or you can manually add license header using "licenser: Insert license header" commands via Command Palette (`Ctrl+Shift+P` on Windows/Linux, `⌘⇧P` on OS X)
+
+Add editor's settings in `kpaas/.vscode/settings.json`:
+
+```json
+{
+  ...,
+  "licenser.projectName": "KPaaS",
+  "licenser.author": "Shanghai JingDuo Information Technology co., Ltd.",
+  ...
+}
+```
+
 ## Community
 
 Since it is still a closed development version, it is not available for the time being. Welcome to leave a message on the issue page
