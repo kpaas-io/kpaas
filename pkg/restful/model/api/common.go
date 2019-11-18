@@ -12,31 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @title kpaasRestfulApi
-// @version 0.1
-// @description KPaaS RESTful API service for frontend and using Deploy service API to deployment kubernetes cluster.
+package api
 
-// @contact.name Support
-// @contact.url http://github.com/kpaas-io/kpaas/issues
-// @contact.email support@kpaas.io
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host localhost:8080
-// @BasePath /api
-
-package main
-
-import (
-	"os"
-
-	"github.com/kpaas-io/kpaas/pkg/restful/application"
-)
-
-func main() {
-
-	if err := application.GetCommand().Execute(); err != nil {
-		os.Exit(1)
+type (
+	SuccessfulOption struct {
+		Success bool `json:"success"`
 	}
-}
+
+	Error struct {
+		Reason     string `json:"reason"`     // Reason of Error message
+		Detail     string `json:"detail"`     // Why is it wrong, what is the judgment condition?
+		FixMethods string `json:"fixMethods"` // How to improve to meet the conditions
+		LogId      int64  `json:"logId"`      // ID used to get the log file
+	}
+)

@@ -64,7 +64,7 @@ func (a *app) initService() {
 	// TODO Lucky Init Clients
 	a.initRESTfulAPIHandler()
 	a.initRequestLogger()
-	// TODO Lucky Init RESTful API Routes
+	a.setRoutes()
 	a.initRESTfulListener()
 }
 
