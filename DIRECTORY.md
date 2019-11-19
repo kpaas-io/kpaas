@@ -4,6 +4,8 @@ The directory structure is as follows
 ├── DIRECTORY.md # Current document
 ├── LICENSE # License statement
 ├── README.md # Readme document
+├── charts # Helm charts for deploying KPaaS components
+│   └── calico # chart for deploying calico networking
 ├── docs # design documents
 ├── cli # commands line interface
 │   ├── deploy # use cli command to deploy kubernetes cluster

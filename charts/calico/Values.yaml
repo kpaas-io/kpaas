@@ -1,0 +1,74 @@
+# datastore type. supports "kubernetes" and "etd".
+datastore: kubernetes
+# Config for etcd
+etcd:
+  # Endpoints for the etcd instances. This can be a comma separated list of endpoints.
+  endpoints: null
+  # Authentication information for accessing secure etcd instances.
+  tls:
+    crt: null
+    ca: null
+    key: null
+# Sets the detailed configuration of netork.
+network_config:
+  # MTU of virtual network interface in each pod.
+  veth_mtu: 1400 
+  # initial IP pool for pods. should be within the range of the pod IP range in kubernetes.
+  ipv4pool_cidr: 10.100.0.0/16 
+  # encapsulation mode when transferring packets from pod between different host nodes.
+  # supports "vxlan","ipip",and "none". "none" means send packets directly, without encapsulation.
+  encap_mode: vxlan
+  # used when encap_mode=vxlan. The UDP port through which vxlan packets transferred. 
+  vxlan_port: 4789
+  # ip_detection.method specifies the method of detecting IP of calico-node.
+  # from_kubernetes means directly use the node IP in kubernetes as calico-node IP.
+  # interface means use first IP on interface whose name matches the regex specified in ip_detection.interface.
+  # otherwise, first-found method is used, that is to use the first available IP of the node.
+  ip_detection:
+    method: from_kubernetes
+    # example of detecting IP from interface name regex
+    # method: interface
+    # interface: "eth*" #the first available IP of the interfaces name starting with "eth"  
+
+
+node:
+  image: calico/node
+  tag: v3.10.1
+  env:
+    # Optional environment variables for configuring Calico node.
+    # These should match the EnvVar spec of the corev1 Kubernetes API. For example:
+    # - name: FELIX_LOGSEVERITYSCREEN
+    #   value: "debug"
+calicoctl:
+  image: calico/ctl
+  tag: v3.10.1
+typha:
+  image: calico/typha
+  tag: v3.10.1
+  env:
+    # Optional environment variables for configuring Typha.
+    # These should match the EnvVar spec of the corev1 Kubernetes API. For example:
+    # - name: TYPHA_LOGSEVERITYSYS
+    #   value: debug
+cni:
+  image: calico/cni
+  tag: v3.10.1
+  env:
+    # Optional environment variables for configuring Calico CNI.
+    # These should match the EnvVar spec of the corev1 Kubernetes API. For example:
+    # - name: FOO
+    #   value: bar
+kubeControllers:
+  image: calico/kube-controllers
+  tag: v3.10.1
+  env:
+    # Optional environment variables for configuring Calico kube controllers.
+    # These should match the EnvVar spec of the corev1 Kubernetes API. For example:
+    # - name: LOG_LEVEL
+    #   value: debug
+dikastes:
+  image: calico/dikastes
+  tag: v3.10.1
+flexvol:
+  image: calico/pod2daemon-flexvol
+  tag: v3.10.1
