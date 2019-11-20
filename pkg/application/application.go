@@ -28,8 +28,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/kpaas-io/kpaas/pkg/restful/config"
-	"github.com/kpaas-io/kpaas/pkg/utils"
+	"github.com/kpaas-io/kpaas/pkg/config"
+	configUtils "github.com/kpaas-io/kpaas/pkg/utils/config"
+	"github.com/kpaas-io/kpaas/pkg/utils/logger"
 )
 
 type (
@@ -125,7 +126,7 @@ func (a *app) loadConfig() {
 	if configFile == "" {
 		return
 	}
-	utils.MustLoadConf(config.Config, configFile)
+	configUtils.MustLoadConf(config.Config, configFile)
 	logrus.Infof("ConfigFile: %s\n%+v", configFile, config.Config)
 }
 
@@ -172,7 +173,7 @@ func (a *app) initRESTfulAPIHandler() {
 
 func (a *app) initRequestLogger() {
 	logrus.Debug("start to register log middleware")
-	a.httpHandler.Use(utils.ReqLoggerMiddleware())
+	a.httpHandler.Use(logger.ReqLoggerMiddleware())
 	logrus.Debug("register log middleware succeed")
 }
 
