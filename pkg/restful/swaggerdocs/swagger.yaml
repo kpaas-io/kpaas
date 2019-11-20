@@ -1,0 +1,662 @@
+basePath: /api
+definitions:
+  api.Annotation:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    - value
+    type: object
+  api.CheckingItem:
+    properties:
+      error:
+        $ref: '#/definitions/api.Error'
+        type: object
+      point:
+        type: string
+      result:
+        description: Checking Result
+        enum:
+        - checking
+        - passed
+        - failed
+        type: string
+    type: object
+  api.CheckingResultResponseData:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api.CheckingItem'
+        type: array
+      name:
+        type: string
+    type: object
+  api.Cluster:
+    properties:
+      annotations:
+        items:
+          $ref: '#/definitions/api.Annotation'
+        type: array
+      kubeAPIServerConnectType:
+        enum:
+        - firstMasterIP
+        - keepalived
+        - loadbalancer
+        type: string
+      labels:
+        items:
+          $ref: '#/definitions/api.Label'
+        type: array
+      name:
+        type: string
+      netInterfaceName:
+        maxLength: 30
+        type: string
+      nodePort:
+        default: 32767
+        maximum: 65535
+        type: integer
+      shortName:
+        maxLength: 20
+        minLength: 1
+        type: string
+      vip:
+        maxLength: 15
+        type: string
+    required:
+    - kubeAPIServerConnectType
+    - name
+    - shortName
+    type: object
+  api.ConnectionData:
+    properties:
+      authorizationType:
+        description: type of authorization
+        enum:
+        - password
+        - privateKey
+        type: string
+      ip:
+        description: node ip
+        maxLength: 15
+        minLength: 1
+        type: string
+      password:
+        description: login password
+        type: string
+      port:
+        default: 22
+        description: ssh port
+        maximum: 65535
+        minimum: 1
+        type: integer
+      privateKeyName:
+        description: the private key name of login
+        type: string
+      username:
+        description: ssh username
+        maxLength: 128
+        type: string
+    required:
+    - ip
+    - port
+    - username
+    type: object
+  api.DeploymentNode:
+    properties:
+      error:
+        $ref: '#/definitions/api.Error'
+        type: object
+      result:
+        description: Checking Result
+        enum:
+        - pending
+        - deploying
+        - completed
+        - failed
+        - aborted
+        type: string
+    type: object
+  api.DeploymentResponseData:
+    properties:
+      nodes:
+        items:
+          $ref: '#/definitions/api.DeploymentNode'
+        type: array
+      role:
+        type: string
+    type: object
+  api.Error:
+    properties:
+      detail:
+        description: Why is it wrong, what is the judgment condition?
+        type: string
+      fixMethods:
+        description: How to improve to meet the conditions
+        type: string
+      logId:
+        description: ID used to get the log file
+        type: integer
+      reason:
+        description: Reason of Error message
+        type: string
+    type: object
+  api.GetCheckingResultResponse:
+    properties:
+      nodes:
+        items:
+          $ref: '#/definitions/api.CheckingResultResponseData'
+        type: array
+      result:
+        description: Overall inspection status
+        enum:
+        - notRunning
+        - checking
+        - passed
+        - failed
+        type: string
+    type: object
+  api.GetDeploymentReportResponse:
+    properties:
+      deployClusterStatus:
+        description: The cluster deployment status
+        enum:
+        - notRunning
+        - running
+        - successful
+        - failed
+        - workedButHaveError
+        type: string
+      nodes:
+        items:
+          $ref: '#/definitions/api.DeploymentResponseData'
+        type: array
+    type: object
+  api.GetSSHCertificateListResponse:
+    properties:
+      names:
+        items:
+          type: string
+        type: array
+    type: object
+  api.GetWizardResponse:
+    properties:
+      checkResult:
+        description: Nodes check result
+        enum:
+        - notRunning
+        - checking
+        - passed
+        - failed
+        type: string
+      checkingData:
+        description: Check result
+        items:
+          $ref: '#/definitions/api.CheckingResultResponseData'
+        type: array
+      cluster:
+        $ref: '#/definitions/api.Cluster'
+        description: Cluster Information
+        type: object
+      deployClusterStatus:
+        description: Cluster deployment status
+        enum:
+        - notRunning
+        - running
+        - successful
+        - failed
+        - workedButHaveError
+        type: string
+      deploymentData:
+        description: Deployment result
+        items:
+          $ref: '#/definitions/api.DeploymentResponseData'
+        type: array
+      mode:
+        description: Wizard mode, normal or advanced
+        type: string
+      nodes:
+        description: Nodes Information
+        items:
+          $ref: '#/definitions/api.NodeData'
+        type: array
+      progress:
+        description: Wizard progress
+        type: string
+    type: object
+  api.Label:
+    properties:
+      key:
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    - value
+    type: object
+  api.NodeData:
+    properties:
+      authorizationType:
+        description: type of authorization
+        enum:
+        - password
+        - privateKey
+        type: string
+      description:
+        description: node description
+        type: string
+      ip:
+        description: node ip
+        maxLength: 15
+        minLength: 1
+        type: string
+      labels:
+        description: Node labels
+        items:
+          $ref: '#/definitions/api.Label'
+        type: array
+      name:
+        description: node name
+        maxLength: 64
+        minLength: 1
+        type: string
+      password:
+        description: login password
+        type: string
+      port:
+        default: 22
+        description: ssh port
+        maximum: 65535
+        minimum: 1
+        type: integer
+      privateKeyName:
+        description: the private key name of login
+        type: string
+      role:
+        default: master
+        description: 'machine role, like: master, worker, etcd. Master and worker
+          roles are mutually exclusive.'
+        enum:
+        - master
+        - worker
+        - etcd
+        type: string
+      taint:
+        description: Node taints
+        items:
+          $ref: '#/definitions/api.Taint'
+        type: array
+      username:
+        description: ssh username
+        maxLength: 128
+        type: string
+    required:
+    - ip
+    - name
+    - port
+    - username
+    type: object
+  api.SSHCertificate:
+    properties:
+      content:
+        type: string
+      name:
+        type: string
+    required:
+    - content
+    - name
+    type: object
+  api.SuccessfulOption:
+    properties:
+      success:
+        type: boolean
+    type: object
+  api.Taint:
+    properties:
+      effect:
+        enum:
+        - NoSchedule
+        - NoExecute
+        - PreferNoSchedule
+        type: string
+      key:
+        type: string
+      value:
+        type: string
+    required:
+    - key
+    - value
+    type: object
+  h.AppErr:
+    properties:
+      msg:
+        type: string
+      payload:
+        type: object
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@kpaas.io
+    name: Support
+    url: http://github.com/kpaas-io/kpaas/issues
+  description: KPaaS RESTful API service for frontend and using Deploy service API
+    to deployment kubernetes cluster.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: kpaasRestfulApi
+  version: "0.1"
+paths:
+  /api/v1/deploy/wizard/checks:
+    get:
+      description: Get the result of the check node
+      operationId: GetCheckNodeListResult
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetCheckingResultResponse'
+      summary: Get the result of check node
+      tags:
+      - checking
+    post:
+      description: Check if the node meets the pre-deployment requirements
+      operationId: CheckNodeList
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+      summary: check node list
+      tags:
+      - checking
+  /api/v1/deploy/wizard/clusters:
+    post:
+      consumes:
+      - application/json
+      description: Store new cluster information
+      operationId: SetCluster
+      parameters:
+      - description: 'RequiredFields: shortName, name, kubeAPIServerConnectType'
+        in: body
+        name: cluster
+        required: true
+        schema:
+          $ref: '#/definitions/api.Cluster'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Set Cluster Information
+      tags:
+      - cluster
+  /api/v1/deploy/wizard/deploys:
+    get:
+      description: Get the result of the deployment
+      operationId: GetDeploymentReport
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetDeploymentReportResponse'
+      summary: Get the result of deployment
+      tags:
+      - deploy
+    post:
+      description: Launch deployment
+      operationId: LaunchDeployment
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+      summary: Launch deployment
+      tags:
+      - deploy
+  /api/v1/deploy/wizard/logs/{id}:
+    get:
+      description: Download the deployment log details to check the cause of the error
+      operationId: DownloadLog
+      parameters:
+      - description: Log ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Log File Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Download the log detail
+      tags:
+      - log
+  /api/v1/deploy/wizard/nodes:
+    post:
+      consumes:
+      - application/json
+      description: Add deployment candidate to node list
+      operationId: AddNode
+      parameters:
+      - description: Node information
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/api.NodeData'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.NodeData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Add Node Information
+      tags:
+      - node
+  /api/v1/deploy/wizard/nodes/{ip}:
+    delete:
+      description: Delete a node from deployment candidate node list
+      operationId: DeleteNode
+      parameters:
+      - description: Node IP Address
+        in: path
+        name: ip
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Delete a node
+      tags:
+      - node
+    put:
+      consumes:
+      - application/json
+      description: Update a node information which in deployment candidate node list
+      operationId: UpdateNode
+      parameters:
+      - description: Node information
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/api.NodeData'
+          type: object
+      - description: Node IP Address
+        in: path
+        name: ip
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.NodeData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Update Node Information
+      tags:
+      - node
+  /api/v1/deploy/wizard/progresses:
+    delete:
+      description: Clear all data, include current progress, cluster and node data.
+        deploying progress or error.
+      operationId: ClearWizard
+      responses:
+        "204": {}
+      summary: Clear all of current deploy wizard data
+      tags:
+      - wizard
+    get:
+      description: Get all data, include current progress, cluster and node data.
+        deploying progress or error.
+      operationId: GetWizardProgress
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetWizardResponse'
+      summary: Get all of current deploy wizard data
+      tags:
+      - wizard
+  /api/v1/ssh/tests:
+    post:
+      consumes:
+      - application/json
+      description: Try to connection a node using ssh
+      operationId: TestSSH
+      parameters:
+      - description: Node information
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/api.ConnectionData'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Test a node connection
+      tags:
+      - ssh
+  /api/v1/ssh_certificates:
+    get:
+      description: Get SSH login certificate keys list
+      operationId: GetSSHCertificate
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetSSHCertificateListResponse'
+      summary: Get SSH login keys list
+      tags:
+      - ssh_certificate
+    post:
+      consumes:
+      - application/json
+      description: Add SSH login private key
+      operationId: AddSSHCertificate
+      parameters:
+      - description: Certificate information
+        in: body
+        name: certificate
+        required: true
+        schema:
+          $ref: '#/definitions/api.SSHCertificate'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+      summary: Add SSH login private key
+      tags:
+      - ssh_certificate
+swagger: "2.0"

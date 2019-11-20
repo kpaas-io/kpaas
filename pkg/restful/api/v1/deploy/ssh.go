@@ -12,31 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @title kpaasRestfulApi
-// @version 0.1
-// @description KPaaS RESTful API service for frontend and using Deploy service API to deployment kubernetes cluster.
-
-// @contact.name Support
-// @contact.url http://github.com/kpaas-io/kpaas/issues
-// @contact.email support@kpaas.io
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host localhost:8080
-// @BasePath /api
-
-package main
+package deploy
 
 import (
-	"os"
-
-	"github.com/kpaas-io/kpaas/pkg/restful/application"
+	"github.com/gin-gonic/gin"
 )
 
-func main() {
+// @ID TestSSH
+// @Summary Test a node connection
+// @Description Try to connection a node using ssh
+// @Tags ssh
+// @Accept application/json
+// @Produce application/json
+// @Param node body api.ConnectionData true "Node information"
+// @Success 201 {object} api.SuccessfulOption
+// @Failure 400 {object} h.AppErr
+// @Failure 409 {object} h.AppErr
+// @Router /api/v1/ssh/tests [post]
+func TestConnectNode(c *gin.Context) {
 
-	if err := application.GetCommand().Execute(); err != nil {
-		os.Exit(1)
-	}
 }

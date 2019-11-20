@@ -134,4 +134,6 @@ flycheck_*.el
 # network security
 /network-security.data
 
-
+# builds files
+builds/release/*
+builds/debug/*

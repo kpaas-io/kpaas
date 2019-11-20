@@ -12,31 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// @title kpaasRestfulApi
-// @version 0.1
-// @description KPaaS RESTful API service for frontend and using Deploy service API to deployment kubernetes cluster.
+package api
 
-// @contact.name Support
-// @contact.url http://github.com/kpaas-io/kpaas/issues
-// @contact.email support@kpaas.io
-
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-
-// @host localhost:8080
-// @BasePath /api
-
-package main
-
-import (
-	"os"
-
-	"github.com/kpaas-io/kpaas/pkg/restful/application"
-)
-
-func main() {
-
-	if err := application.GetCommand().Execute(); err != nil {
-		os.Exit(1)
+type (
+	SSHCertificate struct {
+		Name    string `json:"name" binding:"required" minimum:"1" maximum:"20"`
+		Content string `json:"content" binding:"required"`
 	}
-}
+
+	GetSSHCertificateListResponse struct {
+		Names []string `json:"names"`
+	}
+)
