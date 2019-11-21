@@ -14,7 +14,7 @@ network_config:
   # MTU of virtual network interface in each pod.
   veth_mtu: 1400 
   # initial IP pool for pods. should be within the range of the pod IP range in kubernetes.
-  ipv4pool_cidr: 10.100.0.0/16 
+  ipv4pool_cidr: 10.112.0.0/16 
   # encapsulation mode when transferring packets from pod between different host nodes.
   # supports "vxlan","ipip",and "none". "none" means send packets directly, without encapsulation.
   encap_mode: vxlan
