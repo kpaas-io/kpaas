@@ -14,6 +14,10 @@
 
 package sshcertificate
 
+import (
+	"sync"
+)
+
 type (
 	Certificate struct {
 		Name       string
@@ -22,7 +26,7 @@ type (
 )
 
 var (
-	List map[string]*Certificate
+	list *sync.Map
 )
 
 func NewCertificate() *Certificate {
@@ -30,5 +34,29 @@ func NewCertificate() *Certificate {
 }
 
 func init() {
-	List = make(map[string]*Certificate)
+	list = new(sync.Map)
+}
+
+func AddCertificate(name, privateKey string) {
+
+	list.Store(name, privateKey)
+}
+
+func GetNameList() []string {
+
+	names := make([]string, 0, 0)
+	list.Range(func(key, value interface{}) bool {
+		names = append(names, key.(string))
+		return true
+	})
+	return names
+}
+
+func GetPrivateKey(name string) string {
+
+	privateKey, exist := list.Load(name)
+	if exist {
+		return privateKey.(string)
+	}
+	return ""
 }
