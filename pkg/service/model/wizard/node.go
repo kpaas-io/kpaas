@@ -15,7 +15,7 @@
 package wizard
 
 import (
-	"github.com/kpaas-io/kpaas/pkg/model/common"
+	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 )
 
 type (

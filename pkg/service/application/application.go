@@ -28,7 +28,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 
-	"github.com/kpaas-io/kpaas/pkg/config"
+	"github.com/kpaas-io/kpaas/pkg/service/config"
 	configUtils "github.com/kpaas-io/kpaas/pkg/utils/config"
 	"github.com/kpaas-io/kpaas/pkg/utils/logger"
 )

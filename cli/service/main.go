@@ -31,7 +31,7 @@ package main
 import (
 	"os"
 
-	"github.com/kpaas-io/kpaas/pkg/application"
+	"github.com/kpaas-io/kpaas/pkg/service/application"
 )
 
 func main() {
