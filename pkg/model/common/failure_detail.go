@@ -15,7 +15,7 @@
 package common
 
 type (
-	Error struct {
+	FailureDetail struct {
 		Reason     string // Reason of Error message
 		Detail     string // Why is it wrong, what is the judgment condition?
 		FixMethods string // How to improve to meet the conditions
@@ -23,7 +23,7 @@ type (
 	}
 )
 
-func NewError() *Error {
+func NewError() *FailureDetail {
 
-	return &Error{}
+	return &FailureDetail{}
 }

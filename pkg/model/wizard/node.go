@@ -42,7 +42,7 @@ type (
 	DeploymentReport struct {
 		Role   MachineRole
 		Status DeployStatus
-		Error  *common.Error
+		Error  *common.FailureDetail
 	}
 
 	CheckReport struct {
@@ -53,7 +53,7 @@ type (
 	CheckItem struct {
 		ItemName    string // Check Item Name
 		CheckResult CheckResult
-		Error       *common.Error
+		Error       *common.FailureDetail
 	}
 
 	Annotation struct {
