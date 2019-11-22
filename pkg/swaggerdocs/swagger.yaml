@@ -41,6 +41,7 @@ definitions:
           $ref: '#/definitions/api.Annotation'
         type: array
       kubeAPIServerConnectType:
+        description: kube-apiserver connect type
         enum:
         - firstMasterIP
         - keepalived
@@ -50,20 +51,37 @@ definitions:
         items:
           $ref: '#/definitions/api.Label'
         type: array
+      loadbalancerIP:
+        description: kube-apiserver loadbalancer ip when kubeAPIServerConnectType
+          is loadbalancer required
+        maxLength: 15
+        type: string
+      loadbalancerPort:
+        description: kube-apiserver loadbalancer port when kubeAPIServerConnectType
+          is loadbalancer required
+        maximum: 65535
+        minimum: 1
+        type: integer
       name:
         type: string
       netInterfaceName:
+        description: keepalived listen net interface name
         maxLength: 30
         type: string
-      nodePort:
+      nodePortMaximum:
         default: 32767
         maximum: 65535
+        type: integer
+      nodePortMinimum:
+        default: 30000
+        minimum: 1
         type: integer
       shortName:
         maxLength: 20
         minLength: 1
         type: string
       vip:
+        description: keepalived listen virtual ip
         maxLength: 15
         type: string
     required:
@@ -274,15 +292,6 @@ definitions:
         type: integer
       privateKeyName:
         description: the private key name of login
-        type: string
-      role:
-        default: master
-        description: 'machine role, like: master, worker, etcd. Master and worker
-          roles are mutually exclusive.'
-        enum:
-        - master
-        - worker
-        - etcd
         type: string
       taint:
         description: Node taints

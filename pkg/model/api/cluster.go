@@ -18,11 +18,13 @@ type (
 	Cluster struct {
 		ShortName                string                   `json:"shortName" binding:"required" minLength:"1" maxLength:"20"`
 		Name                     string                   `json:"name" binding:"required"`
-		KubeAPIServerConnectType KubeAPIServerConnectType `json:"kubeAPIServerConnectType" binding:"required" enums:"firstMasterIP,keepalived,loadbalancer"`
-		VIP                      string                   `json:"vip" maxLength:"15"`
-		NetInterfaceName         string                   `json:"netInterfaceName" maxLength:"30"`
-		NodePortMinimum          uint16                   `json:"nodePort" minimum:"1" default:"30000"`
-		NodePortMaximum          uint16                   `json:"nodePort" maximum:"65535" default:"32767"`
+		KubeAPIServerConnectType KubeAPIServerConnectType `json:"kubeAPIServerConnectType" binding:"required" enums:"firstMasterIP,keepalived,loadbalancer"` // kube-apiserver connect type
+		VIP                      string                   `json:"vip,omitempty" maxLength:"15"`                                                              // keepalived listen virtual ip
+		NetInterfaceName         string                   `json:"netInterfaceName,omitempty" maxLength:"30"`                                                 // keepalived listen net interface name
+		LoadbalancerIP           string                   `json:"loadbalancerIP,omitempty" maxLength:"15"`                                                   // kube-apiserver loadbalancer ip when kubeAPIServerConnectType is loadbalancer required
+		LoadbalancerPort         uint16                   `json:"loadbalancerPort,omitempty" minimum:"1" maximum:"65535"`                                    // kube-apiserver loadbalancer port when kubeAPIServerConnectType is loadbalancer required
+		NodePortMinimum          uint16                   `json:"nodePortMinimum" minimum:"1" default:"30000"`
+		NodePortMaximum          uint16                   `json:"nodePortMaximum" maximum:"65535" default:"32767"`
 		Labels                   []Label                  `json:"labels"`
 		Annotations              []Annotation             `json:"annotations"`
 	}

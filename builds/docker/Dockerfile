@@ -1,4 +1,4 @@
-FROM reg.kpaas.io/kpaas/ubuntu:16.04-20190626
+FROM alpine:latest
 
 COPY builds/release/console /app/console
 

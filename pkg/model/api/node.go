@@ -16,11 +16,11 @@ package api
 
 type (
 	NodeData struct {
-		Name           string      `json:"name" binding:"required" minLength:"1" maxLength:"64"` // node name
-		Description    string      `json:"description"`                                          // node description
-		MachineRole    MachineRole `json:"role" default:"master" enums:"master,worker,etcd"`     // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
-		Labels         []Label     `json:"labels"`                                               // Node labels
-		Taints         []Taint     `json:"taint"`                                                // Node taints
+		Name           string        `json:"name" binding:"required" minLength:"1" maxLength:"64"` // node name
+		Description    string        `json:"description"`                                          // node description
+		MachineRole    []MachineRole `json:"role" default:"master" enums:"master,worker,etcd"`     // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
+		Labels         []Label       `json:"labels"`                                               // Node labels
+		Taints         []Taint       `json:"taint"`                                                // Node taints
 		ConnectionData `json:",inline"`
 	}
 

@@ -553,6 +553,7 @@ var doc = `{
                     }
                 },
                 "kubeAPIServerConnectType": {
+                    "description": "kube-apiserver connect type",
                     "type": "string",
                     "enum": [
                         "firstMasterIP",
@@ -566,17 +567,34 @@ var doc = `{
                         "$ref": "#/definitions/api.Label"
                     }
                 },
+                "loadbalancerIP": {
+                    "description": "kube-apiserver loadbalancer ip when kubeAPIServerConnectType is loadbalancer required",
+                    "type": "string",
+                    "maxLength": 15
+                },
+                "loadbalancerPort": {
+                    "description": "kube-apiserver loadbalancer port when kubeAPIServerConnectType is loadbalancer required",
+                    "type": "integer",
+                    "maximum": 65535,
+                    "minimum": 1
+                },
                 "name": {
                     "type": "string"
                 },
                 "netInterfaceName": {
+                    "description": "keepalived listen net interface name",
                     "type": "string",
                     "maxLength": 30
                 },
-                "nodePort": {
+                "nodePortMaximum": {
                     "type": "integer",
                     "default": 32767,
                     "maximum": 65535
+                },
+                "nodePortMinimum": {
+                    "type": "integer",
+                    "default": 30000,
+                    "minimum": 1
                 },
                 "shortName": {
                     "type": "string",
@@ -584,6 +602,7 @@ var doc = `{
                     "minLength": 1
                 },
                 "vip": {
+                    "description": "keepalived listen virtual ip",
                     "type": "string",
                     "maxLength": 15
                 }
@@ -871,16 +890,6 @@ var doc = `{
                 "privateKeyName": {
                     "description": "the private key name of login",
                     "type": "string"
-                },
-                "role": {
-                    "description": "machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.",
-                    "type": "string",
-                    "default": "master",
-                    "enum": [
-                        "master",
-                        "worker",
-                        "etcd"
-                    ]
                 },
                 "taint": {
                     "description": "Node taints",
