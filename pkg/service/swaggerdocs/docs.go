@@ -682,7 +682,12 @@ var doc = `{
                     }
                 },
                 "role": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "master",
+                        "worker",
+                        "etcd"
+                    ]
                 }
             }
         },
@@ -742,7 +747,7 @@ var doc = `{
                         "workedButHaveError"
                     ]
                 },
-                "nodes": {
+                "roles": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.DeploymentResponseData"

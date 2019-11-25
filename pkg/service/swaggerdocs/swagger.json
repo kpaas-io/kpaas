@@ -668,7 +668,12 @@
                     }
                 },
                 "role": {
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "master",
+                        "worker",
+                        "etcd"
+                    ]
                 }
             }
         },
@@ -728,7 +733,7 @@
                         "workedButHaveError"
                     ]
                 },
-                "nodes": {
+                "roles": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.DeploymentResponseData"
