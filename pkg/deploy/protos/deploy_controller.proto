@@ -1,0 +1,206 @@
+// Copyright 2019 Shanghai JingDuo Information Technology co., Ltd.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+
+syntax = "proto3";
+
+package protos;
+
+// The deploycontroller service definition.
+service DeployContoller {
+  rpc TestConnection(TestConnectionRequest) returns (TestConnectionReply) {}
+  rpc CheckNodes(CheckNodesRequest) returns (CheckNodesReply) {}
+  rpc GetCheckNodesResult(GetCheckNodesResultRequest) returns (GetCheckNodesResultReply) {}
+  rpc Deploy(DeployRequest) returns (DeployReply) {}
+  rpc GetDeployResult(GetDeployResultRequest) returns (GetDeployResultReply) {}
+}
+
+message Auth {
+  // type could be ["password", "privatekey"]
+  string type = 1;
+  // credential stores the content of password or privatekey
+  string credential = 2;
+}
+
+// SSH contains the ssh login info.
+message SSH {
+  uint32 port = 1;
+  Auth auth = 2;
+}
+
+// Node contains the node metadata info
+message Node {
+  string name = 1;
+  string ip = 2;
+  SSH ssh = 3;
+}
+
+message Error {
+  string reason = 1;
+  string detail = 2;
+  string fixMethods = 3;
+}
+
+// TestConnectionRequest contains the request of node connection testing.
+message TestConnectionRequest {
+  Node node = 1;
+}
+
+// TestConnectionReply contains the result of node connection testing.
+message TestConnectionReply {
+  bool passed = 1;
+  Error err = 2;
+}
+
+// NodeCheckConfig contains the pre-checking configuration for a node
+message NodeCheckConfig {
+  Node node = 1;
+  repeated string roles = 2;
+}
+
+// CheckNodesRequest contains the request of node pre-checking.
+message CheckNodesRequest {
+  repeated NodeCheckConfig configs = 1;
+}
+
+// CheckNodesReply contains the result of node pre-checking.
+message CheckNodesReply {
+  bool acceptd = 1;
+  Error err = 2;
+}
+
+// CheckItem is a check item of node pre-checking
+message CheckItem {
+  string name = 1;
+  string description = 2;
+}
+
+// ItemCheckResult contains the pre-checking reuslt of an itme
+message ItemCheckResult {
+  CheckItem item = 1;
+  string status = 2;
+  Error err = 3;
+  string logs = 4;
+}
+
+// ItemCheckResult contains the pre-checking reuslt of a node
+message NodeCheckResult {
+  string nodeName = 1;
+  string status = 2;
+  Error err = 3;
+  repeated ItemCheckResult items = 4;
+}
+
+// GetCheckNodesResultRequest contains the request of getting nodes check result.
+message GetCheckNodesResultRequest {
+  bool withLogs = 1;
+}
+
+// GetCheckNodesResultReply contains the result of nodes check
+message GetCheckNodesResultReply {
+  string status = 1;
+  Error err = 2;
+  repeated NodeCheckResult nodes = 3;
+}
+
+message NodePortRange {
+  uint32 from = 1;
+  uint32 to = 2;
+}
+
+message Keepalived {
+  string vip = 1;
+  string netInterfaceName = 2;
+}
+
+message Loadbalancer {
+  string ip = 1;
+  uint32 port = 2;
+}
+
+// KubeAPIServerConnect contains the info of how to connect to k8s API server
+message KubeAPIServerConnect {
+  // type could be ["firstMasterIP", "keepalived", "loadbalancer"]
+  string type = 1;
+  Keepalived keepalived = 2;
+  Loadbalancer loadbalancer = 3;
+}
+
+// ClusterConfig contains the configuraton of a cluster
+message ClusterConfig {
+  string clusterName = 1;
+  KubeAPIServerConnect kubeAPIServerConnect = 2;
+  NodePortRange nodePortRange = 3;
+  map<string, string> nodeLabels = 4;
+  map<string, string> nodeAnnotations = 5;
+  string imageRepository = 6;
+  string podSubnet = 7;
+  string serviceSubnet = 8;
+  string kubernetesVersion = 9;
+}
+
+message Taint {
+  string key = 1;
+  string value = 2;
+  string effect = 3;
+}
+
+// NodeDeployConfig contains the deploy configuration for a node
+message NodeDeployConfig {
+  Node node = 1;
+  // role cloud be ["etcd", "master", "worker", ...]
+  repeated string roles = 2;
+  map<string, string> labels = 3;
+  repeated Taint taints = 4;
+}
+
+// DeployRequest contains the request of a deploy.
+message DeployRequest {
+  repeated NodeDeployConfig nodeConfigs = 1; 
+  ClusterConfig clusterConfig = 2;
+}
+
+// DeployReply contains the response of a deploy request.
+message DeployReply {
+  bool acceptd = 1;
+  Error err = 2;
+}
+
+// GetDeployResultRequest contains the request of getting deploy result.
+message GetDeployResultRequest {
+  bool withLogs = 1;
+}
+
+// DeployItem represents a deploy action in a node for a role. 
+message DeployItem {
+  string role = 1;
+  string nodeName = 2;
+  bool failureCanBeIgnored = 3;
+}
+
+// DeployItemResult represents the deploy result in a node for a role. 
+message DeployItemResult {
+  DeployItem deployItem = 1;
+  string status = 2;
+  Error err = 3;
+  string logs = 4;
+}
+
+// GetDeployResultReply represents the result of a deploy 
+message GetDeployResultReply {
+  string status = 1;
+  Error err = 2;
+  repeated DeployItemResult items = 3;
+}
+

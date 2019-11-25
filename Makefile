@@ -63,3 +63,8 @@ build_service_image: build_service_cross
 
 push_service_image: build_service_image
 	docker push $(IMAGE_REPOSITORY_URL)/service:$(BUILD_TAG)
+
+.PHONY: build_deploy_protos
+build_deploy_protos:
+	@sh builds/protos/deploy/protos.sh
+
