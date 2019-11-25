@@ -1,6 +1,6 @@
-# kPaaS
+# KPaaS
 
-kPaaS is a tool for deploying Kubernetes clusters, operating Kubernetes clusters, and managing software lifecycles in Kubernetes clusters.
+KPaaS is a tool for deploying Kubernetes clusters, operating Kubernetes clusters, and managing software lifecycles in Kubernetes clusters.
 
 ## Quick Start
 
@@ -91,5 +91,5 @@ Since it is still a closed development version, it is not available for the time
 
 ## License
 
-kPaaS source code is licensed under the Apache Licence, Version 2.0
+KPaaS source code is licensed under the Apache Licence, Version 2.0
 (http://www.apache.org/licenses/LICENSE-2.0.html).
