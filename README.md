@@ -65,7 +65,7 @@ limitations under the License.
 ```
 4. In the **Settings/Preferences** dialog, go to **Appearance & Behavior** | **Scopes**.
 5. Click **+** Add scope (Insert) icon, select **Shared** from the list, and specify the name of the scope.
-6. Specify a pattern in the Pattern field manually, fill `*&&!file[kpaas]:*&&!file[kpaas]:.idea//*&&!file[kpaas]:.github//*` .
+6. Specify a pattern in the Pattern field manually, fill `*&&!file[kpaas]:*&&!file[kpaas]:.idea//*&&!file[kpaas]:.github//*` or `!file[kpaas]:.idea//*&&!file[kpaas]:.github//*` for Goland.
 7. Click **Apply**.
 8. In the **Settings/Preferences** dialog, select **Editor** | **Copyright**.
 9. Click **+** Add Copyright icon, and select the scope you just added from the list.
