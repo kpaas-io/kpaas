@@ -68,3 +68,13 @@ push_service_image: build_service_image
 build_deploy_protos:
 	@sh builds/protos/deploy/protos.sh
 
+.PHONY: build_deploy_local
+build_deploy_local: build_deploy_protos
+	mkdir -p builds/debug
+	go build -o builds/debug/deploy -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/cli/deploy
+
+.PHONY: build_deploy_cross
+build_deploy_cross: build_deploy_protos
+	mkdir -p builds/release
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/deploy -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/cli/deploy
+
