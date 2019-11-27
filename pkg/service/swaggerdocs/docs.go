@@ -72,6 +72,25 @@ var doc = `{
             }
         },
         "/api/v1/deploy/wizard/clusters": {
+            "get": {
+                "description": "Describe cluster information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cluster"
+                ],
+                "summary": "Get Cluster Information",
+                "operationId": "GetCluster",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Cluster"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Store new cluster information",
                 "consumes": [
@@ -208,6 +227,25 @@ var doc = `{
             }
         },
         "/api/v1/deploy/wizard/nodes": {
+            "get": {
+                "description": "Get nodes information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "node"
+                ],
+                "summary": "Get nodes information",
+                "operationId": "GetNodeList",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.GetNodeListResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Add deployment candidate to node list",
                 "consumes": [
@@ -256,6 +294,46 @@ var doc = `{
             }
         },
         "/api/v1/deploy/wizard/nodes/{ip}": {
+            "get": {
+                "description": "Get a node information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "node"
+                ],
+                "summary": "Get a node information",
+                "operationId": "GetNode",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Node IP Address",
+                        "name": "ip",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.NodeData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            },
             "put": {
                 "description": "Update a node information which in deployment candidate node list",
                 "consumes": [
@@ -763,6 +841,18 @@ var doc = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.DeploymentResponseData"
+                    }
+                }
+            }
+        },
+        "api.GetNodeListResponse": {
+            "type": "object",
+            "properties": {
+                "nodes": {
+                    "description": "node list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.NodeData"
                     }
                 }
             }

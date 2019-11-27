@@ -202,6 +202,14 @@ definitions:
           $ref: '#/definitions/api.DeploymentResponseData'
         type: array
     type: object
+  api.GetNodeListResponse:
+    properties:
+      nodes:
+        description: node list
+        items:
+          $ref: '#/definitions/api.NodeData'
+        type: array
+    type: object
   api.GetSSHCertificateListResponse:
     properties:
       names:
@@ -458,6 +466,19 @@ paths:
       tags:
       - checking
   /api/v1/deploy/wizard/clusters:
+    get:
+      description: Describe cluster information
+      operationId: GetCluster
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Cluster'
+      summary: Get Cluster Information
+      tags:
+      - cluster
     post:
       consumes:
       - application/json
@@ -549,6 +570,19 @@ paths:
       tags:
       - log
   /api/v1/deploy/wizard/nodes:
+    get:
+      description: Get nodes information
+      operationId: GetNodeList
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GetNodeListResponse'
+      summary: Get nodes information
+      tags:
+      - node
     post:
       consumes:
       - application/json
@@ -607,6 +641,33 @@ paths:
           schema:
             $ref: '#/definitions/h.AppErr'
       summary: Delete a node
+      tags:
+      - node
+    get:
+      description: Get a node information
+      operationId: GetNode
+      parameters:
+      - description: Node IP Address
+        in: path
+        name: ip
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.NodeData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Get a node information
       tags:
       - node
     put:

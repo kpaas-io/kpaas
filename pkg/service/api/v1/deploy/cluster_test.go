@@ -179,3 +179,84 @@ func TestSetCluster3(t *testing.T) {
 	assert.Equal(t, uint16(16000), wizardData.Info.NodePortMinimum)
 	assert.Equal(t, uint16(16999), wizardData.Info.NodePortMaximum)
 }
+
+func TestGetCluster(t *testing.T) {
+
+	wizard.ClearCurrentWizardData()
+	var err error
+	resp := httptest.NewRecorder()
+	gin.SetMode(gin.TestMode)
+	ctx, _ := gin.CreateTestContext(resp)
+	ctx.Request = httptest.NewRequest("GET", "/api/v1/deploy/wizard/clusters", nil)
+
+	GetCluster(ctx)
+	resp.Flush()
+	assert.True(t, resp.Body.Len() > 0)
+	fmt.Printf("result: %s\n", resp.Body.String())
+	responseData := new(api.Cluster)
+	err = json.Unmarshal(resp.Body.Bytes(), responseData)
+	assert.Nil(t, err)
+
+	assert.Equal(t, api.KubeAPIServerConnectTypeFirstMasterIP, responseData.KubeAPIServerConnectType)
+	assert.Equal(t, "", responseData.ShortName)
+	assert.Equal(t, "", responseData.Name)
+	assert.Equal(t, "", responseData.VIP)
+	assert.Equal(t, "", responseData.NetInterfaceName)
+	assert.Equal(t, "", responseData.LoadbalancerIP)
+	assert.Equal(t, uint16(0), responseData.LoadbalancerPort)
+	assert.Equal(t, wizard.DefaultNodePortMinimum, responseData.NodePortMinimum)
+	assert.Equal(t, wizard.DefaultNodePortMaximum, responseData.NodePortMaximum)
+	assert.Empty(t, responseData.Labels)
+	assert.Empty(t, responseData.Annotations)
+}
+
+func TestGetCluster2(t *testing.T) {
+
+	wizard.ClearCurrentWizardData()
+	wizardData := wizard.GetCurrentWizard()
+	wizardData.Info.ShortName = "test-cluster"
+	wizardData.Info.Name = "ClusterName"
+	wizardData.Info.KubeAPIServerConnection.KubeAPIServerConnectType = wizard.KubeAPIServerConnectTypeKeepalived
+	wizardData.Info.KubeAPIServerConnection.VIP = "192.168.31.100"
+	wizardData.Info.KubeAPIServerConnection.NetInterfaceName = "em0"
+	wizardData.Info.NodePortMinimum = 20000
+	wizardData.Info.NodePortMaximum = 29999
+	wizardData.Info.Labels = []*wizard.Label{
+		{
+			Key:   "for-test",
+			Value: "yes",
+		},
+	}
+	wizardData.Info.Annotations = []*wizard.Annotation{
+		{
+			Key:   "comment",
+			Value: "Icanspeakenglish",
+		},
+	}
+
+	var err error
+	resp := httptest.NewRecorder()
+	gin.SetMode(gin.TestMode)
+	ctx, _ := gin.CreateTestContext(resp)
+	ctx.Request = httptest.NewRequest("GET", "/api/v1/deploy/wizard/clusters", nil)
+
+	GetCluster(ctx)
+	resp.Flush()
+	assert.True(t, resp.Body.Len() > 0)
+	fmt.Printf("result: %s\n", resp.Body.String())
+	responseData := new(api.Cluster)
+	err = json.Unmarshal(resp.Body.Bytes(), responseData)
+	assert.Nil(t, err)
+
+	assert.Equal(t, api.KubeAPIServerConnectTypeKeepalived, responseData.KubeAPIServerConnectType)
+	assert.Equal(t, "test-cluster", responseData.ShortName)
+	assert.Equal(t, "ClusterName", responseData.Name)
+	assert.Equal(t, "192.168.31.100", responseData.VIP)
+	assert.Equal(t, "em0", responseData.NetInterfaceName)
+	assert.Equal(t, "", responseData.LoadbalancerIP)
+	assert.Equal(t, uint16(0), responseData.LoadbalancerPort)
+	assert.Equal(t, uint16(20000), responseData.NodePortMinimum)
+	assert.Equal(t, uint16(29999), responseData.NodePortMaximum)
+	assert.Equal(t, []api.Label{{Key: "for-test", Value: "yes"}}, responseData.Labels)
+	assert.Equal(t, []api.Annotation{{Key: "comment", Value: "Icanspeakenglish"}}, responseData.Annotations)
+}

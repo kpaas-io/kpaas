@@ -228,6 +228,17 @@ func (cluster *Cluster) DeleteNode(ip string) error {
 	return nil
 }
 
+func (cluster *Cluster) GetNode(ip string) *Node {
+
+	for _, node := range cluster.Nodes {
+		if node.IP == ip {
+			return node
+		}
+	}
+
+	return nil
+}
+
 func NewClusterInfo() *ClusterInfo {
 
 	info := new(ClusterInfo)

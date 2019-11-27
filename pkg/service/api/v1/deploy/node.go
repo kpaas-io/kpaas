@@ -27,6 +27,51 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/utils/validator"
 )
 
+// @ID GetNodeList
+// @Summary Get nodes information
+// @Description Get nodes information
+// @Tags node
+// @Produce application/json
+// @Success 200 {object} api.GetNodeListResponse
+// @Router /api/v1/deploy/wizard/nodes [get]
+func GetNodeList(c *gin.Context) {
+
+	responseData := new(api.GetNodeListResponse)
+	nodes := getWizardNodes()
+	responseData.Nodes = *nodes
+
+	h.R(c, responseData)
+}
+
+// @ID GetNode
+// @Summary Get a node information
+// @Description Get a node information
+// @Tags node
+// @Produce application/json
+// @Param ip path int true "Node IP Address"
+// @Success 200 {object} api.NodeData
+// @Failure 400 {object} h.AppErr
+// @Failure 404 {object} h.AppErr
+// @Router /api/v1/deploy/wizard/nodes/{ip} [get]
+func GetNode(c *gin.Context) {
+
+	ip := c.Param("ip")
+	if len(ip) <= 0 {
+
+		h.E(c, h.EParamsError.WithPayload("path parameter \"ip\" required"))
+		return
+	}
+
+	node := wizard.GetCurrentWizard().GetNode(ip)
+	if node == nil {
+
+		h.E(c, h.ENotFound.WithPayload("node ip not exist"))
+		return
+	}
+
+	h.R(c, convertModelNodeToAPINode(node))
+}
+
 // @ID AddNode
 // @Summary Add Node Information
 // @Description Add deployment candidate to node list

@@ -81,6 +81,20 @@ func SetCluster(c *gin.Context) {
 	h.R(c, api.SuccessfulOption{Success: true})
 }
 
+// @ID GetCluster
+// @Summary Get Cluster Information
+// @Description Describe cluster information
+// @Tags cluster
+// @Produce application/json
+// @Success 200 {object} api.Cluster
+// @Router /api/v1/deploy/wizard/clusters [get]
+func GetCluster(c *gin.Context) {
+
+	clusterInfo := getWizardClusterInfo()
+
+	h.R(c, clusterInfo)
+}
+
 func getClusterRequestData(c *gin.Context) (requestData *api.Cluster, hasError bool) {
 
 	requestData = new(api.Cluster)

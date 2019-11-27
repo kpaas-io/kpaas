@@ -281,3 +281,169 @@ func TestDeleteNode(t *testing.T) {
 
 	assert.Equal(t, http.StatusNoContent, resp.Code)
 }
+
+func TestGetNodeList(t *testing.T) {
+
+	var err error
+	wizard.ClearCurrentWizardData()
+	wizardData := wizard.GetCurrentWizard()
+	wizardData.Nodes = []*wizard.Node{
+		{
+			Name:         "master1",
+			Description:  "desc1",
+			MachineRoles: []wizard.MachineRole{wizard.MachineRoleMaster, wizard.MachineRoleEtcd},
+			Labels: []*wizard.Label{
+				{
+					Key:   "kpaas.io/test",
+					Value: "yes",
+				},
+			},
+			Taints: []*wizard.Taint{
+				{
+					Key:    "taint1",
+					Value:  "taint-value",
+					Effect: wizard.TaintEffectNoExecute,
+				},
+			},
+			DockerRootDirectory: "/mnt/docker",
+			ConnectionData: wizard.ConnectionData{
+				IP:                 "192.168.31.140",
+				Port:               22,
+				Username:           "kpaas",
+				AuthenticationType: wizard.AuthenticationTypePassword,
+				Password:           "123456",
+			},
+		},
+	}
+
+	resp := httptest.NewRecorder()
+	gin.SetMode(gin.TestMode)
+	ctx, _ := gin.CreateTestContext(resp)
+	ctx.Request = httptest.NewRequest("GET", "/api/v1/deploy/wizard/nodes", nil)
+
+	GetNodeList(ctx)
+	resp.Flush()
+	assert.True(t, resp.Body.Len() > 0)
+	fmt.Printf("result: %s\n", resp.Body.String())
+	responseData := new(api.GetNodeListResponse)
+	err = json.Unmarshal(resp.Body.Bytes(), responseData)
+	assert.Nil(t, err)
+
+	assert.Equal(t, []api.NodeData{
+		{
+			NodeBaseData: api.NodeBaseData{
+				Name:        "master1",
+				Description: "desc1",
+				MachineRole: []api.MachineRole{api.MachineRoleMaster, api.MachineRoleEtcd},
+				Labels: []api.Label{
+					{
+						Key:   "kpaas.io/test",
+						Value: "yes",
+					},
+				},
+				Taints: []api.Taint{
+					{
+						Key:    "taint1",
+						Value:  "taint-value",
+						Effect: api.TaintEffectNoExecute,
+					},
+				},
+				DockerRootDirectory: "/mnt/docker",
+			},
+			ConnectionData: api.ConnectionData{
+				IP:   "192.168.31.140",
+				Port: 22,
+				SSHLoginData: api.SSHLoginData{
+					Username:           "kpaas",
+					AuthenticationType: api.AuthenticationTypePassword,
+					Password:           "",
+				},
+			},
+		},
+	}, responseData.Nodes)
+}
+
+func TestGetNode(t *testing.T) {
+
+	var err error
+	wizard.ClearCurrentWizardData()
+	wizardData := wizard.GetCurrentWizard()
+	wizardData.Nodes = []*wizard.Node{
+		{
+			Name:         "master1",
+			Description:  "desc1",
+			MachineRoles: []wizard.MachineRole{wizard.MachineRoleMaster, wizard.MachineRoleEtcd},
+			Labels: []*wizard.Label{
+				{
+					Key:   "kpaas.io/test",
+					Value: "yes",
+				},
+			},
+			Taints: []*wizard.Taint{
+				{
+					Key:    "taint1",
+					Value:  "taint-value",
+					Effect: wizard.TaintEffectNoExecute,
+				},
+			},
+			DockerRootDirectory: "/mnt/docker",
+			ConnectionData: wizard.ConnectionData{
+				IP:                 "192.168.31.140",
+				Port:               22,
+				Username:           "kpaas",
+				AuthenticationType: wizard.AuthenticationTypePassword,
+				Password:           "123456",
+			},
+		},
+	}
+
+	resp := httptest.NewRecorder()
+	gin.SetMode(gin.TestMode)
+	ctx, _ := gin.CreateTestContext(resp)
+	ctx.Request = httptest.NewRequest("GET", "/api/v1/deploy/wizard/nodes/192.168.31.140", nil)
+	ctx.Params = gin.Params{
+		{
+			Key:   "ip",
+			Value: "192.168.31.140",
+		},
+	}
+
+	GetNode(ctx)
+	resp.Flush()
+	assert.True(t, resp.Body.Len() > 0)
+	fmt.Printf("result: %s\n", resp.Body.String())
+	responseData := new(api.NodeData)
+	err = json.Unmarshal(resp.Body.Bytes(), responseData)
+	assert.Nil(t, err)
+
+	assert.Equal(t, api.NodeData{
+		NodeBaseData: api.NodeBaseData{
+			Name:        "master1",
+			Description: "desc1",
+			MachineRole: []api.MachineRole{api.MachineRoleMaster, api.MachineRoleEtcd},
+			Labels: []api.Label{
+				{
+					Key:   "kpaas.io/test",
+					Value: "yes",
+				},
+			},
+			Taints: []api.Taint{
+				{
+					Key:    "taint1",
+					Value:  "taint-value",
+					Effect: api.TaintEffectNoExecute,
+				},
+			},
+			DockerRootDirectory: "/mnt/docker",
+		},
+		ConnectionData: api.ConnectionData{
+			IP:   "192.168.31.140",
+			Port: 22,
+			SSHLoginData: api.SSHLoginData{
+				Username:           "kpaas",
+				AuthenticationType: api.AuthenticationTypePassword,
+				Password:           "",
+			},
+		},
+	}, *responseData)
+}

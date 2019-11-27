@@ -60,6 +60,10 @@ type (
 		Effect TaintEffect `json:"effect" enums:"NoSchedule,NoExecute,PreferNoSchedule"`
 	}
 
+	GetNodeListResponse struct {
+		Nodes []NodeData `json:"nodes"` // node list
+	}
+
 	MachineRole string // Machine Role, master or worker
 
 	AuthenticationType string // Type of authorization,  password or privateKey

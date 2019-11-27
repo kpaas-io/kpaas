@@ -189,3 +189,41 @@ func convertAPIAuthenticationTypeToModelAuthenticationType(authenticationType ap
 
 	return wizard.AuthenticationType(fmt.Sprintf("unknown(%s)", authenticationType))
 }
+
+func convertModelNodeToAPINode(node *wizard.Node) *api.NodeData {
+
+	machineRoles := make([]api.MachineRole, 0, len(node.MachineRoles))
+	for _, role := range node.MachineRoles {
+		machineRoles = append(machineRoles, convertModelMachineRoleToAPIMachineRole(role))
+	}
+
+	labels := make([]api.Label, 0, len(node.Labels))
+	for _, label := range node.Labels {
+		labels = append(labels, convertModelLabelToAPILabel(label))
+	}
+
+	taints := make([]api.Taint, 0, len(node.Taints))
+	for _, taint := range node.Taints {
+		taints = append(taints, convertModelTaintToAPITaint(taint))
+	}
+
+	return &api.NodeData{
+		NodeBaseData: api.NodeBaseData{
+			Name:                node.Name,
+			Description:         node.Description,
+			MachineRole:         machineRoles,
+			Labels:              labels,
+			Taints:              taints,
+			DockerRootDirectory: node.DockerRootDirectory,
+		},
+		ConnectionData: api.ConnectionData{
+			IP:   node.IP,
+			Port: node.Port,
+			SSHLoginData: api.SSHLoginData{
+				Username:           node.Username,
+				AuthenticationType: convertModelAuthenticationTypeToAPIAuthenticationType(node.AuthenticationType),
+				PrivateKeyName:     node.PrivateKeyName,
+			},
+		},
+	}
+}

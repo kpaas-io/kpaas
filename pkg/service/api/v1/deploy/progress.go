@@ -109,40 +109,9 @@ func getWizardNodes() *[]api.NodeData {
 
 	for _, node := range wizardData.Nodes {
 
-		machineRoles := make([]api.MachineRole, 0, len(node.MachineRoles))
-		for _, role := range node.MachineRoles {
-			machineRoles = append(machineRoles, convertModelMachineRoleToAPIMachineRole(role))
-		}
+		apiNode := convertModelNodeToAPINode(node)
 
-		labels := make([]api.Label, 0, len(node.Labels))
-		for _, label := range node.Labels {
-			labels = append(labels, convertModelLabelToAPILabel(label))
-		}
-
-		taints := make([]api.Taint, 0, len(node.Taints))
-		for _, taint := range node.Taints {
-			taints = append(taints, convertModelTaintToAPITaint(taint))
-		}
-
-		*nodes = append(*nodes, api.NodeData{
-			NodeBaseData: api.NodeBaseData{
-				Name:                node.Name,
-				Description:         node.Description,
-				MachineRole:         machineRoles,
-				Labels:              labels,
-				Taints:              taints,
-				DockerRootDirectory: node.DockerRootDirectory,
-			},
-			ConnectionData: api.ConnectionData{
-				IP:   node.IP,
-				Port: node.Port,
-				SSHLoginData: api.SSHLoginData{
-					Username:           node.Username,
-					AuthenticationType: convertModelAuthenticationTypeToAPIAuthenticationType(node.AuthenticationType),
-					PrivateKeyName:     node.PrivateKeyName,
-				},
-			},
-		})
+		*nodes = append(*nodes, *apiNode)
 	}
 
 	return nodes
