@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+GO := go
+GOFMT := gofmt
+ARCH ?= $(shell go env GOARCH)
+OS ?= $(shell go env GOOS)
+
 .PHONY: all
 
 IMAGE_REPOSITORY_URL = reg.kpaas.io/kpaas
@@ -78,3 +83,11 @@ build_deploy_cross: build_deploy_protos
 	mkdir -p builds/release
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/deploy -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/cli/deploy
 
+assets-deploy-cross: assets build_deploy_cross
+
+assets-deploy-local: assets build_deploy_local
+
+.PHONY: assets
+assets:
+	GO111MODULE=$(GO111MODULE) $(GO) generate ./pkg/deploy/assets
+	@$(GOFMT) -w ./pkg/deploy/assets
