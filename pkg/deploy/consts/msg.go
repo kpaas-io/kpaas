@@ -25,6 +25,7 @@ const (
 	MsgTaskTypeMismatched          string = "task type mismatched"
 	MsgEmptyTask                   string = "empty task"
 	MsgTaskProcessorCreationFailed string = "failed to create task processor"
+	MsgTaskGenSummaryFailed        string = "failed to generate task summary"
 
 	// Action related messages
 	MsgActionTypeUnsupported        string = "unsupported action type"

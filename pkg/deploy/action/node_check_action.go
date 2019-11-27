@@ -32,6 +32,21 @@ type NodeCheckActionConfig struct {
 type nodeCheckAction struct {
 	base
 	nodeCheckConfig *pb.NodeCheckConfig
+	checkItems      []*nodeCheckItem
+}
+
+type nodeCheckItemStatus string
+
+const (
+	nodeCheckItemFailed    nodeCheckItemStatus = "failed"
+	nodeCheckItemSucessful nodeCheckItemStatus = "sucessful"
+)
+
+type nodeCheckItem struct {
+	name        string
+	description string
+	status      nodeCheckItemStatus
+	err         *pb.Error
 }
 
 // NewNodeCheckAction returns a node check action based on the config.

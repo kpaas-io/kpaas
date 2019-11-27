@@ -67,7 +67,16 @@ func (p *nodeCheckProcessor) run(nodeCheckTask *nodeCheckTask) {
 
 	wg.Wait()
 
-	// TODO: update the task status according to its actions' status
+	if err = p.genTaskSummary(nodeCheckTask); err != nil {
+		nodeCheckTask.status = TaskFailed
+		nodeCheckTask.err = &pb.Error{
+			Reason:     consts.MsgTaskGenSummaryFailed,
+			Detail:     err.Error(),
+			FixMethods: consts.MsgUnknownFixMethod,
+		}
+
+		logrus.Error(consts.MsgTaskGenSummaryFailed)
+	}
 
 	logrus.Debugf("Finish node check task: %+v", *nodeCheckTask)
 }
@@ -103,4 +112,42 @@ func (p *nodeCheckProcessor) splitTask(task *nodeCheckTask) ([]action.Action, er
 	task.status = TaskSplitted
 
 	return actions, nil
+}
+
+// sum task status
+func (p *nodeCheckProcessor) genTaskSummary(t *nodeCheckTask) error {
+	logrus.Debugf("Start to gen task summary")
+
+	if t == nil {
+		return fmt.Errorf(consts.MsgEmptyTask)
+	}
+
+	done := 0
+	failed := 0
+	// combined error message
+	errMsgs := make([]string, 0)
+	for _, act := range t.actions {
+		switch act.GetStatus() {
+		case action.ActionFailed:
+			failed++
+			errMsgs = append(errMsgs, fmt.Sprintf("%v", act.GetErr()))
+		case action.ActionDone:
+			done++
+		}
+	}
+
+	// if any action is failed, the task is failed
+	if failed > 0 {
+		t.status = TaskFailed
+		t.err = &pb.Error{
+			Reason:     "one or more checks failed",
+			Detail:     fmt.Sprintf("%v", errMsgs),
+			FixMethods: "check the detail mssage",
+		}
+	} else if done == len(t.actions) {
+		// if all actions are done, the task is done
+		t.status = TaskDone
+	}
+
+	return nil
 }
