@@ -12,7 +12,7 @@ The directory structure is as follows
 │   └── release # Release directory
 ├── charts # Helm charts for deploying KPaaS components
 │   └── calico # chart for deploying calico networking
-├── cli # Commands line interface
+├── run # application main entrypoints
 │   ├── deploy # Kubernetes deployment service
 │   │   └── main.go
 │   ├── docker # Files that need to be used in Docker, such as: startup files
