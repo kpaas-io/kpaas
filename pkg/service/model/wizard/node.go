@@ -20,13 +20,14 @@ import (
 
 type (
 	Node struct {
-		Name             string              // node name
-		Description      string              // node description
-		MachineRole      []MachineRole       // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
-		Labels           []*Label            // Node labels
-		Taints           []*Taint            // Node taints
-		CheckReport      []*CheckReport      // Overall inspection status
-		DeploymentReport []*DeploymentReport // Deployment report for each role
+		Name                string              // node name
+		Description         string              // node description
+		MachineRoles        []MachineRole       // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
+		Labels              []*Label            // Node labels
+		Taints              []*Taint            // Node taints
+		CheckItems          []*CheckItem        // Overall inspection status
+		DeploymentReports   []*DeploymentReport // Deployment report for each role
+		DockerRootDirectory string              // Docker Root Directory
 		ConnectionData
 	}
 
@@ -43,11 +44,6 @@ type (
 		Role   MachineRole
 		Status DeployStatus
 		Error  *common.FailureDetail
-	}
-
-	CheckReport struct {
-		Role       MachineRole
-		CheckItems []*CheckItem
 	}
 
 	CheckItem struct {
@@ -105,6 +101,9 @@ const (
 	DeployStatusCompleted DeployStatus = "completed"
 	DeployStatusFailed    DeployStatus = "failed"
 	DeployStatusAborted   DeployStatus = "aborted"
+
+	DefaultDockerRootDirectory = "/var/lib/docker"
+	DefaultUsername            = "root"
 )
 
 func NewNode() *Node {
@@ -116,12 +115,15 @@ func NewNode() *Node {
 
 func (node *Node) init() {
 
-	node.MachineRole = make([]MachineRole, 0, 2)
-	node.DeploymentReport = make([]*DeploymentReport, 0, 2)
-	node.CheckReport = make([]*CheckReport, 0, 0)
+	node.MachineRoles = make([]MachineRole, 0, 2)
+	node.DeploymentReports = make([]*DeploymentReport, 0, 2)
+	node.CheckItems = make([]*CheckItem, 0, 0)
 	node.Labels = make([]*Label, 0, 0)
 	node.Taints = make([]*Taint, 0, 0)
+	node.ConnectionData.Port = uint16(22)
+	node.ConnectionData.Username = DefaultUsername
 	node.ConnectionData.AuthenticationType = AuthenticationTypePassword
+	node.DockerRootDirectory = DefaultDockerRootDirectory
 }
 
 func NewDeploymentReport() *DeploymentReport {
@@ -134,18 +136,6 @@ func NewDeploymentReport() *DeploymentReport {
 func (report *DeploymentReport) init() {
 
 	report.Status = DeployStatusPending
-}
-
-func NewCheckReport() *CheckReport {
-
-	report := new(CheckReport)
-	report.init()
-	return report
-}
-
-func (report *CheckReport) init() {
-
-	report.CheckItems = make([]*CheckItem, 0, 0)
 }
 
 func NewCheckItem() *CheckItem {

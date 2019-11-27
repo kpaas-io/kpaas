@@ -26,8 +26,8 @@ type (
 	}
 
 	CheckingItem struct {
-		CheckingPoint string      `json:"point"`
-		Result        CheckResult `json:"result" enums:"checking,passed,failed"` // Checking Result
+		CheckingPoint string      `json:"point"`                                            // Check point
+		Result        CheckResult `json:"result" enums:"notRunning,checking,passed,failed"` // Checking Result
 		Error         *Error      `json:"error,omitempty"`
 	}
 

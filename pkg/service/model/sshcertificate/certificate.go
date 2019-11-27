@@ -34,6 +34,10 @@ func NewCertificate() *Certificate {
 }
 
 func init() {
+	ClearList()
+}
+
+func ClearList() {
 	list = new(sync.Map)
 }
 

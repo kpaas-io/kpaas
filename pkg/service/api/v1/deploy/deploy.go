@@ -16,6 +16,10 @@ package deploy
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
+	"github.com/kpaas-io/kpaas/pkg/utils/h"
 )
 
 // @ID LaunchDeployment
@@ -24,9 +28,24 @@ import (
 // @Tags deploy
 // @Produce application/json
 // @Success 201 {object} api.SuccessfulOption
+// @Failure 404 {object} h.AppErr
 // @Router /api/v1/deploy/wizard/deploys [post]
 func Deploy(c *gin.Context) {
 
+	wizardData := wizard.GetCurrentWizard()
+	if len(wizardData.Nodes) <= 0 {
+		h.E(c, h.ENotFound.WithPayload("No node information, node list is empty, please add node information"))
+		return
+	}
+
+	if wizardData.GetCheckResult() != wizard.CheckResultPassed {
+		h.E(c, h.EStatusError.WithPayload("current check result status is not passed"))
+		return
+	}
+
+	// TODO Lucky Call deploy controller to deploy
+
+	h.R(c, api.SuccessfulOption{Success: true})
 }
 
 // @ID GetDeploymentReport
@@ -38,4 +57,12 @@ func Deploy(c *gin.Context) {
 // @Router /api/v1/deploy/wizard/deploys [get]
 func GetDeployReport(c *gin.Context) {
 
+	wizardData := wizard.GetCurrentWizard()
+	nodeList := getWizardDeploymentData()
+	responseData := api.GetDeploymentReportResponse{
+		Nodes:               *nodeList,
+		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizardData.DeploymentStatus),
+	}
+
+	h.R(c, responseData)
 }

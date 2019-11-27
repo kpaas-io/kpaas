@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package logger
+package log
 
 import (
 	"context"
@@ -81,7 +81,7 @@ func ReqLoggerMiddleware() gin.HandlerFunc {
 		})
 
 		if len(c.Errors) > 0 {
-			entry.Error(c.Errors.String())
+			entry.Info(c.Errors.String())
 		} else {
 			entry.Info()
 		}

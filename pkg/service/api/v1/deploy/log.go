@@ -15,7 +15,12 @@
 package deploy
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
+
+	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
+	"github.com/kpaas-io/kpaas/pkg/utils/h"
 )
 
 // @ID DownloadLog
@@ -30,4 +35,23 @@ import (
 // @Router /api/v1/deploy/wizard/logs/{id} [get]
 func DownloadLog(c *gin.Context) {
 
+	logIdString := c.Param("id")
+	if len(logIdString) == 0 {
+		h.E(c, h.ENotFound.WithPayload("log not exist"))
+		return
+	}
+
+	logId, err := strconv.ParseUint(logIdString, 10, 64)
+	if err != nil {
+		h.E(c, h.EParamsError.WithPayload("logId invalid").WithPayload(err))
+		return
+	}
+
+	content := wizard.GetLog(logId)
+	if content == nil {
+		h.E(c, h.ENotFound)
+		return
+	}
+
+	h.R(c, string(content))
 }

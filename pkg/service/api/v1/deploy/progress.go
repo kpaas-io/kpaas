@@ -16,6 +16,11 @@ package deploy
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
+	"github.com/kpaas-io/kpaas/pkg/utils/h"
+	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
 // Service for wizard progress
@@ -29,6 +34,21 @@ import (
 // @Router /api/v1/deploy/wizard/progresses [get]
 func GetWizardProgress(c *gin.Context) {
 
+	clusterInfo := getWizardClusterInfo()
+	nodes := getWizardNodes()
+	checkingData := getWizardCheckingData()
+	deploymentData := getWizardDeploymentData()
+
+	responseData := api.GetWizardResponse{
+		ClusterData:         *clusterInfo,
+		NodesData:           *nodes,
+		CheckingData:        *checkingData,
+		DeploymentData:      *deploymentData,
+		CheckResult:         convertModelCheckResultToAPICheckResult(wizard.GetCurrentWizard().GetCheckResult()),
+		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.GetCurrentWizard().DeploymentStatus),
+	}
+
+	h.R(c, responseData)
 }
 
 // @ID ClearWizard
@@ -39,4 +59,162 @@ func GetWizardProgress(c *gin.Context) {
 // @Router /api/v1/deploy/wizard/progresses [delete]
 func ClearWizard(c *gin.Context) {
 
+	wizard.ClearCurrentWizardData()
+	log.ReqEntry(c).Warn("clear wizard data")
+
+	h.R(c, nil)
+}
+
+func getWizardClusterInfo() *api.Cluster {
+
+	wizardData := wizard.GetCurrentWizard()
+	clusterInfo := &api.Cluster{
+		ShortName:       wizardData.Info.ShortName,
+		Name:            wizardData.Info.Name,
+		NodePortMinimum: wizardData.Info.NodePortMinimum,
+		NodePortMaximum: wizardData.Info.NodePortMaximum,
+	}
+
+	switch wizardData.Info.KubeAPIServerConnection.KubeAPIServerConnectType {
+	case wizard.KubeAPIServerConnectTypeFirstMasterIP:
+		clusterInfo.KubeAPIServerConnectType = api.KubeAPIServerConnectTypeFirstMasterIP
+	case wizard.KubeAPIServerConnectTypeKeepalived:
+		clusterInfo.KubeAPIServerConnectType = api.KubeAPIServerConnectTypeKeepalived
+		clusterInfo.VIP = wizardData.Info.KubeAPIServerConnection.VIP
+		clusterInfo.NetInterfaceName = wizardData.Info.KubeAPIServerConnection.NetInterfaceName
+	case wizard.KubeAPIServerConnectTypeLoadBalancer:
+		clusterInfo.KubeAPIServerConnectType = api.KubeAPIServerConnectTypeLoadBalancer
+		clusterInfo.LoadbalancerIP = wizardData.Info.KubeAPIServerConnection.LoadbalancerIP
+		clusterInfo.LoadbalancerPort = wizardData.Info.KubeAPIServerConnection.LoadbalancerPort
+	}
+
+	clusterInfo.Labels = make([]api.Label, 0, len(wizardData.Info.Labels))
+	for _, label := range wizardData.Info.Labels {
+		clusterInfo.Labels = append(clusterInfo.Labels, convertModelLabelToAPILabel(label))
+	}
+
+	clusterInfo.Annotations = make([]api.Annotation, 0, len(wizardData.Info.Annotations))
+	for _, annotation := range wizardData.Info.Annotations {
+		clusterInfo.Annotations = append(clusterInfo.Annotations, convertModelAnnotationToAPIAnnotation(annotation))
+	}
+
+	return clusterInfo
+}
+
+func getWizardNodes() *[]api.NodeData {
+
+	wizardData := wizard.GetCurrentWizard()
+	nodes := new([]api.NodeData)
+	*nodes = make([]api.NodeData, 0, len(wizardData.Nodes))
+
+	for _, node := range wizardData.Nodes {
+
+		machineRoles := make([]api.MachineRole, 0, len(node.MachineRoles))
+		for _, role := range node.MachineRoles {
+			machineRoles = append(machineRoles, convertModelMachineRoleToAPIMachineRole(role))
+		}
+
+		labels := make([]api.Label, 0, len(node.Labels))
+		for _, label := range node.Labels {
+			labels = append(labels, convertModelLabelToAPILabel(label))
+		}
+
+		taints := make([]api.Taint, 0, len(node.Taints))
+		for _, taint := range node.Taints {
+			taints = append(taints, convertModelTaintToAPITaint(taint))
+		}
+
+		*nodes = append(*nodes, api.NodeData{
+			NodeBaseData: api.NodeBaseData{
+				Name:                node.Name,
+				Description:         node.Description,
+				MachineRole:         machineRoles,
+				Labels:              labels,
+				Taints:              taints,
+				DockerRootDirectory: node.DockerRootDirectory,
+			},
+			ConnectionData: api.ConnectionData{
+				IP:   node.IP,
+				Port: node.Port,
+				SSHLoginData: api.SSHLoginData{
+					Username:           node.Username,
+					AuthenticationType: convertModelAuthenticationTypeToAPIAuthenticationType(node.AuthenticationType),
+					PrivateKeyName:     node.PrivateKeyName,
+				},
+			},
+		})
+	}
+
+	return nodes
+}
+
+func getWizardCheckingData() *[]api.CheckingResultResponseData {
+
+	wizardData := wizard.GetCurrentWizard()
+	responseData := new([]api.CheckingResultResponseData)
+
+	*responseData = make([]api.CheckingResultResponseData, 0, len(wizardData.Nodes))
+
+	for _, node := range wizardData.Nodes {
+
+		checkingResult := api.CheckingResultResponseData{
+			Name:  node.Name,
+			Items: []api.CheckingItem{},
+		}
+
+		for _, checkItem := range node.CheckItems {
+
+			checkingResult.Items = append(checkingResult.Items, api.CheckingItem{
+				CheckingPoint: checkItem.ItemName,
+				Result:        convertModelCheckResultToAPICheckResult(checkItem.CheckResult),
+				Error:         convertModelErrorToAPIError(checkItem.Error),
+			})
+		}
+
+		*responseData = append(*responseData, checkingResult)
+	}
+
+	return responseData
+}
+
+func getWizardDeploymentData() *[]api.DeploymentResponseData {
+
+	wizardData := wizard.GetCurrentWizard()
+	responseData := new([]api.DeploymentResponseData)
+	*responseData = make([]api.DeploymentResponseData, 0, 0)
+
+	deployList := make(map[api.MachineRole][]*api.DeploymentNode)
+
+	for _, node := range wizardData.Nodes {
+
+		for _, report := range node.DeploymentReports {
+
+			role := convertModelMachineRoleToAPIMachineRole(report.Role)
+			if _, machineRoleExist := deployList[role]; !machineRoleExist {
+				deployList[role] = make([]*api.DeploymentNode, 0, 0)
+			}
+
+			deployList[role] = append(deployList[role], &api.DeploymentNode{
+				Name:   node.Name,
+				Status: convertModelDeployStatusToAPIDeployStatus(report.Status),
+				Error:  convertModelErrorToAPIError(report.Error),
+			})
+		}
+	}
+
+	for role, nodes := range deployList {
+
+		nodeList := api.DeploymentResponseData{
+			Role:  role,
+			Nodes: make([]api.DeploymentNode, 0, len(nodes)),
+		}
+		for _, node := range nodes {
+
+			nodeList.Nodes = append(nodeList.Nodes, *node)
+		}
+
+		*responseData = append(*responseData, nodeList)
+	}
+
+	return responseData
 }

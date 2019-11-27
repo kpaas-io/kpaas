@@ -16,10 +16,12 @@ definitions:
         $ref: '#/definitions/api.Error'
         type: object
       point:
+        description: Check point
         type: string
       result:
         description: Checking Result
         enum:
+        - notRunning
         - checking
         - passed
         - failed
@@ -128,6 +130,9 @@ definitions:
       error:
         $ref: '#/definitions/api.Error'
         type: object
+      name:
+        description: node name
+        type: string
       result:
         description: Checking Result
         enum:
@@ -247,6 +252,12 @@ definitions:
         type: array
       progress:
         description: Wizard progress
+        enum:
+        - settingClusterInformation
+        - settingNodesInformation
+        - checkingNodes
+        - deploying
+        - deployCompleted
         type: string
     type: object
   api.Label:
@@ -269,6 +280,10 @@ definitions:
         type: string
       description:
         description: node description
+        type: string
+      dockerRootDirectory:
+        default: /var/lib/docker
+        description: Docker Root Directory
         type: string
       ip:
         description: node ip
@@ -297,7 +312,7 @@ definitions:
       privateKeyName:
         description: the private key name of login
         type: string
-      taint:
+      taints:
         description: Node taints
         items:
           $ref: '#/definitions/api.Taint'
@@ -342,6 +357,57 @@ definitions:
     required:
     - key
     - value
+    type: object
+  api.UpdateNodeData:
+    properties:
+      authorizationType:
+        description: type of authorization
+        enum:
+        - password
+        - privateKey
+        type: string
+      description:
+        description: node description
+        type: string
+      dockerRootDirectory:
+        default: /var/lib/docker
+        description: Docker Root Directory
+        type: string
+      labels:
+        description: Node labels
+        items:
+          $ref: '#/definitions/api.Label'
+        type: array
+      name:
+        description: node name
+        maxLength: 64
+        minLength: 1
+        type: string
+      password:
+        description: login password
+        type: string
+      port:
+        default: 22
+        description: ssh port
+        maximum: 65535
+        minimum: 1
+        type: integer
+      privateKeyName:
+        description: the private key name of login
+        type: string
+      taints:
+        description: Node taints
+        items:
+          $ref: '#/definitions/api.Taint'
+        type: array
+      username:
+        description: ssh username
+        maxLength: 128
+        type: string
+    required:
+    - name
+    - port
+    - username
     type: object
   h.AppErr:
     properties:
@@ -447,6 +513,10 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/api.SuccessfulOption'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
       summary: Launch deployment
       tags:
       - deploy
@@ -550,7 +620,7 @@ paths:
         name: node
         required: true
         schema:
-          $ref: '#/definitions/api.NodeData'
+          $ref: '#/definitions/api.UpdateNodeData'
           type: object
       - description: Node IP Address
         in: path

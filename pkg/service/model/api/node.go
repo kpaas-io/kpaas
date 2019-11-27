@@ -14,23 +14,44 @@
 
 package api
 
+import (
+	"regexp"
+
+	"github.com/kpaas-io/kpaas/pkg/utils/validator"
+)
+
 type (
+	NodeBaseData struct {
+		Name                string        `json:"name" binding:"required" minLength:"1" maxLength:"64"` // node name
+		Description         string        `json:"description"`                                          // node description
+		MachineRole         []MachineRole `json:"role" default:"master" enums:"master,worker,etcd"`     // machine role, Master and worker roles are mutually exclusive.
+		Labels              []Label       `json:"labels"`                                               // Node labels
+		Taints              []Taint       `json:"taints"`                                               // Node taints
+		DockerRootDirectory string        `json:"dockerRootDirectory" default:"/var/lib/docker"`        // Docker Root Directory
+	}
+
 	NodeData struct {
-		Name           string        `json:"name" binding:"required" minLength:"1" maxLength:"64"` // node name
-		Description    string        `json:"description"`                                          // node description
-		MachineRole    []MachineRole `json:"role" default:"master" enums:"master,worker,etcd"`     // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
-		Labels         []Label       `json:"labels"`                                               // Node labels
-		Taints         []Taint       `json:"taint"`                                                // Node taints
+		NodeBaseData   `json:",inline"`
 		ConnectionData `json:",inline"`
 	}
 
 	ConnectionData struct {
-		IP                 string             `json:"ip" binding:"required" minLength:"1" maxLength:"15"`               // node ip
-		Port               uint16             `json:"port" binding:"required" minimum:"1" maximum:"65535" default:"22"` // ssh port
-		Username           string             `json:"username" binding:"required" maxLength:"128"`                      // ssh username
-		AuthenticationType AuthenticationType `json:"authorizationType" enums:"password,privateKey"`                    // type of authorization
-		Password           string             `json:"password"`                                                         // login password
-		PrivateKeyName     string             `json:"privateKeyName"`                                                   // the private key name of login
+		IP           string `json:"ip" binding:"required" minLength:"1" maxLength:"15"`               // node ip
+		Port         uint16 `json:"port" binding:"required" minimum:"1" maximum:"65535" default:"22"` // ssh port
+		SSHLoginData `json:",inline"`
+	}
+
+	UpdateNodeData struct {
+		NodeBaseData `json:",inline"`
+		SSHLoginData `json:",inline"`
+		Port         uint16 `json:"port" binding:"required" minimum:"1" maximum:"65535" default:"22"` // ssh port
+	}
+
+	SSHLoginData struct {
+		Username           string             `json:"username" binding:"required" maxLength:"128"`   // ssh username
+		AuthenticationType AuthenticationType `json:"authorizationType" enums:"password,privateKey"` // type of authorization
+		Password           string             `json:"password,omitempty"`                            // login password
+		PrivateKeyName     string             `json:"privateKeyName,omitempty"`                      // the private key name of login
 	}
 
 	Taint struct {
@@ -57,4 +78,121 @@ const (
 	TaintEffectNoSchedule       TaintEffect = "NoSchedule"
 	TaintEffectNoExecute        TaintEffect = "NoExecute"
 	TaintEffectPreferNoSchedule TaintEffect = "PreferNoSchedule"
+
+	NodeNameLengthLimit           = 64
+	NodeDescriptionLengthLimit    = 100
+	TaintKeyLengthLimit           = 63
+	TaintValueLengthLimit         = 63
+	TaintKeyRegularExpression     = `[a-zA-Z](\w+)?`
+	TaintValueRegularExpression   = `[a-zA-Z](\w+)?`
+	NodeUsernameRegularExpression = `[A-Za-z][A-Za-z0-9._-]+`
+
+	NodeSSHPortMinimum = 1
+	NodeSSHPortMaximum = 65535
 )
+
+func (node *NodeBaseData) Validate() error {
+
+	rolesNames := make([]string, 0, len(node.MachineRole))
+
+	for _, role := range node.MachineRole {
+		rolesNames = append(rolesNames, string(role))
+	}
+
+	wrapper := validator.NewWrapper(
+		validator.ValidateString(node.Name, "name", validator.ItemNotEmptyLimit, NodeNameLengthLimit),
+		validator.ValidateRegexp(regexp.MustCompile(`[a-zA-Z][\w_-]*\w?`), node.Name, "name"),
+		validator.ValidateString(node.Description, "description", validator.ItemNoLimit, NodeDescriptionLengthLimit),
+		validator.ValidateStringArrayOptions(rolesNames, "role", []string{string(MachineRoleMaster), string(MachineRoleWorker), string(MachineRoleEtcd)}),
+	)
+
+	for _, label := range node.Labels {
+
+		wrapper.AddValidateFunc(
+			func() error {
+				return label.Validate()
+			},
+		)
+	}
+
+	for _, taint := range node.Taints {
+
+		wrapper.AddValidateFunc(
+			func() error {
+				return taint.Validate()
+			},
+		)
+	}
+
+	return wrapper.Validate()
+}
+
+func (login *SSHLoginData) Validate() error {
+
+	wrapper := validator.NewWrapper(
+		validator.ValidateString(login.Username, "username", validator.ItemNotEmptyLimit, validator.ItemNoLimit),
+		validator.ValidateRegexp(regexp.MustCompile(NodeUsernameRegularExpression), login.Username, "username"),
+		validator.ValidateStringOptions(string(login.AuthenticationType), "authorizationType", []string{string(AuthenticationTypePassword), string(AuthenticationTypePrivateKey)}),
+	)
+
+	switch login.AuthenticationType {
+	case AuthenticationTypePassword:
+		wrapper.AddValidateFunc(
+			validator.ValidateString(login.Password, "password", validator.ItemNotEmptyLimit, validator.ItemNoLimit),
+		)
+	case AuthenticationTypePrivateKey:
+		wrapper.AddValidateFunc(
+			validator.ValidateString(login.PrivateKeyName, "privateKeyName", validator.ItemNotEmptyLimit, validator.ItemNoLimit),
+		)
+	}
+
+	return wrapper.Validate()
+}
+
+func (node *ConnectionData) Validate() error {
+
+	return validator.NewWrapper(
+		validator.ValidateIP(node.IP, "ip"),
+		validator.ValidateIntRange(int(node.Port), "port", NodeSSHPortMinimum, NodeSSHPortMaximum),
+		func() error {
+			return node.SSHLoginData.Validate()
+		},
+	).Validate()
+}
+
+func (node *NodeData) Validate() error {
+
+	return validator.NewWrapper(
+		func() error {
+			return node.NodeBaseData.Validate()
+		},
+		func() error {
+			return node.ConnectionData.Validate()
+		},
+	).Validate()
+}
+
+func (taint *Taint) Validate() error {
+
+	return validator.NewWrapper(
+		validator.ValidateString(taint.Key, "key", validator.ItemNotEmptyLimit, TaintKeyLengthLimit),
+		validator.ValidateString(taint.Value, "value", validator.ItemNotEmptyLimit, TaintValueLengthLimit),
+		validator.ValidateRegexp(regexp.MustCompile(TaintKeyRegularExpression), taint.Key, "taint.key"),
+		validator.ValidateRegexp(regexp.MustCompile(TaintValueRegularExpression), taint.Value, "taint.value"),
+		validator.ValidateStringOptions(string(taint.Effect), "taint.effect",
+			[]string{string(TaintEffectNoExecute), string(TaintEffectNoSchedule), string(TaintEffectPreferNoSchedule)}),
+	).Validate()
+}
+
+func (node *UpdateNodeData) Validate() error {
+
+	return validator.NewWrapper(
+		func() error {
+			return node.NodeBaseData.Validate()
+		},
+		validator.ValidateIntRange(int(node.Port), "port", NodeSSHPortMinimum, NodeSSHPortMaximum),
+		func() error {
+			return node.SSHLoginData.Validate()
+		},
+	).Validate()
+}

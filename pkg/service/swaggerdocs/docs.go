@@ -155,6 +155,12 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/api.SuccessfulOption"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
                     }
                 }
             }
@@ -271,7 +277,7 @@ var doc = `{
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/api.NodeData"
+                            "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
                     {
@@ -511,12 +517,14 @@ var doc = `{
                     "$ref": "#/definitions/api.Error"
                 },
                 "point": {
+                    "description": "Check point",
                     "type": "string"
                 },
                 "result": {
                     "description": "Checking Result",
                     "type": "string",
                     "enum": [
+                        "notRunning",
                         "checking",
                         "passed",
                         "failed"
@@ -658,6 +666,10 @@ var doc = `{
                 "error": {
                     "type": "object",
                     "$ref": "#/definitions/api.Error"
+                },
+                "name": {
+                    "description": "node name",
+                    "type": "string"
                 },
                 "result": {
                     "description": "Checking Result",
@@ -822,7 +834,14 @@ var doc = `{
                 },
                 "progress": {
                     "description": "Wizard progress",
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "settingClusterInformation",
+                        "settingNodesInformation",
+                        "checkingNodes",
+                        "deploying",
+                        "deployCompleted"
+                    ]
                 }
             }
         },
@@ -862,6 +881,11 @@ var doc = `{
                     "description": "node description",
                     "type": "string"
                 },
+                "dockerRootDirectory": {
+                    "description": "Docker Root Directory",
+                    "type": "string",
+                    "default": "/var/lib/docker"
+                },
                 "ip": {
                     "description": "node ip",
                     "type": "string",
@@ -896,7 +920,7 @@ var doc = `{
                     "description": "the private key name of login",
                     "type": "string"
                 },
-                "taint": {
+                "taints": {
                     "description": "Node taints",
                     "type": "array",
                     "items": {
@@ -953,6 +977,73 @@ var doc = `{
                 },
                 "value": {
                     "type": "string"
+                }
+            }
+        },
+        "api.UpdateNodeData": {
+            "type": "object",
+            "required": [
+                "name",
+                "port",
+                "username"
+            ],
+            "properties": {
+                "authorizationType": {
+                    "description": "type of authorization",
+                    "type": "string",
+                    "enum": [
+                        "password",
+                        "privateKey"
+                    ]
+                },
+                "description": {
+                    "description": "node description",
+                    "type": "string"
+                },
+                "dockerRootDirectory": {
+                    "description": "Docker Root Directory",
+                    "type": "string",
+                    "default": "/var/lib/docker"
+                },
+                "labels": {
+                    "description": "Node labels",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.Label"
+                    }
+                },
+                "name": {
+                    "description": "node name",
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 1
+                },
+                "password": {
+                    "description": "login password",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "ssh port",
+                    "type": "integer",
+                    "default": 22,
+                    "maximum": 65535,
+                    "minimum": 1
+                },
+                "privateKeyName": {
+                    "description": "the private key name of login",
+                    "type": "string"
+                },
+                "taints": {
+                    "description": "Node taints",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.Taint"
+                    }
+                },
+                "username": {
+                    "description": "ssh username",
+                    "type": "string",
+                    "maxLength": 128
                 }
             }
         },

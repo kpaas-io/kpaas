@@ -33,10 +33,12 @@ type AppErr struct {
 }
 
 var (
-	ENotFound             = &AppErr{http.StatusNotFound, "NotFound", nil}
-	EParamsError          = &AppErr{http.StatusBadRequest, "ParamsError", nil}
-	EUnknown              = &AppErr{http.StatusInternalServerError, "Unknown", nil}
-	EExists               = &AppErr{http.StatusConflict, "Exists", nil}
+	ENotFound      = &AppErr{http.StatusNotFound, "NotFound", nil}
+	EParamsError   = &AppErr{http.StatusBadRequest, "ParamsError", nil}
+	EBindBodyError = &AppErr{http.StatusBadRequest, "BindBodyError", nil}
+	EStatusError   = &AppErr{http.StatusBadRequest, "StatusError", nil}
+	EUnknown       = &AppErr{http.StatusInternalServerError, "Unknown", nil}
+	EExists        = &AppErr{http.StatusConflict, "Exists", nil}
 )
 
 const ()

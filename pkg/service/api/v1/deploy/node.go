@@ -18,6 +18,13 @@ package deploy
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+	"github.com/kpaas-io/kpaas/pkg/service/model/sshcertificate"
+	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
+	"github.com/kpaas-io/kpaas/pkg/utils/h"
+	"github.com/kpaas-io/kpaas/pkg/utils/log"
+	"github.com/kpaas-io/kpaas/pkg/utils/validator"
 )
 
 // @ID AddNode
@@ -33,6 +40,59 @@ import (
 // @Router /api/v1/deploy/wizard/nodes [post]
 func AddNode(c *gin.Context) {
 
+	requestData, hasError := getNodeRequestData(c)
+	if hasError {
+		return
+	}
+
+	node := wizard.NewNode()
+	node.Name = requestData.Name
+	node.Description = requestData.Description
+	node.DockerRootDirectory = requestData.DockerRootDirectory
+	node.MachineRoles = make([]wizard.MachineRole, 0, len(requestData.MachineRole))
+	for _, role := range requestData.MachineRole {
+
+		node.MachineRoles = append(node.MachineRoles, convertAPIMachineRoleToModelMachineRole(role))
+	}
+
+	node.Labels = make([]*wizard.Label, 0, len(requestData.Labels))
+	for _, label := range requestData.Labels {
+
+		node.Labels = append(node.Labels, &wizard.Label{
+			Key:   label.Key,
+			Value: label.Value,
+		})
+	}
+
+	node.Taints = make([]*wizard.Taint, 0, len(requestData.Taints))
+	for _, taint := range requestData.Taints {
+
+		node.Taints = append(node.Taints, &wizard.Taint{
+			Key:    taint.Key,
+			Value:  taint.Value,
+			Effect: convertAPITaintEffectToModelTaintEffect(taint.Effect),
+		})
+	}
+
+	node.IP = requestData.IP
+	node.Port = requestData.Port
+	node.Username = requestData.Username
+	node.AuthenticationType = convertAPIAuthenticationTypeToModelAuthenticationType(requestData.AuthenticationType)
+	switch requestData.AuthenticationType {
+	case api.AuthenticationTypePassword:
+		node.Password = requestData.Password
+	case api.AuthenticationTypePrivateKey:
+		node.PrivateKeyName = requestData.PrivateKeyName
+	}
+
+	err := wizard.GetCurrentWizard().AddNode(node)
+	if err != nil {
+		h.E(c, err)
+		log.ReqEntry(c).Info(err)
+		return
+	}
+
+	h.R(c, requestData)
 }
 
 // @ID UpdateNode
@@ -41,7 +101,7 @@ func AddNode(c *gin.Context) {
 // @Tags node
 // @Accept application/json
 // @Produce application/json
-// @Param node body api.NodeData true "Node information"
+// @Param node body api.UpdateNodeData true "Node information"
 // @Param ip path int true "Node IP Address"
 // @Success 200 {object} api.NodeData
 // @Failure 400 {object} h.AppErr
@@ -50,6 +110,66 @@ func AddNode(c *gin.Context) {
 // @Router /api/v1/deploy/wizard/nodes/{ip} [put]
 func UpdateNode(c *gin.Context) {
 
+	requestData, ip, hasError := getUpdateNodeRequestData(c)
+	if hasError {
+		return
+	}
+
+	var node = wizard.NewNode()
+	node.Name = requestData.Name
+	node.Description = requestData.Description
+	node.DockerRootDirectory = requestData.DockerRootDirectory
+	node.MachineRoles = make([]wizard.MachineRole, 0, len(requestData.MachineRole))
+	for _, role := range requestData.MachineRole {
+
+		node.MachineRoles = append(node.MachineRoles, convertAPIMachineRoleToModelMachineRole(role))
+	}
+
+	node.Labels = make([]*wizard.Label, 0, len(requestData.Labels))
+	for _, label := range requestData.Labels {
+
+		node.Labels = append(node.Labels, &wizard.Label{
+			Key:   label.Key,
+			Value: label.Value,
+		})
+	}
+
+	node.Taints = make([]*wizard.Taint, 0, len(requestData.Taints))
+	for _, taint := range requestData.Taints {
+
+		node.Taints = append(node.Taints, &wizard.Taint{
+			Key:    taint.Key,
+			Value:  taint.Value,
+			Effect: convertAPITaintEffectToModelTaintEffect(taint.Effect),
+		})
+	}
+
+	node.IP = ip
+	node.Port = requestData.Port
+	node.Username = requestData.Username
+	node.AuthenticationType = convertAPIAuthenticationTypeToModelAuthenticationType(requestData.AuthenticationType)
+	switch requestData.AuthenticationType {
+	case api.AuthenticationTypePassword:
+		node.Password = requestData.Password
+	case api.AuthenticationTypePrivateKey:
+		node.PrivateKeyName = requestData.PrivateKeyName
+	}
+
+	err := wizard.GetCurrentWizard().UpdateNode(node)
+	if err != nil {
+		h.E(c, err)
+		log.ReqEntry(c).Info(err)
+		return
+	}
+
+	h.R(c, api.NodeData{
+		NodeBaseData: requestData.NodeBaseData,
+		ConnectionData: api.ConnectionData{
+			IP:           ip,
+			Port:         requestData.Port,
+			SSHLoginData: requestData.SSHLoginData,
+		},
+	})
 }
 
 // @ID DeleteNode
@@ -65,4 +185,71 @@ func UpdateNode(c *gin.Context) {
 // @Router /api/v1/deploy/wizard/nodes/{ip} [delete]
 func DeleteNode(c *gin.Context) {
 
+	ip := c.Param("ip")
+	if len(ip) <= 0 {
+		h.E(c, h.EParamsError.WithPayload("path parameter \"ip\" required"))
+		return
+	}
+
+	err := wizard.GetCurrentWizard().DeleteNode(ip)
+	if err != nil {
+		h.E(c, err)
+		log.ReqEntry(c).Info(err)
+		return
+	}
+
+	h.R(c, nil)
+}
+
+func getNodeRequestData(c *gin.Context) (*api.NodeData, bool) {
+
+	requestData := new(api.NodeData)
+	logger := log.ReqEntry(c)
+
+	if err := validator.Params(c, requestData); err != nil {
+		logger.Info(err)
+		h.E(c, err)
+		return nil, true
+	}
+
+	if requestData.AuthenticationType == api.AuthenticationTypePrivateKey {
+		validateFunction := validator.ValidateStringOptions(requestData.PrivateKeyName, "privateKeyName", sshcertificate.GetNameList())
+		if err := validateFunction(); err != nil {
+			h.E(c, h.EParamsError.WithPayload(err))
+			return nil, true
+		}
+	}
+
+	logger.WithField("data", requestData)
+	return requestData, false
+}
+
+func getUpdateNodeRequestData(c *gin.Context) (*api.UpdateNodeData, string, bool) {
+
+	requestData := new(api.UpdateNodeData)
+	logger := log.ReqEntry(c)
+
+	ip := c.Param("ip")
+	if len(ip) <= 0 {
+
+		h.E(c, h.EParamsError.WithPayload("path parameter \"ip\" required"))
+		return nil, "", true
+	}
+
+	if err := validator.Params(c, requestData); err != nil {
+		logger.Info(err)
+		h.E(c, err)
+		return nil, "", true
+	}
+
+	if requestData.AuthenticationType == api.AuthenticationTypePrivateKey {
+		validateFunction := validator.ValidateStringOptions(requestData.PrivateKeyName, "privateKeyName", sshcertificate.GetNameList())
+		if err := validateFunction(); err != nil {
+			h.E(c, h.EParamsError.WithPayload(err))
+			return nil, "", true
+		}
+	}
+
+	logger.WithField("data", requestData)
+	return requestData, ip, false
 }

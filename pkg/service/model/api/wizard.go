@@ -16,14 +16,14 @@ package api
 
 type (
 	GetWizardResponse struct {
-		ClusterData         Cluster                      `json:"cluster"`                                                                             // Cluster Information
-		NodesData           []NodeData                   `json:"nodes"`                                                                               // Nodes Information
-		CheckingData        []CheckingResultResponseData `json:"checkingData"`                                                                        // Check result
-		DeploymentData      []DeploymentResponseData     `json:"deploymentData"`                                                                      // Deployment result
-		Progress            Progress                     `json:"progress"`                                                                            // Wizard progress
-		Mode                WizardMode                   `json:"mode"`                                                                                // Wizard mode, normal or advanced
-		CheckResult         CheckResult                  `json:"checkResult" enums:"notRunning,checking,passed,failed"`                               // Nodes check result
-		DeployClusterStatus DeployClusterStatus          `json:"deployClusterStatus" enums:"notRunning,running,successful,failed,workedButHaveError"` // Cluster deployment status
+		ClusterData         Cluster                      `json:"cluster"`                                                                                                    // Cluster Information
+		NodesData           []NodeData                   `json:"nodes"`                                                                                                      // Nodes Information
+		CheckingData        []CheckingResultResponseData `json:"checkingData"`                                                                                               // Check result
+		DeploymentData      []DeploymentResponseData     `json:"deploymentData"`                                                                                             // Deployment result
+		Progress            Progress                     `json:"progress" enums:"settingClusterInformation,settingNodesInformation,checkingNodes,deploying,deployCompleted"` // Wizard progress
+		Mode                WizardMode                   `json:"mode"`                                                                                                       // Wizard mode, normal or advanced
+		CheckResult         CheckResult                  `json:"checkResult" enums:"notRunning,checking,passed,failed"`                                                      // Nodes check result
+		DeployClusterStatus DeployClusterStatus          `json:"deployClusterStatus" enums:"notRunning,running,successful,failed,workedButHaveError"`                        // Cluster deployment status
 	}
 
 	Progress   string
