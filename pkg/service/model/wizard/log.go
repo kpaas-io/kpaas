@@ -18,9 +18,8 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
-	"time"
 
-	"github.com/sony/sonyflake"
+	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
 )
 
 const (
@@ -28,8 +27,7 @@ const (
 )
 
 var (
-	logs         map[uint64][]byte // Key Log Id, Value Log detail
-	logIdCreator *sonyflake.Sonyflake
+	logs map[uint64][]byte // Key Log Id, Value Log detail
 )
 
 func init() {
@@ -81,16 +79,9 @@ func GetLogReader(logId uint64) io.ReadCloser {
 func InitLogs() {
 
 	logs = make(map[uint64][]byte)
-	logIdCreator = sonyflake.NewSonyflake(
-		sonyflake.Settings{
-			StartTime: time.Now(),
-			MachineID: func() (u uint16, e error) {
-				return ServiceNodeID, nil
-			},
-		})
 }
 
 func newLogId() (uint64, error) {
 
-	return logIdCreator.NextID()
+	return idcreator.NextID()
 }
