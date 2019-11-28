@@ -16,6 +16,12 @@ package deploy
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+	"github.com/kpaas-io/kpaas/pkg/service/model/sshcertificate"
+	"github.com/kpaas-io/kpaas/pkg/utils/h"
+	"github.com/kpaas-io/kpaas/pkg/utils/log"
+	"github.com/kpaas-io/kpaas/pkg/utils/validator"
 )
 
 // @ID AddSSHCertificate
@@ -29,6 +35,14 @@ import (
 // @Router /api/v1/ssh_certificates [post]
 func AddSSHCertificate(c *gin.Context) {
 
+	requestData, hasError := getSSHCertificateRequestData(c)
+	if hasError {
+		return
+	}
+
+	sshcertificate.AddCertificate(requestData.Name, requestData.Content)
+
+	h.R(c, api.SuccessfulOption{Success: true})
 }
 
 // @ID GetSSHCertificate
@@ -40,4 +54,22 @@ func AddSSHCertificate(c *gin.Context) {
 // @Router /api/v1/ssh_certificates [get]
 func GetCertificateList(c *gin.Context) {
 
+	h.R(c, api.GetSSHCertificateListResponse{
+		Names: sshcertificate.GetNameList(),
+	})
+}
+
+func getSSHCertificateRequestData(c *gin.Context) (requestData *api.SSHCertificate, hasError bool) {
+
+	requestData = new(api.SSHCertificate)
+	logger := log.ReqEntry(c)
+
+	if err := validator.Params(c, requestData); err != nil {
+		logger.Info(err)
+		h.E(c, err)
+		return nil, true
+	}
+
+	logger.WithField("data", requestData)
+	return requestData, false
 }

@@ -12,17 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package api
+package validator
 
-type (
-	SuccessfulOption struct {
-		Success bool `json:"success"`
-	}
-
-	Error struct {
-		Reason     string `json:"reason"`     // Reason of Error message
-		Detail     string `json:"detail"`     // Why is it wrong, what is the judgment condition?
-		FixMethods string `json:"fixMethods"` // How to improve to meet the conditions
-		LogId      uint64 `json:"logId"`      // ID used to get the log file
-	}
+const(
+	ItemEmptyLimit = 0
+	ItemNotEmptyLimit = 1
+	ItemNoLimit = 0
 )

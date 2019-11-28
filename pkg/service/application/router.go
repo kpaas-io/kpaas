@@ -18,7 +18,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
-	deploy2 "github.com/kpaas-io/kpaas/pkg/service/api/v1/deploy"
+	"github.com/kpaas-io/kpaas/pkg/service/api/v1/deploy"
 	_ "github.com/kpaas-io/kpaas/pkg/service/swaggerdocs"
 )
 
@@ -28,25 +28,28 @@ func (a *app) setRoutes() {
 	v1 := a.httpHandler.Group("/api/v1")
 	wizardGroup := v1.Group("/deploy/wizard")
 
-	wizardGroup.GET("/progresses", deploy2.GetWizardProgress)
-	wizardGroup.DELETE("/progresses", deploy2.ClearWizard)
+	wizardGroup.GET("/progresses", deploy.GetWizardProgress)
+	wizardGroup.DELETE("/progresses", deploy.ClearWizard)
 
-	wizardGroup.POST("/clusters", deploy2.SetCluster)
+	wizardGroup.GET("/clusters", deploy.GetCluster)
+	wizardGroup.POST("/clusters", deploy.SetCluster)
 
-	wizardGroup.POST("/nodes", deploy2.AddNode)
-	wizardGroup.PUT("/nodes/{ip}", deploy2.UpdateNode)
-	wizardGroup.DELETE("/nodes/{ip}", deploy2.DeleteNode)
+	wizardGroup.GET("/nodes", deploy.GetNodeList)
+	wizardGroup.GET("/nodes/{ip}", deploy.GetNode)
+	wizardGroup.POST("/nodes", deploy.AddNode)
+	wizardGroup.PUT("/nodes/{ip}", deploy.UpdateNode)
+	wizardGroup.DELETE("/nodes/{ip}", deploy.DeleteNode)
 
-	wizardGroup.POST("/checks", deploy2.CheckNodeList)
-	wizardGroup.GET("/checks", deploy2.GetCheckingNodeListResult)
+	wizardGroup.POST("/checks", deploy.CheckNodeList)
+	wizardGroup.GET("/checks", deploy.GetCheckingNodeListResult)
 
-	wizardGroup.POST("/deploys", deploy2.Deploy)
-	wizardGroup.GET("/deploys", deploy2.GetDeployReport)
+	wizardGroup.POST("/deploys", deploy.Deploy)
+	wizardGroup.GET("/deploys", deploy.GetDeployReport)
 
-	wizardGroup.GET("/logs/{id}", deploy2.DownloadLog)
+	wizardGroup.GET("/logs/{id}", deploy.DownloadLog)
 
-	v1.POST("/ssh/tests", deploy2.TestConnectNode)
+	v1.POST("/ssh/tests", deploy.TestConnectNode)
 
-	v1.POST("/ssh_certificates", deploy2.AddSSHCertificate)
-	v1.GET("/ssh_certificates", deploy2.GetCertificateList)
+	v1.POST("/ssh_certificates", deploy.AddSSHCertificate)
+	v1.GET("/ssh_certificates", deploy.GetCertificateList)
 }

@@ -24,11 +24,11 @@ func TestNewNode(t *testing.T) {
 
 	node := NewNode()
 	assert.IsType(t, &Node{}, node)
-	assert.NotNil(t, node.MachineRole)
+	assert.NotNil(t, node.MachineRoles)
 	assert.NotNil(t, node.Labels)
 	assert.NotNil(t, node.Taints)
-	assert.NotNil(t, node.CheckReport)
-	assert.NotNil(t, node.DeploymentReport)
+	assert.NotNil(t, node.CheckItems)
+	assert.NotNil(t, node.DeploymentReports)
 	assert.Equal(t, AuthenticationTypePassword, node.AuthenticationType)
 }
 
@@ -38,12 +38,6 @@ func TestNewDeploymentReport(t *testing.T) {
 	assert.NotNil(t, report)
 	assert.Equal(t, DeployStatusPending, report.Status)
 	assert.Nil(t, report.Error)
-}
-
-func TestNewCheckReport(t *testing.T) {
-
-	report := NewCheckReport()
-	assert.NotNil(t, report.CheckItems)
 }
 
 func TestNewCheckItem(t *testing.T) {

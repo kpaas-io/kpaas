@@ -16,6 +16,10 @@ package deploy
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
+	"github.com/kpaas-io/kpaas/pkg/utils/h"
 )
 
 // @ID CheckNodeList
@@ -27,6 +31,14 @@ import (
 // @Router /api/v1/deploy/wizard/checks [post]
 func CheckNodeList(c *gin.Context) {
 
+	wizardData := wizard.GetCurrentWizard()
+	if len(wizardData.Nodes) <= 0 {
+		h.E(c, h.ENotFound.WithPayload("No node information, node list is empty, please add node information"))
+		return
+	}
+	// TODO Lucky Call deploy controller to start check nodes
+
+	h.R(c, api.SuccessfulOption{Success: true})
 }
 
 // @ID GetCheckNodeListResult
@@ -38,4 +50,11 @@ func CheckNodeList(c *gin.Context) {
 // @Router /api/v1/deploy/wizard/checks [get]
 func GetCheckingNodeListResult(c *gin.Context) {
 
+	responseData := new(api.GetCheckingResultResponse)
+	wizardData := wizard.GetCurrentWizard()
+	checkResults := getWizardCheckingData()
+	responseData.Nodes = *checkResults
+	responseData.Result = convertModelCheckResultToAPICheckResult(wizardData.GetCheckResult())
+
+	h.R(c, responseData)
 }

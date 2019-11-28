@@ -26,6 +26,7 @@ type (
 	}
 
 	DeploymentNode struct {
+		Name   string       `json:"name"`                                                      // node name
 		Status DeployStatus `json:"result" enums:"pending,deploying,completed,failed,aborted"` // Checking Result
 		Error  *Error       `json:"error,omitempty"`
 	}

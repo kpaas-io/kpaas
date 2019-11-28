@@ -30,7 +30,7 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/service/config"
 	configUtils "github.com/kpaas-io/kpaas/pkg/utils/config"
-	"github.com/kpaas-io/kpaas/pkg/utils/logger"
+	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
 type (
@@ -173,7 +173,7 @@ func (a *app) initRESTfulAPIHandler() {
 
 func (a *app) initRequestLogger() {
 	logrus.Debug("start to register log middleware")
-	a.httpHandler.Use(logger.ReqLoggerMiddleware())
+	a.httpHandler.Use(log.ReqLoggerMiddleware())
 	logrus.Debug("register log middleware succeed")
 }
 

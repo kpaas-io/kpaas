@@ -72,6 +72,25 @@ var doc = `{
             }
         },
         "/api/v1/deploy/wizard/clusters": {
+            "get": {
+                "description": "Describe cluster information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cluster"
+                ],
+                "summary": "Get Cluster Information",
+                "operationId": "GetCluster",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.Cluster"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Store new cluster information",
                 "consumes": [
@@ -155,6 +174,12 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/api.SuccessfulOption"
                         }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
                     }
                 }
             }
@@ -202,6 +227,25 @@ var doc = `{
             }
         },
         "/api/v1/deploy/wizard/nodes": {
+            "get": {
+                "description": "Get nodes information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "node"
+                ],
+                "summary": "Get nodes information",
+                "operationId": "GetNodeList",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.GetNodeListResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Add deployment candidate to node list",
                 "consumes": [
@@ -250,6 +294,46 @@ var doc = `{
             }
         },
         "/api/v1/deploy/wizard/nodes/{ip}": {
+            "get": {
+                "description": "Get a node information",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "node"
+                ],
+                "summary": "Get a node information",
+                "operationId": "GetNode",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Node IP Address",
+                        "name": "ip",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.NodeData"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            },
             "put": {
                 "description": "Update a node information which in deployment candidate node list",
                 "consumes": [
@@ -271,7 +355,7 @@ var doc = `{
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/api.NodeData"
+                            "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
                     {
@@ -511,12 +595,14 @@ var doc = `{
                     "$ref": "#/definitions/api.Error"
                 },
                 "point": {
+                    "description": "Check point",
                     "type": "string"
                 },
                 "result": {
                     "description": "Checking Result",
                     "type": "string",
                     "enum": [
+                        "notRunning",
                         "checking",
                         "passed",
                         "failed"
@@ -659,6 +745,10 @@ var doc = `{
                     "type": "object",
                     "$ref": "#/definitions/api.Error"
                 },
+                "name": {
+                    "description": "node name",
+                    "type": "string"
+                },
                 "result": {
                     "description": "Checking Result",
                     "type": "string",
@@ -755,6 +845,18 @@ var doc = `{
                 }
             }
         },
+        "api.GetNodeListResponse": {
+            "type": "object",
+            "properties": {
+                "nodes": {
+                    "description": "node list",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.NodeData"
+                    }
+                }
+            }
+        },
         "api.GetSSHCertificateListResponse": {
             "type": "object",
             "properties": {
@@ -822,7 +924,14 @@ var doc = `{
                 },
                 "progress": {
                     "description": "Wizard progress",
-                    "type": "string"
+                    "type": "string",
+                    "enum": [
+                        "settingClusterInformation",
+                        "settingNodesInformation",
+                        "checkingNodes",
+                        "deploying",
+                        "deployCompleted"
+                    ]
                 }
             }
         },
@@ -862,6 +971,11 @@ var doc = `{
                     "description": "node description",
                     "type": "string"
                 },
+                "dockerRootDirectory": {
+                    "description": "Docker Root Directory",
+                    "type": "string",
+                    "default": "/var/lib/docker"
+                },
                 "ip": {
                     "description": "node ip",
                     "type": "string",
@@ -896,7 +1010,7 @@ var doc = `{
                     "description": "the private key name of login",
                     "type": "string"
                 },
-                "taint": {
+                "taints": {
                     "description": "Node taints",
                     "type": "array",
                     "items": {
@@ -953,6 +1067,73 @@ var doc = `{
                 },
                 "value": {
                     "type": "string"
+                }
+            }
+        },
+        "api.UpdateNodeData": {
+            "type": "object",
+            "required": [
+                "name",
+                "port",
+                "username"
+            ],
+            "properties": {
+                "authorizationType": {
+                    "description": "type of authorization",
+                    "type": "string",
+                    "enum": [
+                        "password",
+                        "privateKey"
+                    ]
+                },
+                "description": {
+                    "description": "node description",
+                    "type": "string"
+                },
+                "dockerRootDirectory": {
+                    "description": "Docker Root Directory",
+                    "type": "string",
+                    "default": "/var/lib/docker"
+                },
+                "labels": {
+                    "description": "Node labels",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.Label"
+                    }
+                },
+                "name": {
+                    "description": "node name",
+                    "type": "string",
+                    "maxLength": 64,
+                    "minLength": 1
+                },
+                "password": {
+                    "description": "login password",
+                    "type": "string"
+                },
+                "port": {
+                    "description": "ssh port",
+                    "type": "integer",
+                    "default": 22,
+                    "maximum": 65535,
+                    "minimum": 1
+                },
+                "privateKeyName": {
+                    "description": "the private key name of login",
+                    "type": "string"
+                },
+                "taints": {
+                    "description": "Node taints",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.Taint"
+                    }
+                },
+                "username": {
+                    "description": "ssh username",
+                    "type": "string",
+                    "maxLength": 128
                 }
             }
         },

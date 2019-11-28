@@ -16,6 +16,11 @@ package deploy
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+	"github.com/kpaas-io/kpaas/pkg/utils/h"
+	"github.com/kpaas-io/kpaas/pkg/utils/log"
+	"github.com/kpaas-io/kpaas/pkg/utils/validator"
 )
 
 // @ID TestSSH
@@ -31,4 +36,28 @@ import (
 // @Router /api/v1/ssh/tests [post]
 func TestConnectNode(c *gin.Context) {
 
+	// requestData, hasError := getConnectionData(c)
+	_, hasError := getConnectionData(c)
+	if hasError {
+		return
+	}
+
+	// TODO Lucky Call Deploy Controller to test ssh connection
+
+	h.R(c, api.SuccessfulOption{Success: true})
+}
+
+func getConnectionData(c *gin.Context) (requestData *api.ConnectionData, hasError bool) {
+
+	requestData = new(api.ConnectionData)
+	logger := log.ReqEntry(c)
+
+	if err := validator.Params(c, requestData); err != nil {
+		logger.Info(err)
+		h.E(c, err)
+		return nil, true
+	}
+
+	logger.WithField("data", requestData)
+	return requestData, false
 }
