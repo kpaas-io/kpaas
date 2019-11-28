@@ -59,8 +59,8 @@ build_service_cross: service_doc
 	mkdir -p builds/release
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/service -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/service
 
-.PHONY: run
-run: build_service_local
+.PHONY: run_service_local
+run_service_local: build_service_local
 	builds/debug/service
 
 build_service_image: build_service_cross

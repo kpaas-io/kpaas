@@ -174,5 +174,5 @@ func TestGetDeployReport(t *testing.T) {
 				},
 			},
 		},
-	}, responseData.Nodes)
+	}, responseData.Roles)
 }

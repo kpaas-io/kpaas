@@ -60,7 +60,7 @@ func GetDeployReport(c *gin.Context) {
 	wizardData := wizard.GetCurrentWizard()
 	nodeList := getWizardDeploymentData()
 	responseData := api.GetDeploymentReportResponse{
-		Nodes:               *nodeList,
+		Roles:               *nodeList,
 		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizardData.DeploymentStatus),
 	}
 
