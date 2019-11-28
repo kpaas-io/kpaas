@@ -18,6 +18,7 @@ type (
 	GetDeploymentReportResponse struct {
 		Roles               []DeploymentResponseData `json:"roles"`
 		DeployClusterStatus DeployClusterStatus      `json:"deployClusterStatus" enums:"notRunning,running,successful,failed,workedButHaveError"` // The cluster deployment status
+		DeployClusterError  *Error                   `json:"deployClusterError,omitempty"`                                                        // Deploy cluster error message
 	}
 
 	DeploymentResponseData struct {

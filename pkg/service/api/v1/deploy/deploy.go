@@ -62,6 +62,7 @@ func GetDeployReport(c *gin.Context) {
 	responseData := api.GetDeploymentReportResponse{
 		Roles:               *nodeList,
 		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizardData.DeploymentStatus),
+		DeployClusterError:  convertModelErrorToAPIError(wizardData.DeployClusterError),
 	}
 
 	h.R(c, responseData)

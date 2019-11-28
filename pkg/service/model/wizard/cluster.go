@@ -17,16 +17,18 @@ package wizard
 import (
 	"sync"
 
+	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
 )
 
 type (
 	Cluster struct {
-		Info             *ClusterInfo
-		Nodes            []*Node
-		DeploymentStatus DeployClusterStatus
-		Wizard           *WizardData
-		lock             *sync.RWMutex
+		Info               *ClusterInfo
+		Nodes              []*Node
+		DeploymentStatus   DeployClusterStatus
+		DeployClusterError *common.FailureDetail
+		Wizard             *WizardData
+		lock               *sync.RWMutex
 	}
 
 	ClusterInfo struct {
