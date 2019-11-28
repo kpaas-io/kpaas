@@ -20,9 +20,9 @@ type (
 	}
 
 	Error struct {
-		Reason     string `json:"reason"`     // Reason of Error message
-		Detail     string `json:"detail"`     // Why is it wrong, what is the judgment condition?
-		FixMethods string `json:"fixMethods"` // How to improve to meet the conditions
-		LogId      uint64 `json:"logId"`      // ID used to get the log file
+		Reason     string `json:"reason"`          // Reason of Error message
+		Detail     string `json:"detail"`          // Why is it wrong, what is the judgment condition?
+		FixMethods string `json:"fixMethods"`      // How to improve to meet the conditions
+		LogId      uint64 `json:"logId,omitempty"` // ID used to get the log file
 	}
 )

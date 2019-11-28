@@ -175,4 +175,5 @@ func TestGetDeployReport(t *testing.T) {
 			},
 		},
 	}, responseData.Roles)
+	assert.Nil(t, responseData.DeployClusterError)
 }
