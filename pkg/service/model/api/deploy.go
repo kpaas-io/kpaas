@@ -16,12 +16,12 @@ package api
 
 type (
 	GetDeploymentReportResponse struct {
-		Nodes               []DeploymentResponseData `json:"nodes"`
+		Roles               []DeploymentResponseData `json:"roles"`
 		DeployClusterStatus DeployClusterStatus      `json:"deployClusterStatus" enums:"notRunning,running,successful,failed,workedButHaveError"` // The cluster deployment status
 	}
 
 	DeploymentResponseData struct {
-		Role  MachineRole      `json:"role"`
+		Role  MachineRole      `json:"role" enums:"master,worker,etcd"`
 		Nodes []DeploymentNode `json:"nodes"`
 	}
 

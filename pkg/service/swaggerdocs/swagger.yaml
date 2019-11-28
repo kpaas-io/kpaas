@@ -145,6 +145,10 @@ definitions:
           $ref: '#/definitions/api.DeploymentNode'
         type: array
       role:
+        enum:
+        - master
+        - worker
+        - etcd
         type: string
     type: object
   api.Error:
@@ -188,7 +192,7 @@ definitions:
         - failed
         - workedButHaveError
         type: string
-      nodes:
+      roles:
         items:
           $ref: '#/definitions/api.DeploymentResponseData'
         type: array
