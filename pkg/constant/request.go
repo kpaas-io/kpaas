@@ -12,26 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package validator
+package constant
 
-import (
-	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
-
-	"github.com/kpaas-io/kpaas/pkg/constant"
-	"github.com/kpaas-io/kpaas/pkg/utils/h"
+const(
+	RequestID = "X-ReqId"
 )
-
-func Params(c *gin.Context, v Validator) error {
-
-	if err := c.ShouldBindJSON(v); err != nil {
-		return h.EBindBodyError.WithPayload(err.Error())
-	}
-
-	reqId, _ := c.Value(constant.RequestID).(string)
-	logrus.Debugf("reqId: %s, v = %+v\n", reqId, v)
-	if err := v.Validate(); err != nil {
-		return h.EParamsError.WithPayload(err.Error())
-	}
-	return nil
-}

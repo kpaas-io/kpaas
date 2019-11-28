@@ -24,11 +24,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-)
 
-const (
-	REQID_CTX_KEY = "X-Reqid"
-	REQID_HEADER  = "X-Reqid"
+	"github.com/kpaas-io/kpaas/pkg/constant"
 )
 
 func init() {
@@ -55,14 +52,14 @@ func ReqLoggerMiddleware() gin.HandlerFunc {
 		start := time.Now()
 		logrus.SetFormatter(&logrus.TextFormatter{TimestampFormat: time.RFC3339})
 
-		reqid := c.Request.Header.Get(REQID_HEADER)
-		if reqid == "" {
-			reqid = genReqId()
-			c.Request.Header.Set(REQID_HEADER, reqid)
+		reqId := c.Request.Header.Get(constant.RequestID)
+		if reqId == "" {
+			reqId = genReqId()
+			c.Request.Header.Set(constant.RequestID, reqId)
 		}
-		c.Set(REQID_CTX_KEY, reqid)
+		c.Set(constant.RequestID, reqId)
 		// Set request id into response header
-		c.Writer.Header().Set(REQID_HEADER, reqid)
+		c.Writer.Header().Set(constant.RequestID, reqId)
 
 		c.Next()
 
@@ -70,7 +67,7 @@ func ReqLoggerMiddleware() gin.HandlerFunc {
 		latency := end.Sub(start)
 
 		entry := logrus.WithFields(logrus.Fields{
-			"reqid":      reqid,
+			"reqId":      reqId,
 			"status":     c.Writer.Status(),
 			"method":     c.Request.Method,
 			"path":       c.Request.URL,
@@ -90,6 +87,6 @@ func ReqLoggerMiddleware() gin.HandlerFunc {
 
 // usage: ReqEntry(c).Debug(".....")
 func ReqEntry(c context.Context) *logrus.Entry {
-	reqid, _ := c.Value(REQID_CTX_KEY).(string)
-	return logrus.WithField("reqid", reqid)
+	reqId, _ := c.Value(constant.RequestID).(string)
+	return logrus.WithField("reqId", reqId)
 }
