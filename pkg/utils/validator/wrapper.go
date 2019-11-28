@@ -125,15 +125,8 @@ func ValidateStringArrayOptions(strList []string, keyName string, options []stri
 
 		for _, str := range strList {
 
-			var isMatch bool
-			for _, option := range options {
-				if option == str {
-					isMatch = true
-					continue
-				}
-			}
-			if !isMatch {
-				return fmt.Errorf("%s not in specify options", keyName)
+			if err := ValidateStringOptions(str, keyName, options)(); err != nil {
+				return err
 			}
 		}
 
