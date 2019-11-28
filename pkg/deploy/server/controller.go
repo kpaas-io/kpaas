@@ -144,7 +144,41 @@ func (c *controller) FetchKubeConfig(ctx context.Context, req *pb.FetchKubeConfi
 
 	logrus.Info("Ends FetchKubeConfig request: succeeded")
 	return &pb.FetchKubeConfigReply{
-		KubeConfig: kubeConfigTask.(*task.FetchKubeConfigTask).KubeConfig,
+		KubeConfig: kubeConfigTask.(*task.FetchKubeConfigTask).KubeConfig, nil
+}
+
+func (c *controller) CheckNetworkRequirements(
+	context context.Context, req *pb.CheckNetworkRequirementRequest) (
+	*pb.CheckNetworkRequirementsReply, error) {
+	logrus.Info("Begins CheckNetworkRequirements request")
+	taskConfig := &task.CheckNetworkRequirementsTaskConfig{
+		Nodes:           req.GetNodes(),
+		NetworkOptions:  req.GetOptions(),
+		LogFileBasePath: c.logFileLoc,
+	}
+
+	taskName := "check-network-requirements"
+	if taskConfig.NetworkOptions != nil {
+		taskName = taskName + "-" + taskConfig.NetworkOptions.GetNetworkType()
+	}
+
+	checkTask, err := task.NewCheckNetworkRequirementsTask(taskName, taskConfig)
+	if err == nil {
+		err = c.storeAndLanuchTask(checkTask)
+	}
+	if err != nil {
+		logrus.Errorf("failed to create task for CheckNetworkRequirements, error %v", err)
+		return &pb.CheckNetworkRequirementsReply{
+			Passed: false,
+			Err: &pb.Error{
+				Reason: consts.MsgRequestFailed,
+				Detail: err.Error(),
+			},
+		}, err
+	}
+	logrus.Info("CheckNetworkRequirements request succeeded")
+	return &pb.CheckNetworkRequirementsReply{
+		Passed: true,
 	}, nil
 }
 
