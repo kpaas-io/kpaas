@@ -12,24 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package constant
 
 type (
-	FailureDetail struct {
-		Reason     string // Reason of Error message
-		Detail     string // Why is it wrong, what is the judgment condition?
-		FixMethods string // How to improve to meet the conditions
-		LogId      uint64 // ID used to get the log file
-	}
+	CheckResult string // Check node result
 )
 
-func NewError() *FailureDetail {
-
-	return &FailureDetail{}
-}
-
-func (detail *FailureDetail) Clone() *FailureDetail {
-
-	copy := *detail
-	return &copy
-}
+const (
+	CheckResultNotRunning CheckResult = "notRunning"
+	CheckResultChecking   CheckResult = "checking"
+	CheckResultPassed     CheckResult = "passed"
+	CheckResultFailed     CheckResult = "failed"
+)

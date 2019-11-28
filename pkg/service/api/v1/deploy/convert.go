@@ -17,8 +17,11 @@ package deploy
 import (
 	"fmt"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
+	"github.com/kpaas-io/kpaas/pkg/service/model/sshcertificate"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 )
 
@@ -72,22 +75,6 @@ func convertModelTaintEffectToAPITaintEffect(effect wizard.TaintEffect) api.Tain
 	return api.TaintEffect(fmt.Sprintf("unknown(%s)", effect))
 }
 
-func convertModelCheckResultToAPICheckResult(result wizard.CheckResult) api.CheckResult {
-
-	switch result {
-	case wizard.CheckResultNotRunning:
-		return api.CheckResultNotRunning
-	case wizard.CheckResultChecking:
-		return api.CheckResultChecking
-	case wizard.CheckResultFailed:
-		return api.CheckResultFailed
-	case wizard.CheckResultPassed:
-		return api.CheckResultPassed
-	}
-
-	return api.CheckResult(fmt.Sprintf("unknown(%s)", result))
-}
-
 func convertModelErrorToAPIError(detail *common.FailureDetail) *api.Error {
 
 	if detail == nil {
@@ -119,20 +106,6 @@ func convertModelDeployClusterStatusToAPIDeployClusterStatus(status wizard.Deplo
 	return api.DeployClusterStatus(fmt.Sprintf("unknown(%s)", status))
 }
 
-func convertModelMachineRoleToAPIMachineRole(machineRole wizard.MachineRole) api.MachineRole {
-
-	switch machineRole {
-	case wizard.MachineRoleMaster:
-		return api.MachineRoleMaster
-	case wizard.MachineRoleWorker:
-		return api.MachineRoleWorker
-	case wizard.MachineRoleEtcd:
-		return api.MachineRoleEtcd
-	}
-
-	return api.MachineRole(fmt.Sprintf("unknown(%s)", machineRole))
-}
-
 func convertModelDeployStatusToAPIDeployStatus(status wizard.DeployStatus) api.DeployStatus {
 
 	switch status {
@@ -149,20 +122,6 @@ func convertModelDeployStatusToAPIDeployStatus(status wizard.DeployStatus) api.D
 	}
 
 	return api.DeployStatus(fmt.Sprintf("unknown(%s)", status))
-}
-
-func convertAPIMachineRoleToModelMachineRole(role api.MachineRole) wizard.MachineRole {
-
-	switch role {
-	case api.MachineRoleMaster:
-		return wizard.MachineRoleMaster
-	case api.MachineRoleWorker:
-		return wizard.MachineRoleWorker
-	case api.MachineRoleEtcd:
-		return wizard.MachineRoleEtcd
-	}
-
-	return wizard.MachineRole(fmt.Sprintf("unknown(%s)", role))
 }
 
 func convertAPITaintEffectToModelTaintEffect(effect api.TaintEffect) wizard.TaintEffect {
@@ -192,10 +151,7 @@ func convertAPIAuthenticationTypeToModelAuthenticationType(authenticationType ap
 
 func convertModelNodeToAPINode(node *wizard.Node) *api.NodeData {
 
-	machineRoles := make([]api.MachineRole, 0, len(node.MachineRoles))
-	for _, role := range node.MachineRoles {
-		machineRoles = append(machineRoles, convertModelMachineRoleToAPIMachineRole(role))
-	}
+	machineRoles := node.MachineRoles
 
 	labels := make([]api.Label, 0, len(node.Labels))
 	for _, label := range node.Labels {
@@ -211,7 +167,7 @@ func convertModelNodeToAPINode(node *wizard.Node) *api.NodeData {
 		NodeBaseData: api.NodeBaseData{
 			Name:                node.Name,
 			Description:         node.Description,
-			MachineRole:         machineRoles,
+			MachineRoles:        machineRoles,
 			Labels:              labels,
 			Taints:              taints,
 			DockerRootDirectory: node.DockerRootDirectory,
@@ -226,4 +182,64 @@ func convertModelNodeToAPINode(node *wizard.Node) *api.NodeData {
 			},
 		},
 	}
+}
+
+func convertDeployControllerErrorToAPIError(err *protos.Error) *api.Error {
+
+	if err == nil {
+		return nil
+	}
+
+	return &api.Error{
+		Reason:     err.Reason,
+		Detail:     err.Detail,
+		FixMethods: err.FixMethods,
+	}
+}
+
+func convertDeployControllerErrorToFailureDetail(err *protos.Error) *common.FailureDetail {
+
+	if err == nil {
+		return nil
+	}
+
+	return &common.FailureDetail{
+		Reason:     err.Reason,
+		Detail:     err.Detail,
+		FixMethods: err.FixMethods,
+	}
+}
+
+func convertModelConnectionDataToDeployControllerSSHData(data *wizard.ConnectionData) *protos.SSH {
+
+	if data == nil {
+		return nil
+	}
+
+	auth := &protos.Auth{
+		Username: data.Username,
+	}
+	switch data.AuthenticationType {
+	case wizard.AuthenticationTypePassword:
+		auth.Type = deployControllerAuthCredentialPassword
+		auth.Credential = data.Password
+	case wizard.AuthenticationTypePrivateKey:
+		auth.Type = deployControllerAuthCredentialPrivateKey
+		auth.Credential = sshcertificate.GetPrivateKey(data.PrivateKeyName)
+	}
+
+	return &protos.SSH{
+		Port: uint32(data.Port),
+		Auth: auth,
+	}
+}
+
+func convertDeployControllerCheckResultToModelCheckResult(status string) constant.CheckResult {
+
+	s := constant.CheckResult(status)
+	switch s {
+	case constant.CheckResultNotRunning, constant.CheckResultChecking, constant.CheckResultPassed, constant.CheckResultFailed:
+		return s
+	}
+	return constant.CheckResult(fmt.Sprintf("unknown(%s)", status))
 }

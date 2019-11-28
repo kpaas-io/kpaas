@@ -21,11 +21,12 @@ import (
 )
 
 const (
-	WebServiceModeDebug     WebServiceMode = "debug"
-	WebServiceModeRelease   WebServiceMode = "release"
-	DefaultListenPort                      = uint16(8080)
-	DefaultLogLevel                        = "info"
-	DefaultReadWriteTimeout                = time.Minute
+	WebServiceModeDebug            WebServiceMode = "debug"
+	WebServiceModeRelease          WebServiceMode = "release"
+	DefaultListenPort                             = uint16(8080)
+	DefaultLogLevel                               = "info"
+	DefaultReadWriteTimeout                       = time.Minute
+	DefaultDeployControllerAddress                = "127.0.0.1:8081"
 )
 
 type (
@@ -33,8 +34,9 @@ type (
 	WebServiceMode string
 
 	configuration struct {
-		Service serviceSetting `json:"service"`
-		Log     logSetting     `json:"log"`
+		Service          serviceSetting          `json:"service"`
+		Log              logSetting              `json:"log"`
+		DeployController deployControllerSetting `json:"deployController"`
 	}
 
 	serviceSetting struct {
@@ -45,6 +47,11 @@ type (
 
 	logSetting struct {
 		Level string `json:"level"` // level: trace, debug, info, warn|warning, error, fatal, panic
+	}
+
+	deployControllerSetting struct {
+		Address string        `json:"address"`
+		Timeout time.Duration `json:"timeout"`
 	}
 )
 
@@ -77,4 +84,19 @@ func (log *logSetting) GetLevel() string {
 		return DefaultLogLevel
 	}
 	return log.Level
+}
+
+func (controller *deployControllerSetting) GetAddress() string {
+	if controller.Address == "" {
+		return DefaultDeployControllerAddress
+	}
+	return controller.Address
+}
+
+func (controller *deployControllerSetting) GetTimeout() time.Duration {
+
+	if controller.Timeout == 0 {
+		return DefaultReadWriteTimeout
+	}
+	return controller.Timeout
 }

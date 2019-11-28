@@ -12,24 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package common
+package api
 
 type (
-	FailureDetail struct {
-		Reason     string // Reason of Error message
-		Detail     string // Why is it wrong, what is the judgment condition?
-		FixMethods string // How to improve to meet the conditions
-		LogId      uint64 // ID used to get the log file
+	TestConnectionResponse struct {
+		SuccessfulOption `json:",inline"`
+
+		Error *Error `json:"error,omitempty"` // Error Detail
 	}
 )
-
-func NewError() *FailureDetail {
-
-	return &FailureDetail{}
-}
-
-func (detail *FailureDetail) Clone() *FailureDetail {
-
-	copy := *detail
-	return &copy
-}

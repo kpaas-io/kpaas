@@ -12,55 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package sshcertificate
+package client
 
 import (
-	"sync"
-)
-
-type (
-	Certificate struct {
-		Name       string
-		PrivateKey string
-	}
+	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/service/grpcutils/connection"
 )
 
 var (
-	list *sync.Map
+	deployControllerClient protos.DeployContollerClient
 )
 
-func NewCertificate() *Certificate {
-	return &Certificate{}
-}
+func GetDeployController() (protos.DeployContollerClient, error) {
 
-func init() {
-	ClearList()
-}
-
-func ClearList() {
-	list = new(sync.Map)
-}
-
-func AddCertificate(name, privateKey string) {
-
-	list.Store(name, privateKey)
-}
-
-func GetNameList() []string {
-
-	var names []string
-	list.Range(func(key, value interface{}) bool {
-		names = append(names, key.(string))
-		return true
-	})
-	return names
-}
-
-func GetPrivateKey(name string) string {
-
-	privateKey, exist := list.Load(name)
-	if exist {
-		return privateKey.(string)
+	if deployControllerClient != nil {
+		return deployControllerClient, nil
 	}
-	return ""
+
+	conn, err := connection.GetDeployControllerConnection()
+	if err != nil {
+		return nil, err
+	}
+
+	deployControllerClient = protos.NewDeployContollerClient(conn)
+	return deployControllerClient, nil
+}
+
+func SetDeployController(client protos.DeployContollerClient) {
+
+	deployControllerClient = client
 }

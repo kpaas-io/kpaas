@@ -17,6 +17,7 @@ package deploy
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -44,7 +45,7 @@ func GetWizardProgress(c *gin.Context) {
 		NodesData:           *nodes,
 		CheckingData:        *checkingData,
 		DeploymentData:      *deploymentData,
-		CheckResult:         convertModelCheckResultToAPICheckResult(wizard.GetCurrentWizard().GetCheckResult()),
+		CheckResult:         wizard.GetCurrentWizard().GetCheckResult(),
 		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.GetCurrentWizard().DeploymentStatus),
 	}
 
@@ -131,11 +132,11 @@ func getWizardCheckingData() *[]api.CheckingResultResponseData {
 			Items: []api.CheckingItem{},
 		}
 
-		for _, checkItem := range node.CheckItems {
+		for _, checkItem := range node.CheckReport.CheckItems {
 
 			checkingResult.Items = append(checkingResult.Items, api.CheckingItem{
 				CheckingPoint: checkItem.ItemName,
-				Result:        convertModelCheckResultToAPICheckResult(checkItem.CheckResult),
+				Result:        checkItem.CheckResult,
 				Error:         convertModelErrorToAPIError(checkItem.Error),
 			})
 		}
@@ -152,13 +153,13 @@ func getWizardDeploymentData() *[]api.DeploymentResponseData {
 	responseData := new([]api.DeploymentResponseData)
 	*responseData = make([]api.DeploymentResponseData, 0, 0)
 
-	deployList := make(map[api.MachineRole][]*api.DeploymentNode)
+	deployList := make(map[constant.MachineRole][]*api.DeploymentNode)
 
 	for _, node := range wizardData.Nodes {
 
 		for _, report := range node.DeploymentReports {
 
-			role := convertModelMachineRoleToAPIMachineRole(report.Role)
+			role := report.Role
 			if _, machineRoleExist := deployList[role]; !machineRoleExist {
 				deployList[role] = make([]*api.DeploymentNode, 0, 0)
 			}

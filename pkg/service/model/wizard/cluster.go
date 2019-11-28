@@ -15,10 +15,12 @@
 package wizard
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
 	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
@@ -31,6 +33,8 @@ type (
 		Nodes              []*Node
 		DeploymentStatus   DeployClusterStatus
 		DeployClusterError *common.FailureDetail
+		ClusterCheckResult constant.CheckResult
+		CheckClusterError  *common.FailureDetail
 		Wizard             *WizardData
 		KubeConfig         *string
 		lock               *sync.RWMutex
@@ -89,6 +93,7 @@ func (cluster *Cluster) init() {
 
 	cluster.Info = NewClusterInfo()
 	cluster.DeploymentStatus = DeployClusterStatusNotRunning
+	cluster.ClusterCheckResult = constant.CheckResultNotRunning
 	cluster.Nodes = make([]*Node, 0, 0)
 	cluster.Wizard = NewWizardData()
 	cluster.lock = &sync.RWMutex{}
@@ -100,43 +105,12 @@ func (cluster *Cluster) init() {
 	cluster.KubeConfig = new(string)
 }
 
-func (cluster *Cluster) GetCheckResult() CheckResult {
+func (cluster *Cluster) GetCheckResult() constant.CheckResult {
 
-	if len(cluster.Nodes) <= 0 {
-		return CheckResultNotRunning
-	}
+	cluster.lock.RLock()
+	defer cluster.lock.RUnlock()
 
-	result := CheckResultNotRunning
-	isNotRunning := true
-
-	for _, node := range cluster.Nodes {
-
-		for _, checkItem := range node.CheckItems {
-
-			switch checkItem.CheckResult {
-			case CheckResultChecking:
-
-				if result != CheckResultFailed {
-					result = CheckResultChecking
-				}
-				isNotRunning = false
-
-			case CheckResultFailed:
-				result = CheckResultFailed
-				isNotRunning = false
-
-			case CheckResultPassed:
-
-				isNotRunning = false
-			}
-		}
-	}
-
-	if result == CheckResultNotRunning && !isNotRunning {
-		return CheckResultPassed
-	}
-
-	return result
+	return cluster.ClusterCheckResult
 }
 
 func (cluster *Cluster) AddNode(node *Node) error {
@@ -250,6 +224,66 @@ func (cluster *Cluster) GetNode(ip string) *Node {
 	}
 
 	return nil
+}
+
+func (cluster *Cluster) GetNodeByName(name string) *Node {
+
+	for _, node := range cluster.Nodes {
+		if node.Name == name {
+			return node
+		}
+	}
+
+	return nil
+}
+
+func (cluster *Cluster) MarkNodeChecking() error {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	if len(cluster.Nodes) <= 0 {
+		return nil
+	}
+
+	if cluster.ClusterCheckResult == constant.CheckResultChecking {
+		return errors.New("was checking")
+	}
+
+	cluster.ClusterCheckResult = constant.CheckResultChecking
+
+	return nil
+}
+
+func (cluster *Cluster) ClearClusterCheckingData() error {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	if len(cluster.Nodes) <= 0 {
+		return nil
+	}
+
+	cluster.ClusterCheckResult = constant.CheckResultNotRunning
+	cluster.CheckClusterError = nil
+
+	for _, node := range cluster.Nodes {
+
+		node.CheckReport.init()
+	}
+
+	return nil
+}
+
+func (cluster *Cluster) SetClusterCheckResult(result constant.CheckResult, failureDetail *common.FailureDetail) {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	cluster.ClusterCheckResult = result
+	if failureDetail != nil {
+		cluster.CheckClusterError = failureDetail.Clone()
+	}
 }
 
 func NewClusterInfo() *ClusterInfo {

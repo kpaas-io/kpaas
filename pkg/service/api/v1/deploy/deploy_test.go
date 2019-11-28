@@ -24,6 +24,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -56,11 +57,8 @@ func TestDeploy2(t *testing.T) {
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			CheckItems: []*wizard.CheckItem{
-				{
-					ItemName:    "check 1",
-					CheckResult: wizard.CheckResultFailed,
-				},
+			CheckReport: &wizard.CheckReport{
+				CheckResult: constant.CheckResultFailed,
 			},
 		},
 	}
@@ -86,18 +84,12 @@ func TestDeploy3(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
+	wizardData.ClusterCheckResult = constant.CheckResultPassed
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			CheckItems: []*wizard.CheckItem{
-				{
-					ItemName:    "check 1",
-					CheckResult: wizard.CheckResultPassed,
-				},
-				{
-					ItemName:    "check 2",
-					CheckResult: wizard.CheckResultPassed,
-				},
+			CheckReport: &wizard.CheckReport{
+				CheckResult: constant.CheckResultPassed,
 			},
 		},
 	}
@@ -128,11 +120,11 @@ func TestGetDeployReport(t *testing.T) {
 			Name: "master1",
 			DeploymentReports: []*wizard.DeploymentReport{
 				{
-					Role:   wizard.MachineRoleMaster,
+					Role:   constant.MachineRoleMaster,
 					Status: wizard.DeployStatusCompleted,
 				},
 				{
-					Role:   wizard.MachineRoleEtcd,
+					Role:   constant.MachineRoleEtcd,
 					Status: wizard.DeployStatusCompleted,
 				},
 			},
@@ -157,7 +149,7 @@ func TestGetDeployReport(t *testing.T) {
 	assert.Equal(t, api.DeployClusterStatusSuccessful, responseData.DeployClusterStatus)
 	assert.Equal(t, []api.DeploymentResponseData{
 		{
-			Role: api.MachineRoleMaster,
+			Role: constant.MachineRoleMaster,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
@@ -166,7 +158,7 @@ func TestGetDeployReport(t *testing.T) {
 			},
 		},
 		{
-			Role: api.MachineRoleEtcd,
+			Role: constant.MachineRoleEtcd,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",

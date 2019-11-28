@@ -15,11 +15,21 @@
 package deploy
 
 import (
-	"github.com/gin-gonic/gin"
+	"context"
+	"fmt"
+	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
+
+	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/service/config"
+	clientUtils "github.com/kpaas-io/kpaas/pkg/service/grpcutils/client"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
+	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
 // @ID CheckNodeList
@@ -36,9 +46,49 @@ func CheckNodeList(c *gin.Context) {
 		h.E(c, h.ENotFound.WithPayload("No node information, node list is empty, please add node information"))
 		return
 	}
-	// TODO Lucky Call deploy controller to start check nodes
 
-	h.R(c, api.SuccessfulOption{Success: true})
+	if wizardData.GetCheckResult() == constant.CheckResultChecking {
+		h.E(c, h.EStatusError.WithPayload("It was checking"))
+		return
+	}
+
+	if err := wizardData.ClearClusterCheckingData(); err != nil {
+		h.E(c, h.EStatusError.WithPayload(err))
+		return
+	}
+
+	if err := wizardData.MarkNodeChecking(); err != nil {
+		h.E(c, h.EStatusError.WithPayload(err))
+		return
+	}
+
+	client, err := clientUtils.GetDeployController()
+	if err != nil {
+
+		h.E(c, h.EDeployControllerError.WithPayload(err))
+		log.ReqEntry(c).Errorf("get deploy controller rpc client error, errorMessage: %v", err)
+		return
+	}
+
+	grpcContext, cancel := context.WithTimeout(context.Background(), config.Config.DeployController.GetTimeout())
+	defer cancel()
+
+	resp, err := client.CheckNodes(grpcContext, getCallCheckNodesData())
+	if err != nil {
+		h.E(c, h.EDeployControllerError.WithPayload(err))
+		log.ReqEntry(c).Errorf("call deploy controller error, errorMessage: %v", err)
+		_ = wizardData.ClearClusterCheckingData()
+		return
+	}
+
+	if resp.GetErr() != nil {
+
+		log.ReqEntry(c).Errorf("call deploy controller result error, error: %#v", resp.GetErr())
+	}
+
+	go listenCheckNodesData()
+
+	h.R(c, api.SuccessfulOption{Success: resp.GetAcceptd()})
 }
 
 // @ID GetCheckNodeListResult
@@ -54,7 +104,116 @@ func GetCheckingNodeListResult(c *gin.Context) {
 	wizardData := wizard.GetCurrentWizard()
 	checkResults := getWizardCheckingData()
 	responseData.Nodes = *checkResults
-	responseData.Result = convertModelCheckResultToAPICheckResult(wizardData.GetCheckResult())
+	responseData.Result = wizardData.GetCheckResult()
 
 	h.R(c, responseData)
+}
+
+func getCallCheckNodesData() *protos.CheckNodesRequest {
+
+	requestData := &protos.CheckNodesRequest{}
+
+	wizardData := wizard.GetCurrentWizard()
+	for _, node := range wizardData.Nodes {
+
+		nodeConfig := new(protos.NodeCheckConfig)
+		for _, role := range node.MachineRoles {
+			nodeConfig.Roles = append(nodeConfig.Roles, string(role))
+		}
+
+		nodeConfig.Node = &protos.Node{
+			Name: node.Name,
+			Ip:   node.IP,
+			Ssh:  convertModelConnectionDataToDeployControllerSSHData(&node.ConnectionData),
+		}
+
+		requestData.Configs = append(requestData.Configs, nodeConfig)
+	}
+
+	return requestData
+}
+
+func listenCheckNodesData() {
+
+	wizardData := wizard.GetCurrentWizard()
+	for {
+		if wizardData.GetCheckResult() != constant.CheckResultChecking {
+			break
+		}
+
+		checkResultOneTime()
+		time.Sleep(time.Second)
+	}
+}
+
+func checkResultOneTime() {
+
+	client, err := clientUtils.GetDeployController()
+	if err != nil {
+		logrus.Errorf("get deploy controller rpc client error, errorMessage: %v", err)
+		return
+	}
+
+	grpcContext, cancel := context.WithTimeout(context.Background(), config.Config.DeployController.GetTimeout())
+	defer cancel()
+
+	resp, err := client.GetCheckNodesResult(grpcContext, &protos.GetCheckNodesResultRequest{WithLogs: true})
+	if err != nil {
+		logrus.Errorf("call deploy controller error, errorMessage: %v", err)
+		return
+	}
+
+	wizardData := wizard.GetCurrentWizard()
+	wizardData.SetClusterCheckResult(
+		convertDeployControllerCheckResultToModelCheckResult(resp.GetStatus()),
+		convertDeployControllerErrorToFailureDetail(resp.GetErr()))
+
+	for _, node := range resp.Nodes {
+
+		wizardNode := wizardData.GetNodeByName(node.NodeName)
+		if wizardNode == nil {
+
+			logrus.Errorf("iterate check result, can not find node(%s) from cluster data", node.NodeName)
+			continue
+		}
+
+		wizardNode.SetCheckResult(
+			convertDeployControllerCheckResultToModelCheckResult(node.GetStatus()),
+			convertDeployControllerErrorToFailureDetail(node.GetErr()))
+
+		for _, item := range node.Items {
+			itemName := getItemNameFromDeployControllerCheckItem(item.Item)
+			failureDetail := convertDeployControllerErrorToFailureDetail(item.Err)
+			if failureDetail != nil && item.Logs != "" {
+				var setLogContentError error
+				failureDetail.LogId, setLogContentError = wizard.SetLogByString(item.Logs)
+				if setLogContentError != nil {
+					logrus.Errorf("Store checking error log error, %s", setLogContentError)
+				}
+			}
+			wizardNode.SetCheckItem(itemName, convertDeployControllerCheckResultToModelCheckResult(item.Status), failureDetail)
+		}
+	}
+}
+
+func getItemNameFromDeployControllerCheckItem(item *protos.CheckItem) string {
+
+	if item == nil {
+		return ""
+	}
+
+	var itemName string
+	if item.Name != "" {
+		itemName = item.Name
+	}
+
+	if item.Description == "" {
+		return itemName
+	}
+
+	if itemName != "" {
+		return fmt.Sprintf("%s（%s）", itemName, item.Description)
+	}
+
+	return item.Description
 }

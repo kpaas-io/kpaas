@@ -15,20 +15,22 @@
 package wizard
 
 import (
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 )
 
 type (
 	Node struct {
-		Name                string              // node name
-		Description         string              // node description
-		MachineRoles        []MachineRole       // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
-		Labels              []*Label            // Node labels
-		Taints              []*Taint            // Node taints
-		CheckItems          []*CheckItem        // Overall inspection status
-		DeploymentReports   []*DeploymentReport // Deployment report for each role
-		DockerRootDirectory string              // Docker Root Directory
 		ConnectionData
+
+		Name                string                 // node name
+		Description         string                 // node description
+		MachineRoles        []constant.MachineRole // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
+		Labels              []*Label               // Node labels
+		Taints              []*Taint               // Node taints
+		CheckReport         *CheckReport           // Check node report
+		DeploymentReports   []*DeploymentReport    // Deployment report for each role
+		DockerRootDirectory string                 // Docker Root Directory
 	}
 
 	ConnectionData struct {
@@ -41,14 +43,20 @@ type (
 	}
 
 	DeploymentReport struct {
-		Role   MachineRole
+		Role   constant.MachineRole
 		Status DeployStatus
 		Error  *common.FailureDetail
 	}
 
+	CheckReport struct {
+		CheckItems   []*CheckItem          // Check item list
+		CheckResult  constant.CheckResult  // Overall inspection status
+		CheckedError *common.FailureDetail // Checked failure detail
+	}
+
 	CheckItem struct {
 		ItemName    string // Check Item Name
-		CheckResult CheckResult
+		CheckResult constant.CheckResult
 		Error       *common.FailureDetail
 	}
 
@@ -68,29 +76,16 @@ type (
 		Effect TaintEffect
 	}
 
-	MachineRole string // Machine Role, master or worker
-
 	AuthenticationType string // Type of authorization,  password or privateKey
 
 	TaintEffect string // Taint Effect, NoSchedule, NoExecute or PreferNoSchedule
-
-	CheckResult string // Check node result
 
 	DeployStatus string // Deploy node status
 )
 
 const (
-	CheckResultNotRunning CheckResult = "notRunning"
-	CheckResultChecking   CheckResult = "checking"
-	CheckResultPassed     CheckResult = "passed"
-	CheckResultFailed     CheckResult = "failed"
-
 	AuthenticationTypePassword   AuthenticationType = "password"   // Use Password to authorize
 	AuthenticationTypePrivateKey AuthenticationType = "privateKey" // Use RSA PrivateKey to authorize
-
-	MachineRoleMaster MachineRole = "master" // master node
-	MachineRoleWorker MachineRole = "worker" // worker node
-	MachineRoleEtcd   MachineRole = "etcd"   // etcd node
 
 	TaintEffectNoSchedule       TaintEffect = "NoSchedule"
 	TaintEffectNoExecute        TaintEffect = "NoExecute"
@@ -115,15 +110,38 @@ func NewNode() *Node {
 
 func (node *Node) init() {
 
-	node.MachineRoles = make([]MachineRole, 0, 2)
+	node.MachineRoles = make([]constant.MachineRole, 0, 2)
 	node.DeploymentReports = make([]*DeploymentReport, 0, 2)
-	node.CheckItems = make([]*CheckItem, 0, 0)
 	node.Labels = make([]*Label, 0, 0)
 	node.Taints = make([]*Taint, 0, 0)
 	node.ConnectionData.Port = uint16(22)
 	node.ConnectionData.Username = DefaultUsername
 	node.ConnectionData.AuthenticationType = AuthenticationTypePassword
 	node.DockerRootDirectory = DefaultDockerRootDirectory
+	node.CheckReport = new(CheckReport)
+	node.CheckReport.init()
+}
+
+func (node *Node) SetCheckResult(result constant.CheckResult, detail *common.FailureDetail) {
+
+	node.CheckReport.CheckResult = result
+	if detail != nil {
+		node.CheckReport.CheckedError = detail.Clone()
+	}
+}
+
+func (node *Node) SetCheckItem(itemName string, result constant.CheckResult, detail *common.FailureDetail) {
+
+	item := NewCheckItem()
+	for _, iterateItem := range node.CheckReport.CheckItems {
+
+		if iterateItem.ItemName == itemName {
+			item = iterateItem
+		}
+	}
+
+	item.CheckResult = result
+	item.Error = detail
 }
 
 func NewDeploymentReport() *DeploymentReport {
@@ -147,5 +165,12 @@ func NewCheckItem() *CheckItem {
 
 func (item *CheckItem) init() {
 
-	item.CheckResult = CheckResultNotRunning
+	item.CheckResult = constant.CheckResultNotRunning
+}
+
+func (report *CheckReport) init() {
+
+	report.CheckResult = constant.CheckResultNotRunning
+	report.CheckedError = nil
+	report.CheckItems = make([]*CheckItem, 0, 0)
 }

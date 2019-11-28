@@ -17,6 +17,7 @@ package deploy
 import (
 	"github.com/gin-gonic/gin"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -38,7 +39,7 @@ func Deploy(c *gin.Context) {
 		return
 	}
 
-	if wizardData.GetCheckResult() != wizard.CheckResultPassed {
+	if wizardData.GetCheckResult() != constant.CheckResultPassed {
 		h.E(c, h.EStatusError.WithPayload("current check result status is not passed"))
 		return
 	}

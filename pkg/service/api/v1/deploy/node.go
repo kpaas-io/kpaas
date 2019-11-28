@@ -94,11 +94,7 @@ func AddNode(c *gin.Context) {
 	node.Name = requestData.Name
 	node.Description = requestData.Description
 	node.DockerRootDirectory = requestData.DockerRootDirectory
-	node.MachineRoles = make([]wizard.MachineRole, 0, len(requestData.MachineRole))
-	for _, role := range requestData.MachineRole {
-
-		node.MachineRoles = append(node.MachineRoles, convertAPIMachineRoleToModelMachineRole(role))
-	}
+	node.MachineRoles = requestData.MachineRoles
 
 	node.Labels = make([]*wizard.Label, 0, len(requestData.Labels))
 	for _, label := range requestData.Labels {
@@ -164,11 +160,7 @@ func UpdateNode(c *gin.Context) {
 	node.Name = requestData.Name
 	node.Description = requestData.Description
 	node.DockerRootDirectory = requestData.DockerRootDirectory
-	node.MachineRoles = make([]wizard.MachineRole, 0, len(requestData.MachineRole))
-	for _, role := range requestData.MachineRole {
-
-		node.MachineRoles = append(node.MachineRoles, convertAPIMachineRoleToModelMachineRole(role))
-	}
+	node.MachineRoles = requestData.MachineRoles
 
 	node.Labels = make([]*wizard.Label, 0, len(requestData.Labels))
 	for _, label := range requestData.Labels {

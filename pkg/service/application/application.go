@@ -29,6 +29,7 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/kpaas-io/kpaas/pkg/service/config"
+	"github.com/kpaas-io/kpaas/pkg/service/grpcutils/connection"
 	configUtils "github.com/kpaas-io/kpaas/pkg/utils/config"
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
@@ -62,7 +63,7 @@ func (a *app) initService() {
 	a.initRandomSeed()
 	a.initLogLevel()
 	// TODO Lucky Init Memories Database
-	// TODO Lucky Init Clients
+	a.initClients()
 	a.initRESTfulAPIHandler()
 	a.initRequestLogger()
 	a.setRoutes()
@@ -114,11 +115,19 @@ func (a *app) close() {
 	// TODO Lucky Clean Memory Database
 
 	logrus.Infof("closing http server")
-	err := a.httpServer.Close()
+	var err error
+	err = a.httpServer.Close()
 	if err != nil {
 		logrus.Errorf("happened error at close http server: %v", err)
 	}
 	logrus.Infof("http server closed")
+
+	logrus.Infof("closing gRPC client")
+	err = connection.Close()
+	if err != nil {
+		logrus.Warnf("close deploy controller gRPC connection error, errorMessage: %s", err)
+	}
+	logrus.Infof("gRPC client closed")
 }
 
 func (a *app) loadConfig() {
@@ -197,4 +206,9 @@ func (a *app) startRESTfulAPIListener() {
 			logrus.Errorf("listen error: %v", err)
 		}
 	}()
+}
+
+func (a *app) initClients() {
+
+	// TODO Lucky Init Clients
 }

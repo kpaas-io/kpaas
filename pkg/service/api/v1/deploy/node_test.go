@@ -25,6 +25,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -39,9 +40,9 @@ func TestAddNode(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(resp)
 	body := api.NodeData{
 		NodeBaseData: api.NodeBaseData{
-			Name:        "name",
-			Description: "description",
-			MachineRole: []api.MachineRole{api.MachineRoleMaster, api.MachineRoleEtcd},
+			Name:         "name",
+			Description:  "description",
+			MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 			Labels: []api.Label{
 				{
 					Key:   "label-key",
@@ -91,7 +92,7 @@ func TestUpdateNode(t *testing.T) {
 		{
 			Name:         "master1",
 			Description:  "desc1",
-			MachineRoles: []wizard.MachineRole{wizard.MachineRoleMaster, wizard.MachineRoleEtcd},
+			MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 			Labels: []*wizard.Label{
 				{
 					Key:   "kpaas.io/test",
@@ -122,9 +123,9 @@ func TestUpdateNode(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(resp)
 	body := api.NodeData{
 		NodeBaseData: api.NodeBaseData{
-			Name:        "name",
-			Description: "description",
-			MachineRole: []api.MachineRole{api.MachineRoleMaster, api.MachineRoleEtcd},
+			Name:         "name",
+			Description:  "description",
+			MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 			Labels: []api.Label{
 				{
 					Key:   "label-key",
@@ -182,9 +183,9 @@ func TestUpdateNode_NotExist(t *testing.T) {
 	ctx, _ := gin.CreateTestContext(resp)
 	body := api.NodeData{
 		NodeBaseData: api.NodeBaseData{
-			Name:        "name",
-			Description: "description",
-			MachineRole: []api.MachineRole{api.MachineRoleMaster, api.MachineRoleEtcd},
+			Name:         "name",
+			Description:  "description",
+			MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 			Labels: []api.Label{
 				{
 					Key:   "label-key",
@@ -240,7 +241,7 @@ func TestDeleteNode(t *testing.T) {
 		{
 			Name:         "master1",
 			Description:  "desc1",
-			MachineRoles: []wizard.MachineRole{wizard.MachineRoleMaster, wizard.MachineRoleEtcd},
+			MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 			Labels: []*wizard.Label{
 				{
 					Key:   "kpaas.io/test",
@@ -291,7 +292,7 @@ func TestGetNodeList(t *testing.T) {
 		{
 			Name:         "master1",
 			Description:  "desc1",
-			MachineRoles: []wizard.MachineRole{wizard.MachineRoleMaster, wizard.MachineRoleEtcd},
+			MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 			Labels: []*wizard.Label{
 				{
 					Key:   "kpaas.io/test",
@@ -332,9 +333,9 @@ func TestGetNodeList(t *testing.T) {
 	assert.Equal(t, []api.NodeData{
 		{
 			NodeBaseData: api.NodeBaseData{
-				Name:        "master1",
-				Description: "desc1",
-				MachineRole: []api.MachineRole{api.MachineRoleMaster, api.MachineRoleEtcd},
+				Name:         "master1",
+				Description:  "desc1",
+				MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 				Labels: []api.Label{
 					{
 						Key:   "kpaas.io/test",
@@ -372,7 +373,7 @@ func TestGetNode(t *testing.T) {
 		{
 			Name:         "master1",
 			Description:  "desc1",
-			MachineRoles: []wizard.MachineRole{wizard.MachineRoleMaster, wizard.MachineRoleEtcd},
+			MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 			Labels: []*wizard.Label{
 				{
 					Key:   "kpaas.io/test",
@@ -418,9 +419,9 @@ func TestGetNode(t *testing.T) {
 
 	assert.Equal(t, api.NodeData{
 		NodeBaseData: api.NodeBaseData{
-			Name:        "master1",
-			Description: "desc1",
-			MachineRole: []api.MachineRole{api.MachineRoleMaster, api.MachineRoleEtcd},
+			Name:         "master1",
+			Description:  "desc1",
+			MachineRoles: []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
 			Labels: []api.Label{
 				{
 					Key:   "kpaas.io/test",
