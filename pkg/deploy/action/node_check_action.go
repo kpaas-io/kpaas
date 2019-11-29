@@ -66,7 +66,7 @@ func NewNodeCheckAction(cfg *NodeCheckActionConfig) (Action, error) {
 		return nil, err
 	}
 
-	actionName := getActionName(cfg)
+	actionName := getNodeCheckActionName(cfg)
 	return &nodeCheckAction{
 		base: base{
 			name:              actionName,
@@ -79,7 +79,7 @@ func NewNodeCheckAction(cfg *NodeCheckActionConfig) (Action, error) {
 	}, nil
 }
 
-func getActionName(cfg *NodeCheckActionConfig) string {
+func getNodeCheckActionName(cfg *NodeCheckActionConfig) string {
 	// now we used the node name as the the action name, this may be changed in the future.
 	return cfg.NodeCheckConfig.Node.GetName()
 }

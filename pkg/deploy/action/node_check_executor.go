@@ -19,20 +19,26 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type nodeCheckExecutor struct {
-	config *pb.NodeCheckConfig
 }
 
 func (a *nodeCheckExecutor) Execute(act Action) error {
-	logrus.Debugf("Start to execute action: %+v", act)
-
 	nodeCheckAction, ok := act.(*nodeCheckAction)
 	if !ok {
 		return fmt.Errorf("the action type is not match: should be node check action, but is %T", act)
 	}
+
+	logger := logrus.WithFields(logrus.Fields{
+		consts.LogFieldStruct: "nodeCheckExecutor",
+		consts.LogFieldFunc:   "Execute",
+		consts.LogFieldAction: act.GetName(),
+	})
+
+	logger.Debug("Start to execute node check action")
 
 	// The following codes are just for example
 	// 1. check kernel version
@@ -64,6 +70,6 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 	nodeCheckAction.status = ActionFailed
 	nodeCheckAction.err = dockerVersionItem.err
 
-	logrus.Debugf("End to execute action: %+v", act)
+	logger.Debug("Finsih to execute node check action")
 	return nil
 }

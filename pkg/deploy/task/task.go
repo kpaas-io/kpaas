@@ -34,14 +34,26 @@ type Task interface {
 	SetLogFilePath(string)
 	GetActions() []action.Action
 	GetCreationTimestamp() time.Time
+	// Sub tasks are Task too.
+	GetSubTasks() []Task
+	// GetPriority returns the priority of the task: smaller value means higher prioirty.
+	// A task should wait until all higher priority tasks are done
+	GetPriority() int
+	// If a task is not a sub task, this will return ""
+	GetParent() string
 }
 
 // Type represents the type of a task
 type Type string
 
 const (
-	TaskTypeNodeCheck Type = "NodeCheck"
-	TaskTypeDeploy    Type = "Deploy"
+	TaskTypeNodeCheck     Type = "NodeCheck"
+	TaskTypeInit          Type = "init"
+	TaskTypeDeploy        Type = "Deploy"
+	TaskTypeDeployEtcd    Type = "DeployEtcd"
+	TaskTypeDeployMaster  Type = "DeployMaster"
+	TaskTypeDeployWorker  Type = "DeployWorker"
+	TaskTypeDeployIngress Type = "DeployIngess"
 )
 
 // Status represents the status of a task
@@ -62,8 +74,12 @@ type base struct {
 	actions           []action.Action
 	status            Status
 	err               *pb.Error
+	logFileBasePath   string
 	logFilePath       string
 	creationTimestamp time.Time
+	subTasks          []Task
+	priority          int
+	parent            string
 }
 
 func (b *base) GetName() string {
@@ -104,6 +120,18 @@ func (b *base) GetActions() []action.Action {
 
 func (b *base) GetCreationTimestamp() time.Time {
 	return b.creationTimestamp
+}
+
+func (b *base) GetSubTasks() []Task {
+	return b.subTasks
+}
+
+func (b *base) GetPriority() int {
+	return b.priority
+}
+
+func (b *base) GetParent() string {
+	return b.parent
 }
 
 // GenTaskLogFilePath is a helper to return the log file path based on base path and task name

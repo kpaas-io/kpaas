@@ -14,6 +14,10 @@
 
 package consts
 
+import (
+	"fmt"
+)
+
 const (
 	MsgRequestFailed string = "the request was failed"
 
@@ -31,4 +35,8 @@ const (
 	MsgActionTypeUnsupported        string = "unsupported action type"
 	MsgActionExecutorCreationFailed string = "failed to create action executor"
 	MsgActionExecutionFailed        string = "failed to execute aciton"
+)
+
+var (
+	ErrEmptyTask error = fmt.Errorf(MsgEmptyTask)
 )
