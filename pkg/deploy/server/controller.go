@@ -71,9 +71,37 @@ func (c *controller) GetCheckNodesResult(context.Context, *pb.GetCheckNodesResul
 	return nil, nil
 }
 
-func (c *controller) Deploy(context.Context, *pb.DeployRequest) (*pb.DeployReply, error) {
-	// TODO
-	return nil, nil
+func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.DeployReply, error) {
+	logrus.Info("Begins Deploy request")
+
+	taskName := getDeployTaskName(req)
+	taskConfig := &task.DeployTaskConfig{
+		NodeConfigs:     req.NodeConfigs,
+		ClusterConfig:   req.ClusterConfig,
+		LogFileBasePath: c.logFileLoc,
+	}
+
+	deployTask, err := task.NewDeployTask(taskName, taskConfig)
+	if err == nil {
+		// store and launch the task
+		err = c.storeAndLanuchTask(deployTask)
+	}
+	if err != nil {
+		logrus.Errorf("Deploy request failed: %s", err)
+		return &pb.DeployReply{
+			Acceptd: false,
+			Err: &pb.Error{
+				Reason: consts.MsgRequestFailed,
+				Detail: err.Error(),
+			},
+		}, err
+	}
+
+	logrus.Info("Deploy request succeeded")
+	return &pb.DeployReply{
+		Acceptd: true,
+		Err:     nil,
+	}, nil
 }
 
 func (c *controller) GetDeployResult(context.Context, *pb.GetDeployResultRequest) (*pb.GetDeployResultReply, error) {
@@ -100,14 +128,21 @@ func (c *controller) storeAndLanuchTask(aTask task.Task) error {
 	}
 
 	// launch the task
-	processor, err := task.NewProcessor(aTask.GetType())
-	if err != nil {
-		return err
-	}
-	return processor.StartTask(aTask)
+	return task.StartTask(aTask)
 }
 
 func getCheckNodeTaskName(req *pb.CheckNodesRequest) string {
 	// use a fixed name for checknode task, it may be changed in the future
 	return "node-check"
+}
+
+func getDeployTaskName(req *pb.DeployRequest) string {
+	// use "<cluster name>-deploy" as the deploy task name
+	clusterName := "unknown"
+	// TODO: review this later
+	// if req.ClusterConfig != nil && reg.ClusterConfig.ClusterName != "" {
+	// 	clusterName = reg.ClusterConfig.ClusterName
+	// }
+
+	return fmt.Sprintf("%s-%s", clusterName, "deploy")
 }

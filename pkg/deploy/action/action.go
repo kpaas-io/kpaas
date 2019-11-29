@@ -25,10 +25,11 @@ import (
 type Type string
 
 const (
-	ActionTypeNodeCheck    Type = "NodeCheck"
-	ActionTypeDeployEtcd   Type = "DeployEtcd"
-	ActionTypeDeployMaster Type = "DeployMaster"
-	ActionTypeDeployWorker Type = "DeployWorker"
+	ActionTypeNodeCheck     Type = "NodeCheck"
+	ActionTypeDeployEtcd    Type = "DeployEtcd"
+	ActionTypeDeployMaster  Type = "DeployMaster"
+	ActionTypeDeployWorker  Type = "DeployWorker"
+	ActionTypeDeployIngress Type = "DeployIngress"
 )
 
 // Status represents the status of an action

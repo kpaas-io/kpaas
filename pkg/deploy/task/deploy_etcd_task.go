@@ -23,27 +23,28 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-// NodeCheckTaskConfig represents the config for a node check task.
-type NodeCheckTaskConfig struct {
-	NodeConfigs     []*pb.NodeCheckConfig
+// DeployEtcdTaskConfig represents the config for a deploy etcd task.
+type DeployEtcdTaskConfig struct {
+	Nodes           []*pb.Node
 	LogFileBasePath string
 	Priority        int
+	Parent          string
 }
 
-type nodeCheckTask struct {
+type deployEtcdTask struct {
 	base
-	nodeConfigs []*pb.NodeCheckConfig
+	nodes []*pb.Node
 }
 
-// NewNodeCheckTask returns a node check task based on the config.
-// User should use this function to create a node check task.
-func NewNodeCheckTask(taskName string, taskConfig *NodeCheckTaskConfig) (Task, error) {
+// NewDeployEtcdTask returns a deploy etcd task based on the config.
+// User should use this function to create a deploy etcd task.
+func NewDeployEtcdTask(taskName string, taskConfig *DeployEtcdTaskConfig) (Task, error) {
 	var err error
 	if taskConfig == nil {
 		err = fmt.Errorf("invalid task config: nil")
 
-	} else if len(taskConfig.NodeConfigs) == 0 {
-		err = fmt.Errorf("invalid task config: node configs is empty")
+	} else if len(taskConfig.Nodes) == 0 {
+		err = fmt.Errorf("invalid task config: nodes is empty")
 
 	}
 
@@ -52,16 +53,17 @@ func NewNodeCheckTask(taskName string, taskConfig *NodeCheckTaskConfig) (Task, e
 		return nil, err
 	}
 
-	task := &nodeCheckTask{
+	task := &deployEtcdTask{
 		base: base{
 			name:              taskName,
-			taskType:          TaskTypeNodeCheck,
+			taskType:          TaskTypeDeployEtcd,
 			status:            TaskPending,
 			logFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
 			creationTimestamp: time.Now(),
 			priority:          taskConfig.Priority,
+			parent:            taskConfig.Parent,
 		},
-		nodeConfigs: taskConfig.NodeConfigs,
+		nodes: taskConfig.Nodes,
 	}
 
 	return task, nil

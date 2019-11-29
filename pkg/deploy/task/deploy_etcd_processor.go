@@ -23,60 +23,61 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
-// nodeCheckProcessor implements the specific logic for the node check task.
-type nodeCheckProcessor struct {
+// deployEtcdProcessor implements the specific logic to deploy etcd
+type deployEtcdProcessor struct {
 }
 
 // Spilt the task into one or more node check actions
-func (p *nodeCheckProcessor) SplitTask(t Task) error {
+func (p *deployEtcdProcessor) SplitTask(t Task) error {
 	if err := p.verifyTask(t); err != nil {
 		logrus.Errorf("Invalid task: %s", err)
 		return err
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldStruct: "nodeCheckProcessor",
+		consts.LogFieldStruct: "deployEtcdProcessor",
 		consts.LogFieldFunc:   "SplitTask",
 		consts.LogFieldAction: t.GetName(),
 	})
 
-	logger.Debug("Start to split node check task")
+	logger.Debug("Start to split deploy etcd task")
 
-	checkTask := t.(*nodeCheckTask)
+	etcdTask := t.(*deployEtcdTask)
 
 	// split task into actions: will create a action for every node, the action type
-	// is NodeCheckAction
-	actions := make([]action.Action, 0, len(checkTask.nodeConfigs))
-	for _, subConfig := range checkTask.nodeConfigs {
-		actionCfg := &action.NodeCheckActionConfig{
-			NodeCheckConfig: subConfig,
-			LogFileBasePath: checkTask.logFilePath,
+	// is ActionTypeDeployEtcd
+	actions := make([]action.Action, 0, len(etcdTask.nodes))
+	for _, node := range etcdTask.nodes {
+		actionCfg := &action.DeployEtcdActionConfig{
+			Node:            node,
+			LogFileBasePath: etcdTask.logFilePath,
 		}
-		act, err := action.NewNodeCheckAction(actionCfg)
+		act, err := action.NewDeployEtcdAction(actionCfg)
 		if err != nil {
 			return err
 		}
 		actions = append(actions, act)
 	}
-	checkTask.actions = actions
+	etcdTask.actions = actions
 
-	logrus.Debugf("Finish to split node check task: %d actions", len(actions))
+	logger.Debugf("Finish to split deploy etcd task: %d actions", len(actions))
+
 	return nil
 }
 
 // Verify if the task is valid.
-func (p *nodeCheckProcessor) verifyTask(t Task) error {
+func (p *deployEtcdProcessor) verifyTask(t Task) error {
 	if t == nil {
 		return consts.ErrEmptyTask
 	}
 
-	nodeCheckTask, ok := t.(*nodeCheckTask)
+	etcdTask, ok := t.(*deployEtcdTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if len(nodeCheckTask.nodeConfigs) == 0 {
-		return fmt.Errorf("nodeConfigs is empty")
+	if len(etcdTask.nodes) == 0 {
+		return fmt.Errorf("nodes is empty")
 	}
 
 	return nil

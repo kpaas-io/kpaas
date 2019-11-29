@@ -14,11 +14,9 @@
 
 package consts
 
-type NodeRole string
-
 const (
-	NodeRoleEtcd    NodeRole = "etcd"
-	NodeRoleMaster  NodeRole = "master"
-	NodeRoleWorker  NodeRole = "worker"
-	NodeRoleIngress NodeRole = "ingress"
+	LogFieldStruct string = "struct"
+	LogFieldFunc   string = "func"
+	LogFieldTask   string = "task"
+	LogFieldAction string = "action"
 )
