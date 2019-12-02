@@ -27,6 +27,7 @@ const (
 	DefaultLogLevel                               = "info"
 	DefaultReadWriteTimeout                       = time.Minute
 	DefaultDeployControllerAddress                = "127.0.0.1:8081"
+	DefaultServiceId                              = 0
 )
 
 type (
@@ -43,6 +44,7 @@ type (
 		Port             uint16         `json:"port"`
 		Mode             WebServiceMode `json:"mode"`
 		ReadWriteTimeout time.Duration  `json:"readWriteTimeout"`
+		ServiceId        uint16         // used to distinguish between different services when highly available. no parse from configuration file, because services will use the same configuration file.
 	}
 
 	logSetting struct {
@@ -72,11 +74,19 @@ func (service *serviceSetting) GetMode() WebServiceMode {
 	}
 	return service.Mode
 }
+
 func (service *serviceSetting) GetReadWriteTimeout() time.Duration {
 	if service.ReadWriteTimeout == 0 {
 		return DefaultReadWriteTimeout
 	}
 	return service.ReadWriteTimeout
+}
+
+func (service *serviceSetting) GetServiceId() uint16 {
+	if service.ServiceId == 0 {
+		return DefaultServiceId
+	}
+	return service.ServiceId
 }
 
 func (log *logSetting) GetLevel() string {

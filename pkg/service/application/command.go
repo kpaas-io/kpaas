@@ -25,6 +25,7 @@ const (
 	FlagPort       = "port"
 	FlagLogLevel   = "log-level"
 	FlagConfigFile = "config-file"
+	FlagServiceId  = "service-id"
 )
 
 func GetCommand() *cobra.Command {
@@ -41,7 +42,8 @@ func GetCommand() *cobra.Command {
 func setFlags() {
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
-	pflag.Uint16(FlagPort, 8080, "restful service listening port")
+	pflag.Uint16(FlagPort, 8080, "restful service listening port.")
 	pflag.String(FlagLogLevel, "info", "log level(options: trace, debug, info, warn|warning, error, fatal, panic)")
 	pflag.String(FlagConfigFile, "", "config file for json format")
+	pflag.Uint16(FlagServiceId, 0, "distinguish between different services when highly available.")
 }
