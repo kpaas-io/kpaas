@@ -62,13 +62,7 @@ func CheckNodeList(c *gin.Context) {
 		return
 	}
 
-	client, err := clientUtils.GetDeployController()
-	if err != nil {
-
-		h.E(c, h.EDeployControllerError.WithPayload(err))
-		log.ReqEntry(c).Errorf("get deploy controller rpc client error, errorMessage: %v", err)
-		return
-	}
+	client:= clientUtils.GetDeployController()
 
 	grpcContext, cancel := context.WithTimeout(context.Background(), config.Config.DeployController.GetTimeout())
 	defer cancel()
@@ -148,11 +142,7 @@ func listenCheckNodesData() {
 
 func checkResultOneTime() {
 
-	client, err := clientUtils.GetDeployController()
-	if err != nil {
-		logrus.Errorf("get deploy controller rpc client error, errorMessage: %v", err)
-		return
-	}
+	client := clientUtils.GetDeployController()
 
 	grpcContext, cancel := context.WithTimeout(context.Background(), config.Config.DeployController.GetTimeout())
 	defer cancel()

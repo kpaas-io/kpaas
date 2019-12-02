@@ -18,8 +18,6 @@ import (
 	"sync"
 
 	"google.golang.org/grpc"
-
-	"github.com/kpaas-io/kpaas/pkg/service/config"
 )
 
 var (
@@ -31,26 +29,30 @@ func init() {
 	deployControllerRWLock = new(sync.RWMutex)
 }
 
-func GetDeployControllerConnection() (*grpc.ClientConn, error) {
+func InitConnection(address string) (err error) {
 
 	clientConn := tryToGetConnection()
 	if clientConn != nil {
-		return clientConn, nil
+		return nil
 	}
 
 	deployControllerRWLock.Lock()
 	defer deployControllerRWLock.Unlock()
 	if deployControllerConnection != nil {
-		return deployControllerConnection, nil
+		return nil
 	}
 
-	var err error
-	deployControllerConnection, err = grpc.Dial(config.Config.DeployController.GetAddress(), grpc.WithInsecure(), grpc.WithBlock())
+	deployControllerConnection, err = grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return deployControllerConnection, nil
+	return nil
+}
+
+func GetDeployControllerConnection() *grpc.ClientConn {
+
+	return deployControllerConnection
 }
 
 func tryToGetConnection() *grpc.ClientConn {

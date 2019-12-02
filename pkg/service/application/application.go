@@ -29,7 +29,6 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/kpaas-io/kpaas/pkg/service/config"
-	"github.com/kpaas-io/kpaas/pkg/service/grpcutils/client"
 	"github.com/kpaas-io/kpaas/pkg/service/grpcutils/connection"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	configUtils "github.com/kpaas-io/kpaas/pkg/utils/config"
@@ -63,11 +62,11 @@ func (a *app) startService() {
 
 func (a *app) initService() {
 
-	a.initRandomSeed()
 	a.initLogLevel()
-	a.initMemoriesData()
-	a.initClients()
+	a.initRandomSeed()
 	a.initSnowFlake()
+	a.initClients()
+	a.initMemoriesData()
 	a.initRESTfulAPIHandler()
 	a.initRequestLogger()
 	a.setRoutes()
@@ -82,7 +81,9 @@ func (a *app) parseFlags() {
 
 func (a *app) initRandomSeed() {
 
+	logrus.Debug("init random seed")
 	rand.Seed(time.Now().UnixNano())
+	logrus.Debug("random seed init succeed")
 }
 
 func (a *app) initLogLevel() {
@@ -92,6 +93,7 @@ func (a *app) initLogLevel() {
 		logrus.Errorf("Parse log level error")
 	} else {
 		logrus.SetLevel(logLevel)
+		logrus.Debugf("log level set: %s", config.Config.Log.GetLevel())
 	}
 }
 
@@ -212,15 +214,26 @@ func (a *app) startRESTfulAPIListener() {
 
 func (a *app) initClients() {
 
-	_, err := client.GetDeployController()
+	return
+	// TODO Lucky Wait for deploy controller service ok to use
+	logrus.Debug("start to init deploy controller client")
+	if config.Config.DeployController.GetAddress() == "" {
+		logrus.Error("deploy controller address not set")
+		return
+	}
+
+	err := connection.InitConnection(config.Config.DeployController.GetAddress())
 	if err != nil {
 		logrus.Errorf("init deploy controller client error, %v", err)
 	}
+	logrus.Debug("init deploy controller client succeed")
 }
 
 func (a *app) initSnowFlake() {
 
-	idcreator.InitCreator(config.Config.Service.ServiceId)
+	logrus.Debug("start init id creator")
+	idcreator.InitCreator(config.Config.Service.GetServiceId())
+	logrus.Debug("id creator init succeed")
 }
 
 func (a *app) initMemoriesData() {

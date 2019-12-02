@@ -23,19 +23,16 @@ var (
 	deployControllerClient protos.DeployContollerClient
 )
 
-func GetDeployController() (protos.DeployContollerClient, error) {
+func GetDeployController() protos.DeployContollerClient {
 
 	if deployControllerClient != nil {
-		return deployControllerClient, nil
+		return deployControllerClient
 	}
 
-	conn, err := connection.GetDeployControllerConnection()
-	if err != nil {
-		return nil, err
-	}
+	conn := connection.GetDeployControllerConnection()
 
 	deployControllerClient = protos.NewDeployContollerClient(conn)
-	return deployControllerClient, nil
+	return deployControllerClient
 }
 
 func SetDeployController(client protos.DeployContollerClient) {
