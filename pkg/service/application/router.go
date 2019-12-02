@@ -48,6 +48,8 @@ func (a *app) setRoutes() {
 
 	wizardGroup.GET("/logs/{id}", deploy.DownloadLog)
 
+	wizardGroup.GET("/kubeconfigs", deploy.DownloadKubeConfig)
+
 	v1.POST("/ssh/tests", deploy.TestConnectNode)
 
 	v1.POST("/ssh_certificates", deploy.AddSSHCertificate)

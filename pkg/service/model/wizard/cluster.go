@@ -17,17 +17,22 @@ package wizard
 import (
 	"sync"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
+	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
 )
 
 type (
 	Cluster struct {
+		ClusterId          uint64
 		Info               *ClusterInfo
 		Nodes              []*Node
 		DeploymentStatus   DeployClusterStatus
 		DeployClusterError *common.FailureDetail
 		Wizard             *WizardData
+		KubeConfig         *string
 		lock               *sync.RWMutex
 	}
 
@@ -87,6 +92,12 @@ func (cluster *Cluster) init() {
 	cluster.Nodes = make([]*Node, 0, 0)
 	cluster.Wizard = NewWizardData()
 	cluster.lock = &sync.RWMutex{}
+	var err error
+	cluster.ClusterId, err = idcreator.NextID()
+	if err != nil {
+		logrus.Error(err)
+	}
+	cluster.KubeConfig = new(string)
 }
 
 func (cluster *Cluster) GetCheckResult() CheckResult {

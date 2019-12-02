@@ -24,18 +24,11 @@ import (
 
 func TestInitLogs(t *testing.T) {
 
-	logId, err := logIdCreator.NextID()
-	assert.Nil(t, err)
-
-	logs[logId] = []byte("test")
-
 	currentLogs := logs
-	currentLogIdCreator := logIdCreator
 
 	InitLogs()
 
-	assert.NotEqual(t, currentLogs, logs)
-	assert.NotEqual(t, currentLogIdCreator, logIdCreator)
+	assert.False(t, &currentLogs == &logs)
 }
 
 func TestSetLogByString(t *testing.T) {
