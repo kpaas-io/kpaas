@@ -19,6 +19,7 @@ import (
 	"github.com/swaggo/gin-swagger/swaggerFiles"
 
 	"github.com/kpaas-io/kpaas/pkg/service/api/v1/deploy"
+	"github.com/kpaas-io/kpaas/pkg/service/api/v1/helm"
 	_ "github.com/kpaas-io/kpaas/pkg/service/swaggerdocs"
 )
 
@@ -54,4 +55,15 @@ func (a *app) setRoutes() {
 
 	v1.POST("/ssh_certificates", deploy.AddSSHCertificate)
 	v1.GET("/ssh_certificates", deploy.GetCertificateList)
+
+	// group for helm.
+	helmGroup := v1.Group("/helm")
+	helmGroup.POST("/clusters/:cluster/namespaces/:namespace/releases", helm.InstallRelease)
+	helmGroup.PUT("/clusters/:cluster/namespaces/:namespace/releases/:name", helm.UpgradeRelease)
+	helmGroup.PUT("/clusters/:cluster/namespaces/:namespace/releases/:name/rollback", helm.RollbackRelease)
+	helmGroup.GET("/clusters/:cluster/namespaces/:namespace/releases/:name", helm.GetRelease)
+	helmGroup.GET("/clusters/:cluster/namespaces/:namespace/releases", helm.ListRelease)
+	helmGroup.DELETE("/clusters/:cluster/namespaces/:namespace/releases/:name", helm.UninstallRelease)
+	helmGroup.GET("/clusters/:cluster/namespaces/:namespace/releases/:name/export", helm.ExportRelease)
+	helmGroup.POST("/render", helm.RenderTemplate)
 }
