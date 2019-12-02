@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"testing"
 
 	"github.com/gin-gonic/gin"
@@ -166,6 +167,29 @@ func TestGetDeployReport(t *testing.T) {
 				},
 			},
 		},
-	}, responseData.Roles)
+	}, sortRoles(responseData.Roles))
 	assert.Nil(t, responseData.DeployClusterError)
+}
+
+func sortRoles(roles []api.DeploymentResponseData) []api.DeploymentResponseData {
+
+	sort.SliceStable(roles, func(i, j int) bool {
+		if roles[i].Role == roles[j].Role {
+			return false
+		}
+		if roles[i].Role == constant.MachineRoleMaster {
+			return true
+		}
+		if roles[j].Role == constant.MachineRoleMaster {
+			return false
+		}
+		if roles[i].Role == constant.MachineRoleWorker {
+			return true
+		}
+		if roles[j].Role == constant.MachineRoleWorker {
+			return false
+		}
+		return false
+	})
+	return roles
 }
