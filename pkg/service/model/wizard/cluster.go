@@ -28,16 +28,16 @@ import (
 
 type (
 	Cluster struct {
-		ClusterId          uint64
-		Info               *ClusterInfo
-		Nodes              []*Node
-		DeploymentStatus   DeployClusterStatus
-		DeployClusterError *common.FailureDetail
-		ClusterCheckResult constant.CheckResult
-		CheckClusterError  *common.FailureDetail
-		Wizard             *WizardData
-		KubeConfig         *string
-		lock               *sync.RWMutex
+		ClusterId           uint64
+		Info                *ClusterInfo
+		Nodes               []*Node
+		DeployClusterStatus DeployClusterStatus
+		DeployClusterError  *common.FailureDetail
+		ClusterCheckResult  constant.CheckResult
+		ClusterCheckError   *common.FailureDetail
+		Wizard              *WizardData
+		KubeConfig          *string
+		lock                *sync.RWMutex
 	}
 
 	ClusterInfo struct {
@@ -92,7 +92,7 @@ func NewCluster() *Cluster {
 func (cluster *Cluster) init() {
 
 	cluster.Info = NewClusterInfo()
-	cluster.DeploymentStatus = DeployClusterStatusNotRunning
+	cluster.DeployClusterStatus = DeployClusterStatusNotRunning
 	cluster.ClusterCheckResult = constant.CheckResultNotRunning
 	cluster.Nodes = make([]*Node, 0, 0)
 	cluster.Wizard = NewWizardData()
@@ -111,6 +111,14 @@ func (cluster *Cluster) GetCheckResult() constant.CheckResult {
 	defer cluster.lock.RUnlock()
 
 	return cluster.ClusterCheckResult
+}
+
+func (cluster *Cluster) GetDeployClusterStatus() DeployClusterStatus {
+
+	cluster.lock.RLock()
+	defer cluster.lock.RUnlock()
+
+	return cluster.DeployClusterStatus
 }
 
 func (cluster *Cluster) AddNode(node *Node) error {
@@ -255,24 +263,24 @@ func (cluster *Cluster) MarkNodeChecking() error {
 	return nil
 }
 
-func (cluster *Cluster) ClearClusterCheckingData() error {
+func (cluster *Cluster) ClearClusterCheckingData() {
 
 	cluster.lock.Lock()
 	defer cluster.lock.Unlock()
 
 	if len(cluster.Nodes) <= 0 {
-		return nil
+		return
 	}
 
 	cluster.ClusterCheckResult = constant.CheckResultNotRunning
-	cluster.CheckClusterError = nil
+	cluster.ClusterCheckError = nil
 
 	for _, node := range cluster.Nodes {
 
 		node.CheckReport.init()
 	}
 
-	return nil
+	return
 }
 
 func (cluster *Cluster) SetClusterCheckResult(result constant.CheckResult, failureDetail *common.FailureDetail) {
@@ -282,7 +290,56 @@ func (cluster *Cluster) SetClusterCheckResult(result constant.CheckResult, failu
 
 	cluster.ClusterCheckResult = result
 	if failureDetail != nil {
-		cluster.CheckClusterError = failureDetail.Clone()
+		cluster.ClusterCheckError = failureDetail.Clone()
+	}
+}
+
+func (cluster *Cluster) ClearClusterDeployData() {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	if len(cluster.Nodes) <= 0 {
+		return
+	}
+
+	cluster.DeployClusterStatus = DeployClusterStatusNotRunning
+	cluster.DeployClusterError = nil
+
+	for _, node := range cluster.Nodes {
+
+		node.initDeploymentReports()
+	}
+
+	return
+}
+
+func (cluster *Cluster) MarkNodeDeploying() error {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	if len(cluster.Nodes) <= 0 {
+		return nil
+	}
+
+	if cluster.DeployClusterStatus == DeployClusterStatusRunning {
+		return errors.New("was running")
+	}
+
+	cluster.DeployClusterStatus = DeployClusterStatusRunning
+
+	return nil
+}
+
+func (cluster *Cluster) SetClusterDeploymentStatus(status DeployClusterStatus, failureDetail *common.FailureDetail) {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	cluster.DeployClusterStatus = status
+	if failureDetail != nil {
+		cluster.DeployClusterError = failureDetail.Clone()
 	}
 }
 

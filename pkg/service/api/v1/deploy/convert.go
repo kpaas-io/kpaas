@@ -243,3 +243,37 @@ func convertDeployControllerCheckResultToModelCheckResult(status string) constan
 	}
 	return constant.CheckResult(fmt.Sprintf("unknown(%s)", status))
 }
+
+func convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(status string) wizard.DeployClusterStatus {
+	switch status {
+	case string(wizard.DeployClusterStatusNotRunning):
+		return wizard.DeployClusterStatusNotRunning
+	case string(wizard.DeployClusterStatusRunning):
+		return wizard.DeployClusterStatusRunning
+	case string(wizard.DeployClusterStatusSuccessful):
+		return wizard.DeployClusterStatusSuccessful
+	case string(wizard.DeployClusterStatusFailed):
+		return wizard.DeployClusterStatusFailed
+	case string(wizard.DeployClusterStatusWorkedButHaveError):
+		return wizard.DeployClusterStatusWorkedButHaveError
+	}
+	return wizard.DeployClusterStatus(fmt.Sprintf("unknown(%s)", status))
+}
+
+func convertDeployControllerDeployResultToModelDeployResult(status string) wizard.DeployStatus {
+
+	switch status {
+	case string(wizard.DeployStatusPending):
+		return wizard.DeployStatusPending
+	case string(wizard.DeployStatusDeploying):
+		return wizard.DeployStatusDeploying
+	case string(wizard.DeployStatusCompleted):
+		return wizard.DeployStatusCompleted
+	case string(wizard.DeployStatusFailed):
+		return wizard.DeployStatusFailed
+	case string(wizard.DeployStatusAborted):
+		return wizard.DeployStatusAborted
+	}
+
+	return wizard.DeployStatus(fmt.Sprintf("unknown(%s)", status))
+}

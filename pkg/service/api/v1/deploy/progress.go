@@ -46,7 +46,7 @@ func GetWizardProgress(c *gin.Context) {
 		CheckingData:        *checkingData,
 		DeploymentData:      *deploymentData,
 		CheckResult:         wizard.GetCurrentWizard().GetCheckResult(),
-		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.GetCurrentWizard().DeploymentStatus),
+		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.GetCurrentWizard().DeployClusterStatus),
 	}
 
 	h.R(c, responseData)

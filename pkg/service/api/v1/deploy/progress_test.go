@@ -193,12 +193,12 @@ func TestGetWizardProgress5(t *testing.T) {
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			DeploymentReports: []*wizard.DeploymentReport{
-				{
+			DeploymentReports: map[constant.MachineRole]*wizard.DeploymentReport{
+				constant.MachineRoleMaster: {
 					Role:   constant.MachineRoleMaster,
 					Status: wizard.DeployStatusCompleted,
 				},
-				{
+				constant.MachineRoleEtcd: {
 					Role:   constant.MachineRoleEtcd,
 					Status: wizard.DeployStatusCompleted,
 				},
@@ -238,7 +238,7 @@ func TestGetWizardProgress6(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
-	wizardData.DeploymentStatus = wizard.DeployClusterStatusSuccessful
+	wizardData.DeployClusterStatus = wizard.DeployClusterStatusSuccessful
 	responseData := getWizardProgressData(t)
 	assert.Equal(t, api.DeployClusterStatusSuccessful, responseData.DeployClusterStatus)
 }

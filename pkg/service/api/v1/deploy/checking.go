@@ -52,17 +52,14 @@ func CheckNodeList(c *gin.Context) {
 		return
 	}
 
-	if err := wizardData.ClearClusterCheckingData(); err != nil {
-		h.E(c, h.EStatusError.WithPayload(err))
-		return
-	}
+	wizardData.ClearClusterCheckingData()
 
 	if err := wizardData.MarkNodeChecking(); err != nil {
 		h.E(c, h.EStatusError.WithPayload(err))
 		return
 	}
 
-	client:= clientUtils.GetDeployController()
+	client := clientUtils.GetDeployController()
 
 	grpcContext, cancel := context.WithTimeout(context.Background(), config.Config.DeployController.GetTimeout())
 	defer cancel()
@@ -71,7 +68,7 @@ func CheckNodeList(c *gin.Context) {
 	if err != nil {
 		h.E(c, h.EDeployControllerError.WithPayload(err))
 		log.ReqEntry(c).Errorf("call deploy controller error, errorMessage: %v", err)
-		_ = wizardData.ClearClusterCheckingData()
+		wizardData.ClearClusterDeployData()
 		return
 	}
 
@@ -135,12 +132,12 @@ func listenCheckNodesData() {
 			break
 		}
 
-		checkResultOneTime()
+		refreshCheckResultOneTime()
 		time.Sleep(time.Second)
 	}
 }
 
-func checkResultOneTime() {
+func refreshCheckResultOneTime() {
 
 	client := clientUtils.GetDeployController()
 

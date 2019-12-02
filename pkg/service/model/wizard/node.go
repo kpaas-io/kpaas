@@ -15,6 +15,8 @@
 package wizard
 
 import (
+	"sync"
+
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 )
@@ -23,14 +25,15 @@ type (
 	Node struct {
 		ConnectionData
 
-		Name                string                 // node name
-		Description         string                 // node description
-		MachineRoles        []constant.MachineRole // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
-		Labels              []*Label               // Node labels
-		Taints              []*Taint               // Node taints
-		CheckReport         *CheckReport           // Check node report
-		DeploymentReports   []*DeploymentReport    // Deployment report for each role
-		DockerRootDirectory string                 // Docker Root Directory
+		Name                string                                     // node name
+		Description         string                                     // node description
+		MachineRoles        []constant.MachineRole                     // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
+		Labels              []*Label                                   // Node labels
+		Taints              []*Taint                                   // Node taints
+		CheckReport         *CheckReport                               // Check node report
+		DeploymentReports   map[constant.MachineRole]*DeploymentReport // Deployment report for each role
+		DockerRootDirectory string                                     // Docker Root Directory
+		rwLock              *sync.RWMutex                              // Read write lock
 	}
 
 	ConnectionData struct {
@@ -111,7 +114,7 @@ func NewNode() *Node {
 func (node *Node) init() {
 
 	node.MachineRoles = make([]constant.MachineRole, 0, 2)
-	node.DeploymentReports = make([]*DeploymentReport, 0, 2)
+	node.initDeploymentReports()
 	node.Labels = make([]*Label, 0, 0)
 	node.Taints = make([]*Taint, 0, 0)
 	node.ConnectionData.Port = uint16(22)
@@ -120,9 +123,17 @@ func (node *Node) init() {
 	node.DockerRootDirectory = DefaultDockerRootDirectory
 	node.CheckReport = new(CheckReport)
 	node.CheckReport.init()
+	node.rwLock = new(sync.RWMutex)
+}
+
+func (node *Node) initDeploymentReports() {
+	node.DeploymentReports = make(map[constant.MachineRole]*DeploymentReport)
 }
 
 func (node *Node) SetCheckResult(result constant.CheckResult, detail *common.FailureDetail) {
+
+	node.rwLock.Lock()
+	defer node.rwLock.Unlock()
 
 	node.CheckReport.CheckResult = result
 	if detail != nil {
@@ -131,6 +142,9 @@ func (node *Node) SetCheckResult(result constant.CheckResult, detail *common.Fai
 }
 
 func (node *Node) SetCheckItem(itemName string, result constant.CheckResult, detail *common.FailureDetail) {
+
+	node.rwLock.Lock()
+	defer node.rwLock.Unlock()
 
 	item := NewCheckItem()
 	for _, iterateItem := range node.CheckReport.CheckItems {
@@ -142,6 +156,20 @@ func (node *Node) SetCheckItem(itemName string, result constant.CheckResult, det
 
 	item.CheckResult = result
 	item.Error = detail
+}
+
+func (node *Node) SetDeployResult(role constant.MachineRole, status DeployStatus, detail *common.FailureDetail) {
+
+	node.rwLock.Lock()
+	defer node.rwLock.Unlock()
+
+	if _, exist := node.DeploymentReports[role]; !exist {
+		node.DeploymentReports[role] = NewDeploymentReport()
+		node.DeploymentReports[role].Role = role
+	}
+
+	node.DeploymentReports[role].Status = status
+	node.DeploymentReports[role].Error = detail
 }
 
 func NewDeploymentReport() *DeploymentReport {

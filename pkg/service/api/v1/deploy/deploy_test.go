@@ -55,13 +55,13 @@ func TestDeploy2(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
+	node := wizard.NewNode()
+	node.Name = "master1"
+	node.CheckReport = &wizard.CheckReport{
+		CheckResult: constant.CheckResultFailed,
+	}
 	wizardData.Nodes = []*wizard.Node{
-		{
-			Name: "master1",
-			CheckReport: &wizard.CheckReport{
-				CheckResult: constant.CheckResultFailed,
-			},
-		},
+		node,
 	}
 
 	var err error
@@ -86,13 +86,13 @@ func TestDeploy3(t *testing.T) {
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
 	wizardData.ClusterCheckResult = constant.CheckResultPassed
+	node := wizard.NewNode()
+	node.Name = "master1"
+	node.CheckReport = &wizard.CheckReport{
+		CheckResult: constant.CheckResultPassed,
+	}
 	wizardData.Nodes = []*wizard.Node{
-		{
-			Name: "master1",
-			CheckReport: &wizard.CheckReport{
-				CheckResult: constant.CheckResultPassed,
-			},
-		},
+		node,
 	}
 
 	var err error
@@ -119,19 +119,19 @@ func TestGetDeployReport(t *testing.T) {
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			DeploymentReports: []*wizard.DeploymentReport{
-				{
+			DeploymentReports: map[constant.MachineRole]*wizard.DeploymentReport{
+				constant.MachineRoleMaster: {
 					Role:   constant.MachineRoleMaster,
 					Status: wizard.DeployStatusCompleted,
 				},
-				{
+				constant.MachineRoleEtcd: {
 					Role:   constant.MachineRoleEtcd,
 					Status: wizard.DeployStatusCompleted,
 				},
 			},
 		},
 	}
-	wizardData.DeploymentStatus = wizard.DeployClusterStatusSuccessful
+	wizardData.DeployClusterStatus = wizard.DeployClusterStatusSuccessful
 
 	var err error
 	resp := httptest.NewRecorder()

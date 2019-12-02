@@ -222,3 +222,23 @@ func TestConvertDeployControllerCheckResultToModelCheckResult(t *testing.T) {
 	assert.Equal(t, constant.CheckResultFailed, convertDeployControllerCheckResultToModelCheckResult(string(constant.CheckResultFailed)))
 	assert.Equal(t, constant.CheckResult("unknown(OtherType)"), convertDeployControllerCheckResultToModelCheckResult("OtherType"))
 }
+
+func TestConvertDeployControllerDeployClusterStatusToModelDeployClusterStatus(t *testing.T) {
+
+	assert.Equal(t, wizard.DeployClusterStatusNotRunning, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusNotRunning)))
+	assert.Equal(t, wizard.DeployClusterStatusRunning, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusRunning)))
+	assert.Equal(t, wizard.DeployClusterStatusSuccessful, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusSuccessful)))
+	assert.Equal(t, wizard.DeployClusterStatusFailed, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusFailed)))
+	assert.Equal(t, wizard.DeployClusterStatusWorkedButHaveError, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusWorkedButHaveError)))
+	assert.Equal(t, wizard.DeployClusterStatus("unknown(OtherType)"), convertDeployControllerDeployClusterStatusToModelDeployClusterStatus("OtherType"))
+}
+
+func TestConvertDeployControllerDeployResultToModelDeployResult(t *testing.T) {
+
+	assert.Equal(t, wizard.DeployStatusPending, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusPending)))
+	assert.Equal(t, wizard.DeployStatusDeploying, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusDeploying)))
+	assert.Equal(t, wizard.DeployStatusCompleted, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusCompleted)))
+	assert.Equal(t, wizard.DeployStatusFailed, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusFailed)))
+	assert.Equal(t, wizard.DeployStatusAborted, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusAborted)))
+	assert.Equal(t, wizard.DeployStatus("unknown(OtherType)"), convertDeployControllerDeployResultToModelDeployResult("OtherType"))
+}
