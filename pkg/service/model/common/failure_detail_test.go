@@ -22,6 +22,18 @@ import (
 
 func TestNewError(t *testing.T) {
 
-	err := NewError()
-	assert.NotNil(t, err)
+	failureDetail := NewFailureDetail()
+	assert.NotNil(t, failureDetail)
+}
+
+func TestFailureDetail_Clone(t *testing.T) {
+
+	failureDetail1 := NewFailureDetail()
+	failureDetail1.LogId = 1
+	failureDetail1.Reason = "reason"
+	failureDetail1.Detail = "detail"
+	failureDetail1.FixMethods = "fixMethods"
+	failureDetail2 := failureDetail1.Clone()
+	assert.EqualValues(t, failureDetail1, failureDetail2)
+	assert.False(t, failureDetail1 == failureDetail2)
 }
