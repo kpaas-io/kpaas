@@ -55,7 +55,7 @@ func newConfig(user string, auth *pb.Auth) (*ssh.ClientConfig, error) {
 func NewClient(user string, host string, sshConfig *pb.SSH) (*ssh.Client, error) {
 	config, err := newConfig(user, sshConfig.Auth)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get ssh client config: %v, error: %v", err)
+		return nil, fmt.Errorf("failed to get ssh client config: %v, error: %v", sshConfig, err)
 	}
 
 	client, err := ssh.Dial("tcp", fmt.Sprintf("%v:%v", host, sshConfig.Port), config)
