@@ -16,17 +16,18 @@ package ssh
 
 import (
 	"fmt"
-	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"time"
 
 	"golang.org/x/crypto/ssh"
+
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 const (
 	defaultTimeout = 60 * time.Second
 )
 
-func newConfig(user string, auth *protos.Auth) (*ssh.ClientConfig, error) {
+func newConfig(user string, auth *pb.Auth) (*ssh.ClientConfig, error) {
 	var authMethod ssh.AuthMethod
 
 	switch {
@@ -51,7 +52,7 @@ func newConfig(user string, auth *protos.Auth) (*ssh.ClientConfig, error) {
 	}, nil
 }
 
-func NewClient(user string, host string, sshConfig *protos.SSH) (*ssh.Client, error) {
+func NewClient(user string, host string, sshConfig *pb.SSH) (*ssh.Client, error) {
 	config, err := newConfig(user, sshConfig.Auth)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ssh client config: %v, error: %v", err)

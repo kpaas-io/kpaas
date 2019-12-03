@@ -19,18 +19,18 @@ import (
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
-	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 
 	mssh "github.com/kpaas-io/kpaas/pkg/deploy/machine/ssh"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type ExecClient struct {
-	SSHClient    *ssh.Client
-	SFTPClient   *sftp.Client
+	SSHClient  *ssh.Client
+	SFTPClient *sftp.Client
 }
 
 // NewExecClient create a new execution client
-func NewExecClient(node *protos.Node) (*ExecClient, error) {
+func NewExecClient(node *pb.Node) (*ExecClient, error) {
 	// use IP as host to create ssh client
 	sshClient, err := mssh.NewClient(node.Ssh.User, node.Ip, node.Ssh)
 	if err != nil {

@@ -14,8 +14,8 @@
 
 package validator
 
-const(
-	ItemEmptyLimit = 0
+const (
+	ItemEmptyLimit    = 0
 	ItemNotEmptyLimit = 1
-	ItemNoLimit = 0
+	ItemNoLimit       = 0
 )
