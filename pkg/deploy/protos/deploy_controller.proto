@@ -35,8 +35,9 @@ message Auth {
 
 // SSH contains the ssh login info.
 message SSH {
-  uint32 port = 1;
-  Auth auth = 2;
+  string user = 1;
+  uint32 port = 2;
+  Auth auth = 3;
 }
 
 // Node contains the node metadata info

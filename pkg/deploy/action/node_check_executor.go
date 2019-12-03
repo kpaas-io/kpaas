@@ -18,9 +18,9 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check/docker"
 )
 
 type nodeCheckExecutor struct {
@@ -38,24 +38,28 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 
 	logger.Debug("Start to execute node check action")
 
-	// The following codes are just for example
-	// 1. check kernel version
-	// TODO: ssh to check the kernel version
-	kernelVersionItem := &nodeCheckItem{
-		name:        "kernel version",
-		description: "kernel version must not less than 4.4.0",
-		status:      nodeCheckItemSucessful,
-	}
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, kernelVersionItem)
+	var (
+		reason string
+		status nodeCheckItemStatus
+	)
 
-	// 2. check docker version
-	// TODO: ssh to check the docker version
+	op, err := docker.NewCheckDockerOperation(nodeCheckAction.nodeCheckConfig)
+	if err != nil {
+		return fmt.Errorf("failed to create docker check operation, error: %v", err)
+	}
+
+	_, errOut, err := op.Do()
+	if err != nil {
+		reason = string(errOut)
+		status = nodeCheckItemFailed
+	}
+
 	dockerVersionItem := &nodeCheckItem{
 		name:        "docker version check",
-		description: "docker version must not less than 17.03.02",
-		status:      nodeCheckItemFailed,
+		description: "docker version check",
+		status:      status,
 		err: &pb.Error{
-			Reason:     "docker version is too low: 17.0.0",
+			Reason:     reason,
 			Detail:     "",
 			FixMethods: "upgrade docker version to 17.03.02+",
 		},
