@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	script  = "/scripts/checkdocker.sh"
+	script    = "/scripts/checkdocker.sh"
 	remoteDir = "/tmp"
 )
 
@@ -31,7 +31,7 @@ type CheckDockerOperation struct {
 	operation.BaseOperation
 }
 
-func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, error){
+func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckDockerOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {

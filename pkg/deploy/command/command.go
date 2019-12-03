@@ -29,7 +29,7 @@ type Command interface {
 
 // ShellCommand is a command execute by shell
 type ShellCommand struct {
-	machine  *machine.Machine
+	machine *machine.Machine
 	cmd     string
 	subCmd  string
 	options map[string]string
@@ -37,7 +37,7 @@ type ShellCommand struct {
 
 func NewShellCommand(machine *machine.Machine, cmd string, subCmd string, options map[string]string) *ShellCommand {
 	return &ShellCommand{
-		machine:  machine,
+		machine: machine,
 		cmd:     cmd,
 		subCmd:  subCmd,
 		options: options,

@@ -20,9 +20,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
+
+	"github.com/kpaas-io/kpaas/pkg/deploy"
 )
 
 const (

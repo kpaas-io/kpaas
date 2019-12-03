@@ -23,8 +23,8 @@ import (
 )
 
 var (
-	NL       = []byte{'\n'}
-	ANT      = []byte{'#'}
+	NL  = []byte{'\n'}
+	ANT = []byte{'#'}
 )
 
 func MustLoadConf(conf interface{}, confName string) {

@@ -254,8 +254,8 @@ func refreshDeployResultOneTime() {
 			failureDetail)
 	}
 
-	switch wizardData.DeployClusterStatus{
-	case wizard.DeployClusterStatusSuccessful,wizard.DeployClusterStatusWorkedButHaveError:
+	switch wizardData.DeployClusterStatus {
+	case wizard.DeployClusterStatusSuccessful, wizard.DeployClusterStatusWorkedButHaveError:
 		// TODO Lucky Update KubeConfig Data
 	}
 }

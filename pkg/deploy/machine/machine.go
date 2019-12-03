@@ -18,9 +18,9 @@ import (
 	"fmt"
 
 	dockerclient "github.com/docker/docker/client"
-	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine/docker"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type Machine struct {
@@ -47,7 +47,7 @@ func (m *Machine) SetDockerTunnel() {
 	m.DockerTunnel = docker.NewTunnel(m.SSHClient, m.Name)
 }
 
-func(m *Machine) SetDockerClient() error {
+func (m *Machine) SetDockerClient() error {
 	client, err := docker.NewTunneledClient(m.Name)
 	if err != nil {
 		return fmt.Errorf("failed to create tunneled docker client to machine: %v, error: %v", m.Name, err)

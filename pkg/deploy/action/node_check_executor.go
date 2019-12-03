@@ -18,9 +18,10 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
-	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check/docker"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type nodeCheckExecutor struct {
