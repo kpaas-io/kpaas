@@ -21,11 +21,13 @@ import (
 )
 
 const (
-	WebServiceModeDebug     WebServiceMode = "debug"
-	WebServiceModeRelease   WebServiceMode = "release"
-	DefaultListenPort                      = uint16(8080)
-	DefaultLogLevel                        = "info"
-	DefaultReadWriteTimeout                = time.Minute
+	WebServiceModeDebug            WebServiceMode = "debug"
+	WebServiceModeRelease          WebServiceMode = "release"
+	DefaultListenPort                             = uint16(8080)
+	DefaultLogLevel                               = "info"
+	DefaultReadWriteTimeout                       = time.Minute
+	DefaultDeployControllerAddress                = "127.0.0.1:8081"
+	DefaultServiceId                              = 0
 )
 
 type (
@@ -33,18 +35,25 @@ type (
 	WebServiceMode string
 
 	configuration struct {
-		Service serviceSetting `json:"service"`
-		Log     logSetting     `json:"log"`
+		Service          serviceSetting          `json:"service"`
+		Log              logSetting              `json:"log"`
+		DeployController deployControllerSetting `json:"deployController"`
 	}
 
 	serviceSetting struct {
 		Port             uint16         `json:"port"`
 		Mode             WebServiceMode `json:"mode"`
 		ReadWriteTimeout time.Duration  `json:"readWriteTimeout"`
+		ServiceId        uint16         // used to distinguish between different services when highly available. no parse from configuration file, because services will use the same configuration file.
 	}
 
 	logSetting struct {
 		Level string `json:"level"` // level: trace, debug, info, warn|warning, error, fatal, panic
+	}
+
+	deployControllerSetting struct {
+		Address string        `json:"address"`
+		Timeout time.Duration `json:"timeout"`
 	}
 )
 
@@ -65,6 +74,7 @@ func (service *serviceSetting) GetMode() WebServiceMode {
 	}
 	return service.Mode
 }
+
 func (service *serviceSetting) GetReadWriteTimeout() time.Duration {
 	if service.ReadWriteTimeout == 0 {
 		return DefaultReadWriteTimeout
@@ -72,9 +82,31 @@ func (service *serviceSetting) GetReadWriteTimeout() time.Duration {
 	return service.ReadWriteTimeout
 }
 
+func (service *serviceSetting) GetServiceId() uint16 {
+	if service.ServiceId == 0 {
+		return DefaultServiceId
+	}
+	return service.ServiceId
+}
+
 func (log *logSetting) GetLevel() string {
 	if log.Level == "" {
 		return DefaultLogLevel
 	}
 	return log.Level
+}
+
+func (controller *deployControllerSetting) GetAddress() string {
+	if controller.Address == "" {
+		return DefaultDeployControllerAddress
+	}
+	return controller.Address
+}
+
+func (controller *deployControllerSetting) GetTimeout() time.Duration {
+
+	if controller.Timeout == 0 {
+		return DefaultReadWriteTimeout
+	}
+	return controller.Timeout
 }

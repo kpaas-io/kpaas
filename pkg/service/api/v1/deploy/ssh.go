@@ -15,12 +15,23 @@
 package deploy
 
 import (
+	"context"
+
 	"github.com/gin-gonic/gin"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/service/config"
+	clientUtils "github.com/kpaas-io/kpaas/pkg/service/grpcutils/client"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+	"github.com/kpaas-io/kpaas/pkg/service/model/sshcertificate"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
 	"github.com/kpaas-io/kpaas/pkg/utils/validator"
+)
+
+const (
+	deployControllerAuthCredentialPassword   = "password"
+	deployControllerAuthCredentialPrivateKey = "privatekey"
 )
 
 // @ID TestSSH
@@ -33,18 +44,56 @@ import (
 // @Success 201 {object} api.SuccessfulOption
 // @Failure 400 {object} h.AppErr
 // @Failure 409 {object} h.AppErr
+// @Failure 500 {object} h.AppErr
 // @Router /api/v1/ssh/tests [post]
 func TestConnectNode(c *gin.Context) {
 
-	// requestData, hasError := getConnectionData(c)
-	_, hasError := getConnectionData(c)
+	requestData, hasError := getConnectionData(c)
 	if hasError {
 		return
 	}
 
-	// TODO Lucky Call Deploy Controller to test ssh connection
+	client := clientUtils.GetDeployController()
 
-	h.R(c, api.SuccessfulOption{Success: true})
+	grpcContext, cancel := context.WithTimeout(context.Background(), config.Config.DeployController.GetTimeout())
+	defer cancel()
+
+	resp, err := client.TestConnection(grpcContext, getCallTestConnectionData(requestData))
+	if err != nil {
+		h.E(c, h.EDeployControllerError.WithPayload(err))
+		log.ReqEntry(c).Errorf("call deploy controller error, errorMessage: %v", err)
+		return
+	}
+
+	h.R(c, api.TestConnectionResponse{
+		SuccessfulOption: api.SuccessfulOption{Success: resp.GetPassed()},
+		Error:            convertDeployControllerErrorToAPIError(resp.GetErr()),
+	})
+}
+
+func getCallTestConnectionData(requestData *api.ConnectionData) *protos.TestConnectionRequest {
+
+	auth := &protos.Auth{
+		Username: requestData.Username,
+	}
+
+	switch requestData.AuthenticationType {
+	case api.AuthenticationTypePassword:
+		auth.Type = deployControllerAuthCredentialPassword
+		auth.Credential = requestData.Password
+	case api.AuthenticationTypePrivateKey:
+		auth.Type = deployControllerAuthCredentialPrivateKey
+		auth.Credential = sshcertificate.GetPrivateKey(requestData.PrivateKeyName)
+	}
+
+	return &protos.TestConnectionRequest{Node: &protos.Node{
+		Name: requestData.IP,
+		Ip:   requestData.IP,
+		Ssh: &protos.SSH{
+			Port: uint32(requestData.Port),
+			Auth: auth,
+		},
+	}}
 }
 
 func getConnectionData(c *gin.Context) (requestData *api.ConnectionData, hasError bool) {

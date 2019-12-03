@@ -24,6 +24,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
+	grpcClient "github.com/kpaas-io/kpaas/pkg/service/grpcutils/client"
+	"github.com/kpaas-io/kpaas/pkg/service/grpcutils/mock"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -33,11 +36,11 @@ func TestCheckNodeList(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
-	wizardData.Nodes = []*wizard.Node{
-		{
-			Name: "master1",
-		},
-	}
+	mockNode := wizard.NewNode()
+	mockNode.Name = "master1"
+	wizardData.Nodes = []*wizard.Node{mockNode}
+
+	grpcClient.SetDeployController(mock.NewDeployController())
 
 	var err error
 	resp := httptest.NewRecorder()
@@ -59,6 +62,9 @@ func TestCheckNodeList(t *testing.T) {
 func TestCheckNodeList2(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
+
+	grpcClient.SetDeployController(mock.NewDeployController())
+
 	var err error
 	resp := httptest.NewRecorder()
 	gin.SetMode(gin.TestMode)
@@ -80,18 +86,22 @@ func TestGetCheckingNodeListResult(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
+	wizardData.ClusterCheckResult = constant.CheckResultPassed
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			CheckItems: []*wizard.CheckItem{
-				{
-					ItemName:    "check 1",
-					CheckResult: wizard.CheckResultPassed,
+			CheckReport: &wizard.CheckReport{
+				CheckItems: []*wizard.CheckItem{
+					{
+						ItemName:    "check 1",
+						CheckResult: constant.CheckResultPassed,
+					},
+					{
+						ItemName:    "check 2",
+						CheckResult: constant.CheckResultPassed,
+					},
 				},
-				{
-					ItemName:    "check 2",
-					CheckResult: wizard.CheckResultPassed,
-				},
+				CheckResult: constant.CheckResultPassed,
 			},
 		},
 	}
@@ -116,13 +126,13 @@ func TestGetCheckingNodeListResult(t *testing.T) {
 	assert.Equal(t, []api.CheckingItem{
 		{
 			CheckingPoint: "check 1",
-			Result:        api.CheckResultPassed,
+			Result:        constant.CheckResultPassed,
 		},
 		{
 			CheckingPoint: "check 2",
-			Result:        api.CheckResultPassed,
+			Result:        constant.CheckResultPassed,
 		},
 	}, checkData.Items)
 
-	assert.Equal(t, api.CheckResultPassed, responseData.Result)
+	assert.Equal(t, constant.CheckResultPassed, responseData.Result)
 }

@@ -17,17 +17,18 @@ package api
 import (
 	"regexp"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/utils/validator"
 )
 
 type (
 	NodeBaseData struct {
-		Name                string        `json:"name" binding:"required" minLength:"1" maxLength:"64"` // node name
-		Description         string        `json:"description"`                                          // node description
-		MachineRole         []MachineRole `json:"role" default:"master" enums:"master,worker,etcd"`     // machine role, Master and worker roles are mutually exclusive.
-		Labels              []Label       `json:"labels"`                                               // Node labels
-		Taints              []Taint       `json:"taints"`                                               // Node taints
-		DockerRootDirectory string        `json:"dockerRootDirectory" default:"/var/lib/docker"`        // Docker Root Directory
+		Name                string                 `json:"name" binding:"required" minLength:"1" maxLength:"64"` // node name
+		Description         string                 `json:"description"`                                          // node description
+		MachineRoles        []constant.MachineRole `json:"roles" default:"master" enums:"master,worker,etcd"`    // machine role, Master and worker roles are mutually exclusive.
+		Labels              []Label                `json:"labels"`                                               // Node labels
+		Taints              []Taint                `json:"taints"`                                               // Node taints
+		DockerRootDirectory string                 `json:"dockerRootDirectory" default:"/var/lib/docker"`        // Docker Root Directory
 	}
 
 	NodeData struct {
@@ -36,15 +37,17 @@ type (
 	}
 
 	ConnectionData struct {
-		IP           string `json:"ip" binding:"required" minLength:"1" maxLength:"15"`               // node ip
-		Port         uint16 `json:"port" binding:"required" minimum:"1" maximum:"65535" default:"22"` // ssh port
 		SSHLoginData `json:",inline"`
+
+		IP   string `json:"ip" binding:"required" minLength:"1" maxLength:"15"`               // node ip
+		Port uint16 `json:"port" binding:"required" minimum:"1" maximum:"65535" default:"22"` // ssh port
 	}
 
 	UpdateNodeData struct {
 		NodeBaseData `json:",inline"`
 		SSHLoginData `json:",inline"`
-		Port         uint16 `json:"port" binding:"required" minimum:"1" maximum:"65535" default:"22"` // ssh port
+
+		Port uint16 `json:"port" binding:"required" minimum:"1" maximum:"65535" default:"22"` // ssh port
 	}
 
 	SSHLoginData struct {
@@ -64,8 +67,6 @@ type (
 		Nodes []NodeData `json:"nodes"` // node list
 	}
 
-	MachineRole string // Machine Role, master or worker
-
 	AuthenticationType string // Type of authorization,  password or privateKey
 
 	TaintEffect string // Taint Effect, NoSchedule, NoExecute or PreferNoSchedule
@@ -74,10 +75,6 @@ type (
 const (
 	AuthenticationTypePassword   AuthenticationType = "password"   // Use Password to authorize
 	AuthenticationTypePrivateKey AuthenticationType = "privateKey" // Use RSA PrivateKey to authorize
-
-	MachineRoleMaster MachineRole = "master" // master node
-	MachineRoleWorker MachineRole = "worker" // worker node
-	MachineRoleEtcd   MachineRole = "etcd"   // etcd node
 
 	TaintEffectNoSchedule       TaintEffect = "NoSchedule"
 	TaintEffectNoExecute        TaintEffect = "NoExecute"
@@ -97,9 +94,9 @@ const (
 
 func (node *NodeBaseData) Validate() error {
 
-	rolesNames := make([]string, 0, len(node.MachineRole))
+	rolesNames := make([]string, 0, len(node.MachineRoles))
 
-	for _, role := range node.MachineRole {
+	for _, role := range node.MachineRoles {
 		rolesNames = append(rolesNames, string(role))
 	}
 
@@ -107,7 +104,7 @@ func (node *NodeBaseData) Validate() error {
 		validator.ValidateString(node.Name, "name", validator.ItemNotEmptyLimit, NodeNameLengthLimit),
 		validator.ValidateRegexp(regexp.MustCompile(`[a-zA-Z][\w_-]*\w?`), node.Name, "name"),
 		validator.ValidateString(node.Description, "description", validator.ItemNoLimit, NodeDescriptionLengthLimit),
-		validator.ValidateStringArrayOptions(rolesNames, "role", []string{string(MachineRoleMaster), string(MachineRoleWorker), string(MachineRoleEtcd)}),
+		validator.ValidateStringArrayOptions(rolesNames, "role", []string{string(constant.MachineRoleMaster), string(constant.MachineRoleWorker), string(constant.MachineRoleEtcd)}),
 	)
 
 	for _, label := range node.Labels {

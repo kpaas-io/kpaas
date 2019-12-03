@@ -15,10 +15,12 @@
 package wizard
 
 import (
+	"errors"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
 	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
@@ -26,14 +28,16 @@ import (
 
 type (
 	Cluster struct {
-		ClusterId          uint64
-		Info               *ClusterInfo
-		Nodes              []*Node
-		DeploymentStatus   DeployClusterStatus
-		DeployClusterError *common.FailureDetail
-		Wizard             *WizardData
-		KubeConfig         *string
-		lock               *sync.RWMutex
+		ClusterId           uint64
+		Info                *ClusterInfo
+		Nodes               []*Node
+		DeployClusterStatus DeployClusterStatus
+		DeployClusterError  *common.FailureDetail
+		ClusterCheckResult  constant.CheckResult
+		ClusterCheckError   *common.FailureDetail
+		Wizard              *WizardData
+		KubeConfig          *string
+		lock                *sync.RWMutex
 	}
 
 	ClusterInfo struct {
@@ -88,7 +92,8 @@ func NewCluster() *Cluster {
 func (cluster *Cluster) init() {
 
 	cluster.Info = NewClusterInfo()
-	cluster.DeploymentStatus = DeployClusterStatusNotRunning
+	cluster.DeployClusterStatus = DeployClusterStatusNotRunning
+	cluster.ClusterCheckResult = constant.CheckResultNotRunning
 	cluster.Nodes = make([]*Node, 0, 0)
 	cluster.Wizard = NewWizardData()
 	cluster.lock = &sync.RWMutex{}
@@ -100,43 +105,20 @@ func (cluster *Cluster) init() {
 	cluster.KubeConfig = new(string)
 }
 
-func (cluster *Cluster) GetCheckResult() CheckResult {
+func (cluster *Cluster) GetCheckResult() constant.CheckResult {
 
-	if len(cluster.Nodes) <= 0 {
-		return CheckResultNotRunning
-	}
+	cluster.lock.RLock()
+	defer cluster.lock.RUnlock()
 
-	result := CheckResultNotRunning
-	isNotRunning := true
+	return cluster.ClusterCheckResult
+}
 
-	for _, node := range cluster.Nodes {
+func (cluster *Cluster) GetDeployClusterStatus() DeployClusterStatus {
 
-		for _, checkItem := range node.CheckItems {
+	cluster.lock.RLock()
+	defer cluster.lock.RUnlock()
 
-			switch checkItem.CheckResult {
-			case CheckResultChecking:
-
-				if result != CheckResultFailed {
-					result = CheckResultChecking
-				}
-				isNotRunning = false
-
-			case CheckResultFailed:
-				result = CheckResultFailed
-				isNotRunning = false
-
-			case CheckResultPassed:
-
-				isNotRunning = false
-			}
-		}
-	}
-
-	if result == CheckResultNotRunning && !isNotRunning {
-		return CheckResultPassed
-	}
-
-	return result
+	return cluster.DeployClusterStatus
 }
 
 func (cluster *Cluster) AddNode(node *Node) error {
@@ -250,6 +232,115 @@ func (cluster *Cluster) GetNode(ip string) *Node {
 	}
 
 	return nil
+}
+
+func (cluster *Cluster) GetNodeByName(name string) *Node {
+
+	for _, node := range cluster.Nodes {
+		if node.Name == name {
+			return node
+		}
+	}
+
+	return nil
+}
+
+func (cluster *Cluster) MarkNodeChecking() error {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	if len(cluster.Nodes) <= 0 {
+		return nil
+	}
+
+	if cluster.ClusterCheckResult == constant.CheckResultChecking {
+		return errors.New("was checking")
+	}
+
+	cluster.ClusterCheckResult = constant.CheckResultChecking
+
+	return nil
+}
+
+func (cluster *Cluster) ClearClusterCheckingData() {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	if len(cluster.Nodes) <= 0 {
+		return
+	}
+
+	cluster.ClusterCheckResult = constant.CheckResultNotRunning
+	cluster.ClusterCheckError = nil
+
+	for _, node := range cluster.Nodes {
+
+		node.CheckReport.init()
+	}
+
+	return
+}
+
+func (cluster *Cluster) SetClusterCheckResult(result constant.CheckResult, failureDetail *common.FailureDetail) {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	cluster.ClusterCheckResult = result
+	if failureDetail != nil {
+		cluster.ClusterCheckError = failureDetail.Clone()
+	}
+}
+
+func (cluster *Cluster) ClearClusterDeployData() {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	if len(cluster.Nodes) <= 0 {
+		return
+	}
+
+	cluster.DeployClusterStatus = DeployClusterStatusNotRunning
+	cluster.DeployClusterError = nil
+
+	for _, node := range cluster.Nodes {
+
+		node.initDeploymentReports()
+	}
+
+	return
+}
+
+func (cluster *Cluster) MarkNodeDeploying() error {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	if len(cluster.Nodes) <= 0 {
+		return nil
+	}
+
+	if cluster.DeployClusterStatus == DeployClusterStatusRunning {
+		return errors.New("was running")
+	}
+
+	cluster.DeployClusterStatus = DeployClusterStatusRunning
+
+	return nil
+}
+
+func (cluster *Cluster) SetClusterDeploymentStatus(status DeployClusterStatus, failureDetail *common.FailureDetail) {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	cluster.DeployClusterStatus = status
+	if failureDetail != nil {
+		cluster.DeployClusterError = failureDetail.Clone()
+	}
 }
 
 func NewClusterInfo() *ClusterInfo {

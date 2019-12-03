@@ -14,10 +14,14 @@
 
 package api
 
+import (
+	"github.com/kpaas-io/kpaas/pkg/constant"
+)
+
 type (
 	GetCheckingResultResponse struct {
 		Nodes  []CheckingResultResponseData `json:"nodes"`
-		Result CheckResult                  `json:"result" enums:"notRunning,checking,passed,failed"` // Overall inspection status
+		Result constant.CheckResult         `json:"result" enums:"notRunning,checking,passed,failed"` // Overall inspection status
 	}
 
 	CheckingResultResponseData struct {
@@ -26,17 +30,8 @@ type (
 	}
 
 	CheckingItem struct {
-		CheckingPoint string      `json:"point"`                                            // Check point
-		Result        CheckResult `json:"result" enums:"notRunning,checking,passed,failed"` // Checking Result
-		Error         *Error      `json:"error,omitempty"`
+		CheckingPoint string               `json:"point"`                                            // Check point
+		Result        constant.CheckResult `json:"result" enums:"notRunning,checking,passed,failed"` // Checking Result
+		Error         *Error               `json:"error,omitempty"`
 	}
-
-	CheckResult string
-)
-
-const (
-	CheckResultNotRunning CheckResult = "notRunning"
-	CheckResultChecking   CheckResult = "checking"
-	CheckResultPassed     CheckResult = "passed"
-	CheckResultFailed     CheckResult = "failed"
 )

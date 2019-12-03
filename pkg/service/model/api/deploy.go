@@ -14,6 +14,10 @@
 
 package api
 
+import (
+	"github.com/kpaas-io/kpaas/pkg/constant"
+)
+
 type (
 	GetDeploymentReportResponse struct {
 		Roles               []DeploymentResponseData `json:"roles"`
@@ -22,8 +26,8 @@ type (
 	}
 
 	DeploymentResponseData struct {
-		Role  MachineRole      `json:"role" enums:"master,worker,etcd"`
-		Nodes []DeploymentNode `json:"nodes"`
+		Role  constant.MachineRole `json:"role" enums:"master,worker,etcd"`
+		Nodes []DeploymentNode     `json:"nodes"`
 	}
 
 	DeploymentNode struct {

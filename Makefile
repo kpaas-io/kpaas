@@ -61,7 +61,7 @@ build_service_cross: service_doc
 
 .PHONY: run_service_local
 run_service_local: build_service_local
-	builds/debug/service
+	builds/debug/service --log-level=debug
 
 build_service_image: build_service_cross
 	docker build -t $(IMAGE_REPOSITORY_URL)/service:$(BUILD_TAG) -f builds/docker/service/Dockerfile .

@@ -188,6 +188,10 @@ definitions:
     type: object
   api.GetDeploymentReportResponse:
     properties:
+      deployClusterError:
+        $ref: '#/definitions/api.Error'
+        description: Deploy cluster error message
+        type: object
       deployClusterStatus:
         description: The cluster deployment status
         enum:
@@ -320,6 +324,14 @@ definitions:
       privateKeyName:
         description: the private key name of login
         type: string
+      roles:
+        default: master
+        description: machine role, Master and worker roles are mutually exclusive.
+        enum:
+        - master
+        - worker
+        - etcd
+        type: string
       taints:
         description: Node taints
         items:
@@ -402,6 +414,14 @@ definitions:
         type: integer
       privateKeyName:
         description: the private key name of login
+        type: string
+      roles:
+        default: master
+        description: machine role, Master and worker roles are mutually exclusive.
+        enum:
+        - master
+        - worker
+        - etcd
         type: string
       taints:
         description: Node taints
@@ -541,6 +561,28 @@ paths:
       summary: Launch deployment
       tags:
       - deploy
+  /api/v1/deploy/wizard/kubeconfigs:
+    get:
+      description: Download kubeconfig file
+      operationId: DownloadKubeConfig
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: Kube Config File Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Download the log detail
+      tags:
+      - kubeconfig
   /api/v1/deploy/wizard/logs/{id}:
     get:
       description: Download the deployment log details to check the cause of the error
@@ -761,6 +803,10 @@ paths:
             $ref: '#/definitions/h.AppErr'
         "409":
           description: Conflict
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "500":
+          description: Internal Server Error
           schema:
             $ref: '#/definitions/h.AppErr'
       summary: Test a node connection
