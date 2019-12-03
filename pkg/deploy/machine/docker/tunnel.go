@@ -18,10 +18,11 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 
-	"golang.org/x/crypto/ssh"
-	"github.com/sirupsen/logrus"
 	"github.com/kpaas-io/kpaas/pkg/deploy"
+	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 )
 
 const (
@@ -37,7 +38,7 @@ type Tunnel struct {
 	sshClient           *ssh.Client
 }
 
-func NewDockerTunnel(sshClient *ssh.Client, hostName string) *Tunnel {
+func NewTunnel(sshClient *ssh.Client, hostName string) *Tunnel {
 	return &Tunnel{
 		sshClient:           sshClient,
 		done:                make(chan struct{}),
@@ -98,5 +99,5 @@ func (t *Tunnel) Close() (err error) {
 }
 
 func composeLocalDockerSocketFile(name string) string {
-	return localSocketDir + name + "." + dockerSocketSuffix
+	return strings.Join([]string{localSocketDir, name, dockerSocketSuffix}, "")
 }

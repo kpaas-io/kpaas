@@ -67,7 +67,9 @@ func (m *Machine) Run(cmd string) (stderr, stdout []byte, err error) {
 func (m *Machine) PutFile(content io.Reader, remotePath string) error {
 	// create parent dir if not exists
 	remoteDir := path.Dir(remotePath)
-	_ = m.SFTPClient.MkdirAll(remoteDir)
+	if err := m.SFTPClient.MkdirAll(remoteDir); err != nil {
+		return fmt.Errorf("mkdirall %v failed, error: %v", remoteDir, err)
+	}
 
 	remoteFile, err := m.SFTPClient.Create(remotePath)
 	if err != nil {
@@ -91,7 +93,9 @@ func (m *Machine) FetchFile(localPath, remotePath string) error {
 
 	// create parent dir if not exists
 	localDir := path.Dir(localPath)
-	_ = os.MkdirAll(localDir, 0755)
+	if err := os.MkdirAll(localDir, 0755); err != nil {
+		return fmt.Errorf("mkdirall %v failed, error: %v", localDir, err)
+	}
 
 	localFile, err := os.Create(localPath)
 	if err != nil {

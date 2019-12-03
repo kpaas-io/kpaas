@@ -44,7 +44,7 @@ func NewMachine(node *pb.Node) (*Machine, error) {
 
 // SetDockerTunnel create a Docker Tunnel to remote Node when needed
 func (m *Machine) SetDockerTunnel() {
-	m.DockerTunnel = docker.NewDockerTunnel(m.SSHClient, m.Name)
+	m.DockerTunnel = docker.NewTunnel(m.SSHClient, m.Name)
 }
 
 func(m *Machine) SetDockerClient() error {
