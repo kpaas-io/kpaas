@@ -15,9 +15,14 @@
 package h
 
 import (
+	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -45,7 +50,250 @@ func TestWrapErr(t *testing.T) {
 
 	for _, item := range tests {
 		res := WrapErr(item.Input, item.msg...)
-		assert.Equal(t, res.Status, item.Want)
+		assert.Equal(t, item.Want, res.Status)
 	}
 
+}
+
+func TestNewAppErr(t *testing.T) {
+
+	tests := [] struct {
+		Input struct {
+			Code    int
+			Msg     string
+			Payload interface{}
+		}
+		Want *AppErr
+	}{
+		{
+			Input: struct {
+				Code    int
+				Msg     string
+				Payload interface{}
+			}{
+				Code:    http.StatusBadRequest,
+				Msg:     "BadRequest",
+				Payload: nil,
+			},
+			Want: &AppErr{
+				Status:  http.StatusBadRequest,
+				Msg:     "BadRequest",
+				Payload: nil,
+			},
+		},
+	}
+
+	for _, item := range tests {
+		res := NewAppErr(item.Input.Code, item.Input.Msg, item.Input.Payload)
+		assert.Equal(t, item.Want, res)
+	}
+}
+
+func TestAppErr_Error(t *testing.T) {
+
+	tests := [] struct {
+		Input *AppErr
+		Want  string
+	}{
+		{
+			Input: NewAppErr(http.StatusBadRequest, "BadRequest", nil),
+			Want:  `{"msg":"BadRequest","payload":null}`,
+		},
+		{
+			Input: NewAppErr(http.StatusInternalServerError, "InternalServerError", make(chan int)),
+			Want:  ``,
+		},
+	}
+
+	for _, item := range tests {
+		assert.Equal(t, item.Want, item.Input.Error())
+	}
+}
+
+func TestE(t *testing.T) {
+
+	tests := [] struct {
+		Input error
+		Want  struct {
+			Code           int
+			ResponseString string
+		}
+	}{
+		{
+			Input: ENotFound,
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: ENotFound.Status, ResponseString: `{"msg":"NotFound","payload":null}`},
+		},
+		{
+			Input: EParamsError,
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: EParamsError.Status, ResponseString: `{"msg":"ParamsError","payload":null}`},
+		},
+		{
+			Input: errors.New("BadRequest"),
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: http.StatusInternalServerError, ResponseString: `{"msg":"BadRequest","payload":null}`},
+		},
+	}
+
+	for _, item := range tests {
+
+		resp := httptest.NewRecorder()
+		gin.SetMode(gin.TestMode)
+		ctx, _ := gin.CreateTestContext(resp)
+		E(ctx, item.Input)
+		resp.Flush()
+
+		assert.Equal(t, item.Want.Code, resp.Code)
+		assert.Equal(t, item.Want.ResponseString, resp.Body.String())
+	}
+}
+
+func TestR(t *testing.T) {
+
+	tests := [] struct {
+		Input struct {
+			Body       interface{}
+			HTTPMethod string
+		}
+		Want struct {
+			Code           int
+			ResponseString string
+		}
+	}{
+		{
+			Input: struct {
+				Body       interface{}
+				HTTPMethod string
+			}{
+				Body:       struct{ Hello string }{Hello: "World"},
+				HTTPMethod: http.MethodGet,
+			},
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: http.StatusOK, ResponseString: `{"Hello":"World"}`},
+		},
+		{
+			Input: struct {
+				Body       interface{}
+				HTTPMethod string
+			}{
+				Body:       struct{ Hello string }{Hello: "World"},
+				HTTPMethod: http.MethodPost,
+			},
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: http.StatusCreated, ResponseString: `{"Hello":"World"}`},
+		},
+		{
+			Input: struct {
+				Body       interface{}
+				HTTPMethod string
+			}{
+				Body:       struct{ Hello string }{Hello: "World"},
+				HTTPMethod: http.MethodDelete,
+			},
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: http.StatusNoContent, ResponseString: ``},
+		},
+	}
+
+	for _, item := range tests {
+
+		resp := httptest.NewRecorder()
+		gin.SetMode(gin.TestMode)
+		ctx, _ := gin.CreateTestContext(resp)
+		ctx.Request = &http.Request{Method: item.Input.HTTPMethod}
+		R(ctx, item.Input.Body)
+		resp.Flush()
+
+		assert.Equal(t, item.Want.Code, resp.Code)
+		assert.Equal(t, item.Want.ResponseString, resp.Body.String())
+	}
+}
+
+func TestRJsonP(t *testing.T) {
+
+	tests := [] struct {
+		Input struct {
+			Body       interface{}
+			URL        string
+			HTTPMethod string
+		}
+		Want struct {
+			Code           int
+			ResponseString string
+		}
+	}{
+		{
+			Input: struct {
+				Body       interface{}
+				URL        string
+				HTTPMethod string
+			}{
+				Body:       struct{ Hello string }{Hello: "World"},
+				URL:        "http://localhost/?callback=c",
+				HTTPMethod: http.MethodGet,
+			},
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: http.StatusOK, ResponseString: `c({"Hello":"World"})`},
+		},
+		{
+			Input: struct {
+				Body       interface{}
+				URL        string
+				HTTPMethod string
+			}{
+				Body:       struct{ Hello string }{Hello: "World"},
+				URL:        "http://localhost/?callback=c",
+				HTTPMethod: http.MethodPost,
+			},
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: http.StatusCreated, ResponseString: `c({"Hello":"World"})`},
+		},
+		{
+			Input: struct {
+				Body       interface{}
+				URL        string
+				HTTPMethod string
+			}{
+				Body:       struct{ Hello string }{Hello: "World"},
+				URL:        "http://localhost/?callback=c",
+				HTTPMethod: http.MethodDelete,
+			},
+			Want: struct {
+				Code           int
+				ResponseString string
+			}{Code: http.StatusNoContent, ResponseString: ``},
+		},
+	}
+
+	for _, item := range tests {
+
+		resp := httptest.NewRecorder()
+		gin.SetMode(gin.TestMode)
+		ctx, _ := gin.CreateTestContext(resp)
+		requestURL, err := url.Parse(item.Input.URL)
+		assert.Nil(t, err)
+		ctx.Request = &http.Request{Method: item.Input.HTTPMethod, URL: requestURL}
+		RJsonP(ctx, item.Input.Body)
+		resp.Flush()
+
+		assert.Equal(t, item.Want.Code, resp.Code)
+		assert.Equal(t, item.Want.ResponseString, resp.Body.String())
+	}
 }
