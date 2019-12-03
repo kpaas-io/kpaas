@@ -35,8 +35,6 @@ func (p *nodeCheckProcessor) SplitTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldStruct: "nodeCheckProcessor",
-		consts.LogFieldFunc:   "SplitTask",
 		consts.LogFieldAction: t.GetName(),
 	})
 

@@ -35,8 +35,6 @@ func (p *deployEtcdProcessor) SplitTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldStruct: "deployEtcdProcessor",
-		consts.LogFieldFunc:   "SplitTask",
 		consts.LogFieldAction: t.GetName(),
 	})
 

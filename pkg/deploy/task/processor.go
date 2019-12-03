@@ -78,7 +78,6 @@ func ExecuteTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldFunc: "ExecuteTask",
 		consts.LogFieldTask: t.GetName(),
 	})
 
@@ -126,7 +125,6 @@ func splitTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldFunc: "splitTask",
 		consts.LogFieldTask: t.GetName(),
 	})
 
@@ -169,7 +167,6 @@ func executeSubTasks(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldFunc: "executeSubTasks",
 		consts.LogFieldTask: t.GetName(),
 	})
 
@@ -214,7 +211,6 @@ func executeActions(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldFunc: "executeActions",
 		consts.LogFieldTask: t.GetName(),
 	})
 
@@ -278,7 +274,6 @@ func statTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldFunc: "statTask",
 		consts.LogFieldTask: t.GetName(),
 	})
 
