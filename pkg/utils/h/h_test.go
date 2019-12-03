@@ -31,7 +31,7 @@ func TestWithMore(t *testing.T) {
 }
 
 func TestWrapErr(t *testing.T) {
-	tests := [] struct {
+	tests := []struct {
 		Input error
 		msg   []string
 		Want  int

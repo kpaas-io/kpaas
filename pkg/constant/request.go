@@ -14,6 +14,6 @@
 
 package constant
 
-const(
+const (
 	RequestID = "X-ReqId"
 )

@@ -41,8 +41,6 @@ var (
 	EExists        = &AppErr{http.StatusConflict, "Exists", nil}
 )
 
-const ()
-
 func (e *AppErr) WithPayload(payload interface{}) *AppErr {
 	return &AppErr{e.Status, e.Msg, payload}
 }
