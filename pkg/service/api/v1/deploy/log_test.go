@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"math/rand"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 
@@ -44,7 +45,7 @@ func TestDownloadLog(t *testing.T) {
 	ctx.Params = gin.Params{
 		{
 			Key:   "id",
-			Value: fmt.Sprintf("%d", logId),
+			Value: strconv.FormatUint(logId, 10),
 		},
 	}
 
@@ -72,7 +73,7 @@ func TestDownloadLog_NotFound(t *testing.T) {
 	ctx.Params = gin.Params{
 		{
 			Key:   "id",
-			Value: fmt.Sprintf("%d", logId),
+			Value: strconv.FormatUint(logId, 10),
 		},
 	}
 

@@ -19,11 +19,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -53,16 +55,13 @@ func TestDeploy2(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
+	node := wizard.NewNode()
+	node.Name = "master1"
+	node.CheckReport = &wizard.CheckReport{
+		CheckResult: constant.CheckResultFailed,
+	}
 	wizardData.Nodes = []*wizard.Node{
-		{
-			Name: "master1",
-			CheckItems: []*wizard.CheckItem{
-				{
-					ItemName:    "check 1",
-					CheckResult: wizard.CheckResultFailed,
-				},
-			},
-		},
+		node,
 	}
 
 	var err error
@@ -86,20 +85,14 @@ func TestDeploy3(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
+	wizardData.ClusterCheckResult = constant.CheckResultPassed
+	node := wizard.NewNode()
+	node.Name = "master1"
+	node.CheckReport = &wizard.CheckReport{
+		CheckResult: constant.CheckResultPassed,
+	}
 	wizardData.Nodes = []*wizard.Node{
-		{
-			Name: "master1",
-			CheckItems: []*wizard.CheckItem{
-				{
-					ItemName:    "check 1",
-					CheckResult: wizard.CheckResultPassed,
-				},
-				{
-					ItemName:    "check 2",
-					CheckResult: wizard.CheckResultPassed,
-				},
-			},
-		},
+		node,
 	}
 
 	var err error
@@ -126,19 +119,19 @@ func TestGetDeployReport(t *testing.T) {
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			DeploymentReports: []*wizard.DeploymentReport{
-				{
-					Role:   wizard.MachineRoleMaster,
+			DeploymentReports: map[constant.MachineRole]*wizard.DeploymentReport{
+				constant.MachineRoleMaster: {
+					Role:   constant.MachineRoleMaster,
 					Status: wizard.DeployStatusCompleted,
 				},
-				{
-					Role:   wizard.MachineRoleEtcd,
+				constant.MachineRoleEtcd: {
+					Role:   constant.MachineRoleEtcd,
 					Status: wizard.DeployStatusCompleted,
 				},
 			},
 		},
 	}
-	wizardData.DeploymentStatus = wizard.DeployClusterStatusSuccessful
+	wizardData.DeployClusterStatus = wizard.DeployClusterStatusSuccessful
 
 	var err error
 	resp := httptest.NewRecorder()
@@ -157,7 +150,7 @@ func TestGetDeployReport(t *testing.T) {
 	assert.Equal(t, api.DeployClusterStatusSuccessful, responseData.DeployClusterStatus)
 	assert.Equal(t, []api.DeploymentResponseData{
 		{
-			Role: api.MachineRoleMaster,
+			Role: constant.MachineRoleMaster,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
@@ -166,7 +159,7 @@ func TestGetDeployReport(t *testing.T) {
 			},
 		},
 		{
-			Role: api.MachineRoleEtcd,
+			Role: constant.MachineRoleEtcd,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
@@ -174,6 +167,29 @@ func TestGetDeployReport(t *testing.T) {
 				},
 			},
 		},
-	}, responseData.Roles)
+	}, sortRoles(responseData.Roles))
 	assert.Nil(t, responseData.DeployClusterError)
+}
+
+func sortRoles(roles []api.DeploymentResponseData) []api.DeploymentResponseData {
+
+	sort.SliceStable(roles, func(i, j int) bool {
+		if roles[i].Role == roles[j].Role {
+			return false
+		}
+		if roles[i].Role == constant.MachineRoleMaster {
+			return true
+		}
+		if roles[j].Role == constant.MachineRoleMaster {
+			return false
+		}
+		if roles[i].Role == constant.MachineRoleWorker {
+			return true
+		}
+		if roles[j].Role == constant.MachineRoleWorker {
+			return false
+		}
+		return false
+	})
+	return roles
 }

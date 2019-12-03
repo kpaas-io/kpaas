@@ -18,6 +18,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	"github.com/kpaas-io/kpaas/pkg/constant"
 )
 
 func TestNewNode(t *testing.T) {
@@ -27,7 +29,7 @@ func TestNewNode(t *testing.T) {
 	assert.NotNil(t, node.MachineRoles)
 	assert.NotNil(t, node.Labels)
 	assert.NotNil(t, node.Taints)
-	assert.NotNil(t, node.CheckItems)
+	assert.NotNil(t, node.CheckReport)
 	assert.NotNil(t, node.DeploymentReports)
 	assert.Equal(t, AuthenticationTypePassword, node.AuthenticationType)
 }
@@ -43,5 +45,5 @@ func TestNewDeploymentReport(t *testing.T) {
 func TestNewCheckItem(t *testing.T) {
 
 	item := NewCheckItem()
-	assert.Equal(t, CheckResultNotRunning, item.CheckResult)
+	assert.Equal(t, constant.CheckResultNotRunning, item.CheckResult)
 }

@@ -184,6 +184,39 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/deploy/wizard/kubeconfigs": {
+            "get": {
+                "description": "Download kubeconfig file",
+                "produces": [
+                    "text/plain"
+                ],
+                "tags": [
+                    "kubeconfig"
+                ],
+                "summary": "Download the log detail",
+                "operationId": "DownloadKubeConfig",
+                "responses": {
+                    "200": {
+                        "description": "Kube Config File Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/deploy/wizard/logs/{id}": {
             "get": {
                 "description": "Download the deployment log details to check the cause of the error",
@@ -511,6 +544,12 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/h.AppErr"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
                     }
                 }
             }
@@ -826,6 +865,11 @@ var doc = `{
         "api.GetDeploymentReportResponse": {
             "type": "object",
             "properties": {
+                "deployClusterError": {
+                    "description": "Deploy cluster error message",
+                    "type": "object",
+                    "$ref": "#/definitions/api.Error"
+                },
                 "deployClusterStatus": {
                     "description": "The cluster deployment status",
                     "type": "string",
@@ -1010,6 +1054,16 @@ var doc = `{
                     "description": "the private key name of login",
                     "type": "string"
                 },
+                "roles": {
+                    "description": "machine role, Master and worker roles are mutually exclusive.",
+                    "type": "string",
+                    "default": "master",
+                    "enum": [
+                        "master",
+                        "worker",
+                        "etcd"
+                    ]
+                },
                 "taints": {
                     "description": "Node taints",
                     "type": "array",
@@ -1122,6 +1176,16 @@ var doc = `{
                 "privateKeyName": {
                     "description": "the private key name of login",
                     "type": "string"
+                },
+                "roles": {
+                    "description": "machine role, Master and worker roles are mutually exclusive.",
+                    "type": "string",
+                    "default": "master",
+                    "enum": [
+                        "master",
+                        "worker",
+                        "etcd"
+                    ]
                 },
                 "taints": {
                     "description": "Node taints",

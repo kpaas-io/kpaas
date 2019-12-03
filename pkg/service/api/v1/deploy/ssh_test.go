@@ -24,10 +24,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 
+	grpcClient "github.com/kpaas-io/kpaas/pkg/service/grpcutils/client"
+	"github.com/kpaas-io/kpaas/pkg/service/grpcutils/mock"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 )
 
 func TestTestConnectNode(t *testing.T) {
+
+	grpcClient.SetDeployController(mock.NewDeployController())
 
 	var err error
 	resp := httptest.NewRecorder()

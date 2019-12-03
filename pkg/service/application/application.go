@@ -29,7 +29,10 @@ import (
 	"github.com/spf13/pflag"
 
 	"github.com/kpaas-io/kpaas/pkg/service/config"
+	"github.com/kpaas-io/kpaas/pkg/service/grpcutils/connection"
+	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	configUtils "github.com/kpaas-io/kpaas/pkg/utils/config"
+	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
@@ -59,10 +62,11 @@ func (a *app) startService() {
 
 func (a *app) initService() {
 
-	a.initRandomSeed()
 	a.initLogLevel()
-	// TODO Lucky Init Memories Database
-	// TODO Lucky Init Clients
+	a.initRandomSeed()
+	a.initSnowFlake()
+	a.initClients()
+	a.initMemoriesData()
 	a.initRESTfulAPIHandler()
 	a.initRequestLogger()
 	a.setRoutes()
@@ -77,7 +81,9 @@ func (a *app) parseFlags() {
 
 func (a *app) initRandomSeed() {
 
+	logrus.Debug("init random seed")
 	rand.Seed(time.Now().UnixNano())
+	logrus.Debug("random seed init succeed")
 }
 
 func (a *app) initLogLevel() {
@@ -87,6 +93,7 @@ func (a *app) initLogLevel() {
 		logrus.Errorf("Parse log level error")
 	} else {
 		logrus.SetLevel(logLevel)
+		logrus.Debugf("log level set: %s", config.Config.Log.GetLevel())
 	}
 }
 
@@ -109,16 +116,10 @@ exit:
 
 func (a *app) close() {
 
-	a.isClosing = true
-
-	// TODO Lucky Clean Memory Database
-
-	logrus.Infof("closing http server")
-	err := a.httpServer.Close()
-	if err != nil {
-		logrus.Errorf("happened error at close http server: %v", err)
-	}
-	logrus.Infof("http server closed")
+	a.markClosing()
+	a.ClearMemoryData()
+	a.closeHTTPServer()
+	a.closeGRPCClient()
 }
 
 func (a *app) loadConfig() {
@@ -134,6 +135,7 @@ func (a *app) parseParameters() {
 
 	a.parseParameterListenPort()
 	a.parseParameterLogLevel()
+	a.parseParameterServiceId()
 }
 
 func (a *app) parseParameterListenPort() {
@@ -156,6 +158,17 @@ func (a *app) parseParameterLogLevel() {
 		config.Config.Log.Level = logLevel
 	}
 	logrus.Infof("log level: %v", config.Config.Log.GetLevel())
+}
+
+func (a *app) parseParameterServiceId() {
+
+	var err error
+	var serviceId uint16
+	serviceId, err = pflag.CommandLine.GetUint16(FlagServiceId)
+	if err == nil && serviceId > 0 {
+		config.Config.Service.ServiceId = serviceId
+	}
+	logrus.Infof("serviceId: %d", config.Config.Service.GetServiceId())
 }
 
 func (a *app) initRESTfulAPIHandler() {
@@ -197,4 +210,64 @@ func (a *app) startRESTfulAPIListener() {
 			logrus.Errorf("listen error: %v", err)
 		}
 	}()
+}
+
+func (a *app) initClients() {
+
+	return
+	// TODO Lucky Wait for deploy controller service ok to use
+	logrus.Debug("start to init deploy controller client")
+	if config.Config.DeployController.GetAddress() == "" {
+		logrus.Error("deploy controller address not set")
+		return
+	}
+
+	err := connection.InitConnection(config.Config.DeployController.GetAddress())
+	if err != nil {
+		logrus.Errorf("init deploy controller client error, %v", err)
+	}
+	logrus.Debug("init deploy controller client succeed")
+}
+
+func (a *app) initSnowFlake() {
+
+	logrus.Debug("start init id creator")
+	idcreator.InitCreator(config.Config.Service.GetServiceId())
+	logrus.Debug("id creator init succeed")
+}
+
+func (a *app) initMemoriesData() {
+
+	wizard.ClearCurrentWizardData()
+}
+
+func (a *app) markClosing() {
+	a.isClosing = true
+}
+
+func (a *app) ClearMemoryData() {
+
+	wizard.ClearCurrentWizardData()
+}
+
+func (a *app) closeGRPCClient() {
+
+	var err error
+	logrus.Infof("closing gRPC client")
+	err = connection.Close()
+	if err != nil {
+		logrus.Warnf("close deploy controller gRPC connection error, errorMessage: %s", err)
+	}
+	logrus.Infof("gRPC client closed")
+}
+
+func (a *app) closeHTTPServer() {
+
+	logrus.Infof("closing http server")
+	var err error
+	err = a.httpServer.Close()
+	if err != nil {
+		logrus.Errorf("happened error at close http server: %v", err)
+	}
+	logrus.Infof("http server closed")
 }

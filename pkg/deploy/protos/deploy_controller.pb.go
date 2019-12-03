@@ -38,13 +38,13 @@ It has these top-level messages:
 */
 package protos
 
-import proto "github.com/golang/protobuf/proto"
-import fmt "fmt"
-import math "math"
-
 import (
-	context "golang.org/x/net/context"
-	grpc "google.golang.org/grpc"
+	"fmt"
+	"math"
+
+	"github.com/golang/protobuf/proto"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -61,8 +61,10 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 type Auth struct {
 	// type could be ["password", "privatekey"]
 	Type string `protobuf:"bytes,1,opt,name=type" json:"type,omitempty"`
+	// Manual Add Username, it will rewrite that next protobuf create
+	Username string `protobuf:"bytes,2,opt,name=username" json:"username,omitempty"`
 	// credential stores the content of password or privatekey
-	Credential string `protobuf:"bytes,2,opt,name=credential" json:"credential,omitempty"`
+	Credential string `protobuf:"bytes,3,opt,name=credential" json:"credential,omitempty"`
 }
 
 func (m *Auth) Reset()                    { *m = Auth{} }

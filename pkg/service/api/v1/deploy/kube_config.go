@@ -33,8 +33,8 @@ import (
 func DownloadKubeConfig(c *gin.Context) {
 
 	wizardData := wizard.GetCurrentWizard()
-	if wizardData.DeploymentStatus != wizard.DeployClusterStatusSuccessful &&
-		wizardData.DeploymentStatus != wizard.DeployClusterStatusWorkedButHaveError {
+	if wizardData.DeployClusterStatus != wizard.DeployClusterStatusSuccessful &&
+		wizardData.DeployClusterStatus != wizard.DeployClusterStatusWorkedButHaveError {
 		h.E(c, h.EStatusError.WithPayload("Current cluster has not been deployed yet"))
 		return
 	}

@@ -33,7 +33,7 @@ func TestNewClusterInfo(t *testing.T) {
 func TestGetCurrentWizard(t *testing.T) {
 
 	cluster := GetCurrentWizard()
-	assert.Equal(t, DeployClusterStatusNotRunning, cluster.DeploymentStatus)
+	assert.Equal(t, DeployClusterStatusNotRunning, cluster.DeployClusterStatus)
 	assert.NotNil(t, cluster.Wizard)
 	assert.NotNil(t, cluster.Nodes)
 	assert.NotNil(t, cluster.Info)
