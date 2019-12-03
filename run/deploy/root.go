@@ -24,6 +24,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/server"
+	_ "github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
 var (

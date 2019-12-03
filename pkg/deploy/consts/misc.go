@@ -15,8 +15,6 @@
 package consts
 
 const (
-	LogFieldStruct string = "struct"
-	LogFieldFunc   string = "func"
 	LogFieldTask   string = "task"
 	LogFieldAction string = "action"
 )

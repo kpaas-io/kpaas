@@ -33,8 +33,6 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldStruct: "nodeCheckExecutor",
-		consts.LogFieldFunc:   "Execute",
 		consts.LogFieldAction: act.GetName(),
 	})
 

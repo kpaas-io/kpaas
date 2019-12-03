@@ -35,8 +35,6 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldStruct: "deployProcessor",
-		consts.LogFieldFunc:   "SplitTask",
 		consts.LogFieldAction: t.GetName(),
 	})
 

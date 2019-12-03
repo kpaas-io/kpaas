@@ -18,7 +18,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"flag"
 	"io"
 	"time"
 
@@ -27,19 +26,6 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
 )
-
-func init() {
-	/*
-		some vendor will use glog as logger, which will create logfile under /tmp when error is logged.
-		this will cause the programm exit, if the /tmp directory is not writable.
-		so we disable Glog, and prevent glog to create logfile
-	*/
-	logtostderr := flag.Lookup("logtostderr")
-	if logtostderr != nil && logtostderr.Value != nil {
-		logtostderr.Value.Set("true")
-	}
-	logrus.SetFormatter(&logrus.TextFormatter{TimestampFormat: time.RFC3339Nano, FullTimestamp: true})
-}
 
 func genReqId() string {
 	var b [12]byte
