@@ -22,6 +22,17 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check/docker"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+)
+
+const (
+	desireDockerVersion               = "18.06.0"
+	desireKernelVersion               = "4.19.46"
+	desireCPUCore int                 = 8
+	desiredMemoryBase float64         = 16
+	desiredMemory                     = desiredMemoryBase * operation.GiByteUnits
+	desiredRootDiskVolumeBase float64 = 200
+	desiredRootDiskVolume     float64 = desiredRootDiskVolumeBase * operation.GiByteUnits
 )
 
 type nodeCheckExecutor struct {
@@ -41,7 +52,9 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 
 	var (
 		reason string
+		detail string
 		status nodeCheckItemStatus
+		fixmethod string
 	)
 
 	op, err := docker.NewCheckDockerOperation(nodeCheckAction.nodeCheckConfig)
@@ -49,10 +62,26 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		return fmt.Errorf("failed to create docker check operation, error: %v", err)
 	}
 
-	_, errOut, err := op.Do()
+	stdErr, stdOut, err := op.Do()
 	if err != nil {
-		reason = string(errOut)
+		reason = "run command failed"
+		detail = string(stdErr)
 		status = nodeCheckItemFailed
+		fixmethod = "please check your scripts"
+	}
+
+	comparedDockerVersion := string(stdOut[:])
+	err = docker.NewDockerVersionCheck(comparedDockerVersion, desireDockerVersion, ".", ">")
+	if err != nil {
+		reason = "docker version not satisfied"
+		detail = string(stdErr)
+		status = nodeCheckItemFailed
+		fixmethod = fmt.Sprintf("please upgrade docker version to %v+", desireDockerVersion)
+	} else {
+		reason = ""
+		detail = ""
+		status = nodeCheckItemSucessful
+		fixmethod = ""
 	}
 
 	dockerVersionItem := &nodeCheckItem{
@@ -61,8 +90,8 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		status:      status,
 		err: &pb.Error{
 			Reason:     reason,
-			Detail:     "",
-			FixMethods: "upgrade docker version to 17.03.02+",
+			Detail:     detail,
+			FixMethods: fixmethod,
 		},
 	}
 	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, dockerVersionItem)
@@ -73,6 +102,6 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 	nodeCheckAction.status = ActionFailed
 	nodeCheckAction.err = dockerVersionItem.err
 
-	logger.Debug("Finsih to execute node check action")
+	logger.Debug("Finish to execute node check action")
 	return nil
 }
