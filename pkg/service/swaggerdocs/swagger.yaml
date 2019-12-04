@@ -272,6 +272,29 @@ definitions:
         - deployCompleted
         type: string
     type: object
+  api.HelmRelease:
+    properties:
+      chart:
+        type: string
+      cluster:
+        type: string
+      manifest:
+        type: string
+      name:
+        description: empty Name means to generate a name, only used in installing
+          a release.
+        type: string
+      namespace:
+        type: string
+      repo:
+        type: string
+      revision:
+        type: integer
+      values:
+        type: object
+      version:
+        type: string
+    type: object
   api.Label:
     properties:
       key:
@@ -776,6 +799,249 @@ paths:
       summary: Get all of current deploy wizard data
       tags:
       - wizard
+  /api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases:
+    get:
+      description: list all releases in a namespace
+      operationId: ListRelease
+      parameters:
+      - description: kubernetes cluster to list releases in
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: kubernetes namespace to list release in
+        in: path
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.HelmRelease'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: list releases
+    post:
+      description: Install a helm release in a cluster from specified chart and values
+      operationId: InstallRelease
+      parameters:
+      - description: cluster to create release in
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: kubernetes namespace in that cluster to create release in
+        in: path
+        name: namespace
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Install helm release
+      tags:
+      - helm
+  /api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases/{name}:
+    delete:
+      description: uninstall a named release and deleted all resources in kubernetes
+        created for the release
+      operationId: UninstallRelease
+      parameters:
+      - description: kubernetes cluster where the release is
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: kubernetes namespace where the release is
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: name of release
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204": {}
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: uninstall a release
+    get:
+      description: get manifest, chart, and values of a named release
+      operationId: GetRelease
+      parameters:
+      - description: kubernetes cluster where the release is
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: kubernetes namespace where the release is
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: name of release
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.HelmRelease'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: get information of a named release
+    put:
+      description: Upgrade an installed release with new chart and/or values
+      operationId: UpgradeRelease
+      parameters:
+      - description: cluster to upgrade release in
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: kubernetes namespace in that cluster to upgrade release in
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: name of release to upgrade
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: Upgrade installed release
+      tags:
+      - helm
+  /api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases/{name}/export:
+    get:
+      description: export manifests of a release in yaml/json format
+      operationId: ExportRelease
+      parameters:
+      - description: kubernetes cluster where the release is
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: kubernetes namespace where the release is
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: name of release
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/x-yaml
+      - application/json
+      responses:
+        "200": {}
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: export manifests of a release
+  /api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases/{name}/rollback:
+    put:
+      description: roll back a release to an earlier version
+      operationId: RollbackRelease
+      parameters:
+      - description: cluster to rollback release in
+        in: path
+        name: cluster
+        required: true
+        type: string
+      - description: kubernetes namespace in that cluster to rollback release in
+        in: path
+        name: namespace
+        required: true
+        type: string
+      - description: name of release to rollback
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: rollback a release
+  /api/v1/helm/render:
+    post:
+      description: render chart templates locally and display the output
+      operationId: RenderTemplate
+      produces:
+      - application/x-yaml
+      - application/json
+      responses:
+        "201": {}
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: render templates in a chart
   /api/v1/ssh/tests:
     post:
       consumes:

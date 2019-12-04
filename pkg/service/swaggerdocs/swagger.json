@@ -486,6 +486,359 @@
                 }
             }
         },
+        "/api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases": {
+            "get": {
+                "description": "list all releases in a namespace",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "list releases",
+                "operationId": "ListRelease",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "kubernetes cluster to list releases in",
+                        "name": "cluster",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "kubernetes namespace to list release in",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api.HelmRelease"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Install a helm release in a cluster from specified chart and values",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "helm"
+                ],
+                "summary": "Install helm release",
+                "operationId": "InstallRelease",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cluster to create release in",
+                        "name": "cluster",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "kubernetes namespace in that cluster to create release in",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessfulOption"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    },
+                    "409": {
+                        "description": "Conflict",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases/{name}": {
+            "get": {
+                "description": "get manifest, chart, and values of a named release",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "get information of a named release",
+                "operationId": "GetRelease",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "kubernetes cluster where the release is",
+                        "name": "cluster",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "kubernetes namespace where the release is",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "name of release",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.HelmRelease"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Upgrade an installed release with new chart and/or values",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "helm"
+                ],
+                "summary": "Upgrade installed release",
+                "operationId": "UpgradeRelease",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cluster to upgrade release in",
+                        "name": "cluster",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "kubernetes namespace in that cluster to upgrade release in",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "name of release to upgrade",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessfulOption"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "uninstall a named release and deleted all resources in kubernetes created for the release",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "uninstall a release",
+                "operationId": "UninstallRelease",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "kubernetes cluster where the release is",
+                        "name": "cluster",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "kubernetes namespace where the release is",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "name of release",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {},
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases/{name}/export": {
+            "get": {
+                "description": "export manifests of a release in yaml/json format",
+                "produces": [
+                    "application/x-yaml",
+                    "application/json"
+                ],
+                "summary": "export manifests of a release",
+                "operationId": "ExportRelease",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "kubernetes cluster where the release is",
+                        "name": "cluster",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "kubernetes namespace where the release is",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "name of release",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {},
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases/{name}/rollback": {
+            "put": {
+                "description": "roll back a release to an earlier version",
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "rollback a release",
+                "operationId": "RollbackRelease",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "cluster to rollback release in",
+                        "name": "cluster",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "kubernetes namespace in that cluster to rollback release in",
+                        "name": "namespace",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "name of release to rollback",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessfulOption"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/helm/render": {
+            "post": {
+                "description": "render chart templates locally and display the output",
+                "produces": [
+                    "application/x-yaml",
+                    "application/json"
+                ],
+                "summary": "render templates in a chart",
+                "operationId": "RenderTemplate",
+                "responses": {
+                    "201": {},
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/ssh/tests": {
             "post": {
                 "description": "Try to connection a node using ssh",
@@ -962,6 +1315,39 @@
                         "deploying",
                         "deployCompleted"
                     ]
+                }
+            }
+        },
+        "api.HelmRelease": {
+            "type": "object",
+            "properties": {
+                "chart": {
+                    "type": "string"
+                },
+                "cluster": {
+                    "type": "string"
+                },
+                "manifest": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "empty Name means to generate a name, only used in installing a release.",
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                },
+                "repo": {
+                    "type": "string"
+                },
+                "revision": {
+                    "type": "integer"
+                },
+                "values": {
+                    "type": "object"
+                },
+                "version": {
+                    "type": "string"
                 }
             }
         },
