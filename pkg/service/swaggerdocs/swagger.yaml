@@ -281,7 +281,8 @@ definitions:
       manifest:
         type: string
       name:
-        description: empty Name means to generate a name, only used in .
+        description: empty Name means to generate a name, only used in installing
+          a release.
         type: string
       namespace:
         type: string
@@ -979,6 +980,7 @@ paths:
         type: string
       produces:
       - application/x-yaml
+      - application/json
       responses:
         "200": {}
         "404":
@@ -1028,6 +1030,7 @@ paths:
       operationId: RenderTemplate
       produces:
       - application/x-yaml
+      - application/json
       responses:
         "201": {}
         "400":

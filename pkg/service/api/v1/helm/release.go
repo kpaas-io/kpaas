@@ -158,6 +158,7 @@ func UninstallRelease(c *gin.Context) {
 // @Summary export manifests of a release
 // @Description export manifests of a release in yaml/json format
 // @Produce application/x-yaml
+// @Produce application/json
 // @Param cluster path string  true "kubernetes cluster where the release is"
 // @Param namespace path string true "kubernetes namespace where the release is"
 // @Param name path string true "name of release"
@@ -181,6 +182,7 @@ func ExportRelease(c *gin.Context) {
 // @Summary render templates in a chart
 // @Description render chart templates locally and display the output
 // @Produce application/x-yaml
+// @Produce application/json
 // @Success 201
 // @Failure 404 {object} h.AppErr
 // @Failure 400 {object} h.AppErr

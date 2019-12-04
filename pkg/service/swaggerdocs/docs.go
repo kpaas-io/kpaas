@@ -735,7 +735,8 @@ var doc = `{
             "get": {
                 "description": "export manifests of a release in yaml/json format",
                 "produces": [
-                    "application/x-yaml"
+                    "application/x-yaml",
+                    "application/json"
                 ],
                 "summary": "export manifests of a release",
                 "operationId": "ExportRelease",
@@ -830,7 +831,8 @@ var doc = `{
             "post": {
                 "description": "render chart templates locally and display the output",
                 "produces": [
-                    "application/x-yaml"
+                    "application/x-yaml",
+                    "application/json"
                 ],
                 "summary": "render templates in a chart",
                 "operationId": "RenderTemplate",
@@ -1343,7 +1345,7 @@ var doc = `{
                     "type": "string"
                 },
                 "name": {
-                    "description": "empty Name means to generate a name, only used in .",
+                    "description": "empty Name means to generate a name, only used in installing a release.",
                     "type": "string"
                 },
                 "namespace": {
