@@ -137,3 +137,6 @@ flycheck_*.el
 # builds files
 builds/release/*
 builds/debug/*
+
+# test-result files
+.test-result/*

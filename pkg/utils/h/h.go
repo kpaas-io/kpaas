@@ -61,9 +61,15 @@ func (e *AppErr) Error() string {
 	return string(data)
 }
 
-func E(c *gin.Context, e error, msg ...string) {
-	appErr := WrapErr(e, msg...)
-	c.JSON(appErr.Status, appErr)
+func E(c *gin.Context, e error) {
+
+	switch err := e.(type) {
+	case *AppErr:
+		c.JSON(err.Status, err)
+	default:
+		appErr := WrapErr(err)
+		c.JSON(appErr.Status, appErr)
+	}
 }
 
 func R(c *gin.Context, body interface{}) {
@@ -92,13 +98,16 @@ func RJsonP(c *gin.Context, body interface{}) {
 
 func WrapErr(err error, msg ...string) *AppErr {
 
-	payload := fmt.Sprintf("%s %s", err.Error(), strings.Join(msg, " "))
+	var payload = err.Error()
+	if len(msg) > 0 {
+		payload = fmt.Sprintf("%s %s", err.Error(), strings.Join(msg, " "))
+	}
 
 	switch appErr := err.(type) {
 	case *AppErr:
 		return appErr.WithPayload(payload)
 	default:
-		return EUnknown.WithPayload(payload)
+		return NewAppErr(http.StatusInternalServerError, payload, nil)
 	}
 
 }

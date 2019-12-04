@@ -23,13 +23,13 @@ type (
 	}
 )
 
-func NewError() *FailureDetail {
+func NewFailureDetail() *FailureDetail {
 
 	return &FailureDetail{}
 }
 
 func (detail *FailureDetail) Clone() *FailureDetail {
 
-	copy := *detail
-	return &copy
+	cloneData := *detail
+	return &cloneData
 }

@@ -212,6 +212,7 @@ func TestGetWizardProgress5(t *testing.T) {
 
 	responseData := getWizardProgressData(t)
 	assert.Len(t, responseData.DeploymentData, 2)
+	sortRoles(responseData.DeploymentData)
 	assert.Equal(t, []api.DeploymentResponseData{
 		{
 			Role: constant.MachineRoleMaster,

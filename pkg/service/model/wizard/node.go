@@ -33,7 +33,7 @@ type (
 		CheckReport         *CheckReport                               // Check node report
 		DeploymentReports   map[constant.MachineRole]*DeploymentReport // Deployment report for each role
 		DockerRootDirectory string                                     // Docker Root Directory
-		rwLock              *sync.RWMutex                              // Read write lock
+		rwLock              sync.RWMutex                               // Read write lock
 	}
 
 	ConnectionData struct {
@@ -123,7 +123,7 @@ func (node *Node) init() {
 	node.DockerRootDirectory = DefaultDockerRootDirectory
 	node.CheckReport = new(CheckReport)
 	node.CheckReport.init()
-	node.rwLock = new(sync.RWMutex)
+	node.rwLock = sync.RWMutex{}
 }
 
 func (node *Node) initDeploymentReports() {
@@ -147,11 +147,18 @@ func (node *Node) SetCheckItem(itemName string, result constant.CheckResult, det
 	defer node.rwLock.Unlock()
 
 	item := NewCheckItem()
+	var isFound bool
 	for _, iterateItem := range node.CheckReport.CheckItems {
 
 		if iterateItem.ItemName == itemName {
 			item = iterateItem
+			isFound = true
 		}
+	}
+
+	if !isFound {
+		item.ItemName = itemName
+		node.CheckReport.CheckItems = append(node.CheckReport.CheckItems, item)
 	}
 
 	item.CheckResult = result

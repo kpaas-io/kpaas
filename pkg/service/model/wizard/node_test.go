@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 )
 
 func TestNewNode(t *testing.T) {
@@ -46,4 +47,398 @@ func TestNewCheckItem(t *testing.T) {
 
 	item := NewCheckItem()
 	assert.Equal(t, constant.CheckResultNotRunning, item.CheckResult)
+}
+
+func TestNode_SetCheckResult(t *testing.T) {
+
+	tests := [] struct {
+		Input struct {
+			Node          Node
+			CheckResult   constant.CheckResult
+			FailureDetail *common.FailureDetail
+		}
+		Want Node
+	}{
+		{
+			Input: struct {
+				Node          Node
+				CheckResult   constant.CheckResult
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					CheckReport: &CheckReport{
+						CheckResult: constant.CheckResultChecking,
+					},
+				},
+				CheckResult:   constant.CheckResultPassed,
+				FailureDetail: nil,
+			},
+			Want: Node{
+				CheckReport: &CheckReport{
+					CheckResult: constant.CheckResultPassed,
+				},
+			},
+		},
+		{
+			Input: struct {
+				Node          Node
+				CheckResult   constant.CheckResult
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					CheckReport: &CheckReport{
+						CheckResult: constant.CheckResultChecking,
+					},
+				},
+				CheckResult: constant.CheckResultFailed,
+				FailureDetail: &common.FailureDetail{
+					Reason:     "reason",
+					Detail:     "detail",
+					FixMethods: "fix",
+					LogId:      1,
+				},
+			},
+			Want: Node{
+				CheckReport: &CheckReport{
+					CheckResult: constant.CheckResultFailed,
+					CheckedError: &common.FailureDetail{
+						Reason:     "reason",
+						Detail:     "detail",
+						FixMethods: "fix",
+						LogId:      1,
+					},
+				},
+			},
+		},
+	}
+
+	for _, item := range tests {
+
+		item.Input.Node.SetCheckResult(item.Input.CheckResult, item.Input.FailureDetail)
+		assert.Equal(t, item.Want, item.Input.Node)
+	}
+}
+
+func TestNode_SetCheckItem(t *testing.T) {
+
+	tests := [] struct {
+		Input struct {
+			Node          Node
+			ItemName      string
+			CheckResult   constant.CheckResult
+			FailureDetail *common.FailureDetail
+		}
+		Want Node
+	}{
+		{
+			Input: struct {
+				Node          Node
+				ItemName      string
+				CheckResult   constant.CheckResult
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					CheckReport: &CheckReport{
+						CheckItems: []*CheckItem{},
+					},
+				},
+				ItemName:      "item 1",
+				CheckResult:   constant.CheckResultChecking,
+				FailureDetail: nil,
+			},
+			Want: Node{
+				CheckReport: &CheckReport{
+					CheckItems: []*CheckItem{
+						{
+							ItemName:    "item 1",
+							CheckResult: constant.CheckResultChecking,
+							Error:       nil,
+						},
+					},
+				},
+			},
+		},
+		{
+			Input: struct {
+				Node          Node
+				ItemName      string
+				CheckResult   constant.CheckResult
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					CheckReport: &CheckReport{
+						CheckItems: []*CheckItem{
+							{
+								ItemName:    "item 1",
+								CheckResult: constant.CheckResultChecking,
+								Error:       nil,
+							},
+						},
+					},
+				},
+				ItemName:      "item 1",
+				CheckResult:   constant.CheckResultPassed,
+				FailureDetail: nil,
+			},
+			Want: Node{
+				CheckReport: &CheckReport{
+					CheckItems: []*CheckItem{
+						{
+							ItemName:    "item 1",
+							CheckResult: constant.CheckResultPassed,
+							Error:       nil,
+						},
+					},
+				},
+			},
+		},
+		{
+			Input: struct {
+				Node          Node
+				ItemName      string
+				CheckResult   constant.CheckResult
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					CheckReport: &CheckReport{
+						CheckItems: []*CheckItem{
+							{
+								ItemName:    "item 2",
+								CheckResult: constant.CheckResultChecking,
+								Error:       nil,
+							},
+						},
+					},
+				},
+				ItemName:    "item 2",
+				CheckResult: constant.CheckResultFailed,
+				FailureDetail: &common.FailureDetail{
+					Reason:     "reason",
+					Detail:     "detail",
+					FixMethods: "fix",
+					LogId:      1,
+				},
+			},
+			Want: Node{
+				CheckReport: &CheckReport{
+					CheckItems: []*CheckItem{
+						{
+							ItemName:    "item 2",
+							CheckResult: constant.CheckResultFailed,
+							Error: &common.FailureDetail{
+								Reason:     "reason",
+								Detail:     "detail",
+								FixMethods: "fix",
+								LogId:      1,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			Input: struct {
+				Node          Node
+				ItemName      string
+				CheckResult   constant.CheckResult
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					CheckReport: &CheckReport{
+						CheckItems: []*CheckItem{
+							{
+								ItemName:    "item 1",
+								CheckResult: constant.CheckResultChecking,
+								Error:       nil,
+							},
+						},
+					},
+				},
+				ItemName:    "item 2",
+				CheckResult: constant.CheckResultFailed,
+				FailureDetail: &common.FailureDetail{
+					Reason:     "reason",
+					Detail:     "detail",
+					FixMethods: "fix",
+					LogId:      1,
+				},
+			},
+			Want: Node{
+				CheckReport: &CheckReport{
+					CheckItems: []*CheckItem{
+						{
+							ItemName:    "item 1",
+							CheckResult: constant.CheckResultChecking,
+							Error:       nil,
+						},
+						{
+							ItemName:    "item 2",
+							CheckResult: constant.CheckResultFailed,
+							Error: &common.FailureDetail{
+								Reason:     "reason",
+								Detail:     "detail",
+								FixMethods: "fix",
+								LogId:      1,
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	for _, item := range tests {
+
+		item.Input.Node.SetCheckItem(item.Input.ItemName, item.Input.CheckResult, item.Input.FailureDetail)
+		assert.Equal(t, item.Want, item.Input.Node)
+	}
+}
+
+func TestNode_SetDeployResult(t *testing.T) {
+
+	tests := [] struct {
+		Input struct {
+			Node          Node
+			Role          constant.MachineRole
+			Status        DeployStatus
+			FailureDetail *common.FailureDetail
+		}
+		Want Node
+	}{
+		{
+			Input: struct {
+				Node          Node
+				Role          constant.MachineRole
+				Status        DeployStatus
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					DeploymentReports: map[constant.MachineRole]*DeploymentReport{},
+				},
+				Role:          constant.MachineRoleMaster,
+				Status:        DeployStatusPending,
+				FailureDetail: nil,
+			},
+			Want: Node{
+				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
+					constant.MachineRoleMaster: {
+						Role:   constant.MachineRoleMaster,
+						Status: DeployStatusPending,
+						Error:  nil,
+					},
+				},
+			},
+		},
+		{
+			Input: struct {
+				Node          Node
+				Role          constant.MachineRole
+				Status        DeployStatus
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
+						constant.MachineRoleMaster: {
+							Role:   constant.MachineRoleMaster,
+							Status: DeployStatusPending,
+							Error:  nil,
+						},
+					},
+				},
+				Role:          constant.MachineRoleMaster,
+				Status:        DeployStatusDeploying,
+				FailureDetail: nil,
+			},
+			Want: Node{
+				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
+					constant.MachineRoleMaster: {
+						Role:   constant.MachineRoleMaster,
+						Status: DeployStatusDeploying,
+						Error:  nil,
+					},
+				},
+			},
+		},
+		{
+			Input: struct {
+				Node          Node
+				Role          constant.MachineRole
+				Status        DeployStatus
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
+						constant.MachineRoleMaster: {
+							Role:   constant.MachineRoleMaster,
+							Status: DeployStatusDeploying,
+							Error:  nil,
+						},
+					},
+				},
+				Role:   constant.MachineRoleMaster,
+				Status: DeployStatusFailed,
+				FailureDetail: &common.FailureDetail{
+					Reason:     "reason",
+					Detail:     "detail",
+					FixMethods: "fix",
+					LogId:      1,
+				},
+			},
+			Want: Node{
+				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
+					constant.MachineRoleMaster: {
+						Role:   constant.MachineRoleMaster,
+						Status: DeployStatusFailed,
+						Error: &common.FailureDetail{
+							Reason:     "reason",
+							Detail:     "detail",
+							FixMethods: "fix",
+							LogId:      1,
+						},
+					},
+				},
+			},
+		},
+		{
+			Input: struct {
+				Node          Node
+				Role          constant.MachineRole
+				Status        DeployStatus
+				FailureDetail *common.FailureDetail
+			}{
+				Node: Node{
+					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
+						constant.MachineRoleMaster: {
+							Role:   constant.MachineRoleMaster,
+							Status: DeployStatusDeploying,
+							Error:  nil,
+						},
+					},
+				},
+				Role:          constant.MachineRoleEtcd,
+				Status:        DeployStatusCompleted,
+				FailureDetail: nil,
+			},
+			Want: Node{
+				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
+					constant.MachineRoleMaster: {
+						Role:   constant.MachineRoleMaster,
+						Status: DeployStatusDeploying,
+						Error:  nil,
+					},
+					constant.MachineRoleEtcd: {
+						Role:   constant.MachineRoleEtcd,
+						Status: DeployStatusCompleted,
+						Error:  nil,
+					},
+				},
+			},
+		},
+	}
+
+	for _, item := range tests {
+
+		item.Input.Node.SetDeployResult(item.Input.Role, item.Input.Status, item.Input.FailureDetail)
+		assert.Equal(t, item.Want, item.Input.Node)
+	}
 }

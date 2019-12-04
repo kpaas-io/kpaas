@@ -139,7 +139,7 @@ func (cluster *Cluster) AddNode(node *Node) error {
 		}
 	}
 
-	wizardData.Nodes = append(wizardData.Nodes, node)
+	cluster.Nodes = append(cluster.Nodes, node)
 	return nil
 }
 
@@ -195,19 +195,23 @@ func (cluster *Cluster) DeleteNode(ip string) error {
 	defer cluster.lock.Unlock()
 	var found bool
 
-	newList := make([]*Node, 0, len(wizardData.Nodes)-1)
+	if len(cluster.Nodes) <= 0 {
+		return h.EExists.WithPayload("node not exist")
+	}
 
-	for index, iterateNode := range wizardData.Nodes {
+	newList := make([]*Node, 0, len(cluster.Nodes)-1)
+
+	for index, iterateNode := range cluster.Nodes {
 
 		if iterateNode.IP != ip {
 			continue
 		}
 
 		if index > 0 {
-			newList = append(newList, wizardData.Nodes[:index]...)
+			newList = append(newList, cluster.Nodes[:index]...)
 		}
-		if index < len(wizardData.Nodes)-1 {
-			newList = append(newList, wizardData.Nodes[index+1:]...)
+		if index < len(cluster.Nodes)-1 {
+			newList = append(newList, cluster.Nodes[index+1:]...)
 		}
 
 		found = true

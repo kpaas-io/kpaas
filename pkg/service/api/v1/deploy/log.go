@@ -43,7 +43,7 @@ func DownloadLog(c *gin.Context) {
 
 	logId, err := strconv.ParseUint(logIdString, 10, 64)
 	if err != nil {
-		h.E(c, h.EParamsError.WithPayload("logId invalid").WithPayload(err))
+		h.E(c, h.EParamsError.WithPayload(err))
 		return
 	}
 
