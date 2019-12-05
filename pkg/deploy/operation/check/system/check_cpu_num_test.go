@@ -14,39 +14,51 @@
 
 package system
 
-import "testing"
+import (
+	"testing"
 
-const (
-	desireCPUCore = 8
+	"github.com/stretchr/testify/assert"
 )
 
-func TestCPUNumsCheck(t *testing.T) {
-	testPassedCPUCoreArray := [...]string{"8", "13", "32767", "65537"}
-	testFailedCPUCoreOne := "-100"
-	testFailedCPUCoreTwo := "7"
+const (
+	desireCPUCore float64 = 8
+)
 
-	for _, i := range testPassedCPUCoreArray {
-		err := NewCPUNumsCheck(i, desireCPUCore)
-		if err != nil {
-			t.Errorf("cpu core check failed, cpu core not enough, errors: %v", err)
-		} else {
-			t.Logf("cpu core check passed, input parameter: %v cores, desire parameter: %v", i, desireCPUCore)
-		}
+// test cpu cores if satisfied with minimal requirement
+func TestCheckCPUNums(t *testing.T) {
+	testSample := []struct {
+		cpuCore     string
+		desiredCore float64
+		want        error
+	}{
+		{
+			cpuCore:     "8",
+			desiredCore: desireCPUCore,
+			want:        nil,
+		},
+		{
+			cpuCore:     "32767",
+			desiredCore: desireCPUCore,
+			want:        nil,
+		},
+		{
+			cpuCore:     "100000000",
+			desiredCore: desireCPUCore,
+			want:        nil,
+		},
+		{
+			cpuCore:     "7",
+			desiredCore: desireCPUCore,
+			want:        nil,
+		},
+		{
+			cpuCore:     "-100",
+			desiredCore: desireCPUCore,
+			want:        nil,
+		},
 	}
 
-	err := NewCPUNumsCheck(testFailedCPUCoreOne, desireCPUCore)
-	if err != nil {
-		t.Errorf("cpu core check failed, cpu core not enough, errors: %v", err)
-	} else {
-		t.Logf("cpu core check passed, input parameter: %v cores, desire parameter: %v", testFailedCPUCoreOne, desireCPUCore)
-	}
-
-	err = NewCPUNumsCheck(testFailedCPUCoreTwo, desireCPUCore)
-	if err != nil {
-		if err != nil {
-			t.Errorf("cpu core check failed, cpu core not enough, errors: %v", err)
-		} else {
-			t.Logf("cpu core check passed, input parameter: %v cores, desire parameter: %v", testFailedCPUCoreTwo, desireCPUCore)
-		}
+	for _, eachValue := range testSample {
+		assert.Equal(t, eachValue.want, CheckCPUNums(eachValue.cpuCore, eachValue.desiredCore))
 	}
 }

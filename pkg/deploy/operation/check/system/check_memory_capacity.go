@@ -15,49 +15,14 @@
 package system
 
 import (
-	"fmt"
-	"strconv"
-
-	"github.com/sirupsen/logrus"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
-func NewMemoryCapacityCheck(comparedMemory string, desiredMemory float64) error {
-	var memoryCapacity float64
-
-	memoryCapacityFloat, err := strconv.ParseFloat(comparedMemory, 64)
+func CheckMemoryCapacity(comparedMemory string, desiredMemory float64) error {
+	err := operation.CheckEntity(comparedMemory, desiredMemory)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error_reason": operation.ErrParaInput,
-			"actual_amount": comparedMemory,
-			"desire_amount": desiredMemory,
-		})
-		logrus.Error("parameter parse error")
-		return fmt.Errorf("%v, desire memory: (%.1f)Gi, actual memory: (%v)Gi", operation.ErrParaInput, desiredMemory, comparedMemory)
+		return err
 	}
 
-	memoryCapacity = memoryCapacityFloat / 1024 / 1024
-
-	if memoryCapacity <= float64(0) {
-		logrus.WithFields(logrus.Fields{
-			"error_reason": operation.ErrParaInput,
-			"actual_amount": comparedMemory,
-			"desire_amount": desiredMemory,
-		})
-		logrus.Error("memory can not be negative")
-		return fmt.Errorf("memory can not be negative, actual memory: (%.1f)Gi", memoryCapacity)
-	}
-
-	if memoryCapacityFloat >= desiredMemory {
-		return nil
-	}
-
-	logrus.WithFields(logrus.Fields{
-		"error_reason": "memory capacity not enough",
-		"actual_amount": comparedMemory,
-		"desire_amount": desiredMemory,
-	})
-	logrus.Error("node memory not satisfied")
-	return fmt.Errorf("node memory not enough, desired memory: (%v)Gi, actual memory: (%.1f)Gi", desiredMemory, memoryCapacity)
+	return nil
 }

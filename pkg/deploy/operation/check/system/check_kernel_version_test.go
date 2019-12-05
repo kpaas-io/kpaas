@@ -14,35 +14,46 @@
 
 package system
 
-import "testing"
+import (
+	"testing"
 
-func TestKernelVersionCheck(t *testing.T) {
-	const desiredKernelVersion = "4.19.46"
-	testPassedKernelVersionArray := [...]string{"4.19.46", "4.20"}
-	testFailedKernelVersionOne := "3.10.0-957.21.3.el7.x86_64"
-	testFailedKernelVersionTwo := "4.18.5-041805-generic"
+	"github.com/stretchr/testify/assert"
+)
 
-	for _, i := range testPassedKernelVersionArray {
-		err := NewKernelVersionCheck(i, desiredKernelVersion, ".", ">")
-		if err != nil {
-			t.Errorf("kernel version check failed, errors: %v", err)
-		} else {
-			t.Logf("kernel version check passed, input version: %v, desired version: %v", i, desiredKernelVersion)
-		}
+const (
+	desiredKernelVersion = "4.19.46"
+)
+
+// test cpu cores if satisfied with minimal requirement
+func TestCheckKernelVersion(t *testing.T) {
+	testSample := []struct {
+		comparedVersion string
+		desiredVersion  string
+		want            error
+	}{
+		{
+			comparedVersion: "4.19.46",
+			desiredVersion:  desiredKernelVersion,
+			want:            nil,
+		},
+		{
+			comparedVersion: "4.20",
+			desiredVersion:  desiredKernelVersion,
+			want:            nil,
+		},
+		{
+			comparedVersion: "3.10.0-957.21.3.el7.x86_64",
+			desiredVersion:  desiredKernelVersion,
+			want:            nil,
+		},
+		{
+			comparedVersion: "4.18.5-041805-generic",
+			desiredVersion:  desiredKernelVersion,
+			want:            nil,
+		},
 	}
 
-	err := NewKernelVersionCheck(testFailedKernelVersionOne, desiredKernelVersion, ".", ">")
-	if err != nil {
-		t.Errorf("kernel version check failed, errors: %v", err)
-	} else {
-		t.Logf("kernel version check passed, input version: %v, desired version: %v", testFailedKernelVersionOne, desiredKernelVersion)
+	for _, eachValue := range testSample {
+		assert.Equal(t, eachValue.want, CheckKernelVersion(eachValue.comparedVersion, eachValue.desiredVersion, ">"))
 	}
-
-	err = NewKernelVersionCheck(testFailedKernelVersionTwo, desiredKernelVersion, ".", ">")
-	if err != nil {
-		t.Errorf("kernel version check failed, errors: %v", err)
-	} else {
-		t.Logf("kernel version check passed, input version: %v, desired version: %v", testFailedKernelVersionTwo, desiredKernelVersion)
-	}
-
 }

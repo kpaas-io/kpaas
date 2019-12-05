@@ -18,38 +18,50 @@ import (
 	"testing"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+
+	"github.com/stretchr/testify/assert"
 )
 
 const (
-	desiredMemoryBase  float64 = 16
-	desiredMemory = desiredMemoryBase * operation.GiByteUnits
+	desiredMemoryBase float64 = 16
+	desiredMemory             = desiredMemoryBase * operation.GiByteUnits
 )
 
-func TestMemoryCapacityCheck(t *testing.T) {
-	testPassedMemoryArray := [...]string{"264116772", "16422896", "16267396"}
-	testFailedMemoryOne := "1626123"
-	testFailedMemoryTwo := "-1241211"
-
-	for _, i := range testPassedMemoryArray {
-		err := NewMemoryCapacityCheck(i, desiredMemory)
-		if err != nil {
-			t.Errorf("memory check failed, errors: %v", err)
-		} else {
-			t.Logf("memory check passed, input memory: %v, desired memory: %v", i, desiredMemory)
-		}
+func TestCheckMemoryCapacity(t *testing.T) {
+	testSample := []struct {
+		comparedMemory string
+		desiredMemory  float64
+		want           error
+	}{
+		{
+			comparedMemory: "264116772",
+			desiredMemory:  desiredMemory,
+			want:           nil,
+		},
+		{
+			comparedMemory: "16422896",
+			desiredMemory:  desiredMemory,
+			want:           nil,
+		},
+		{
+			comparedMemory: "16267396",
+			desiredMemory:  desiredMemory,
+			want:           nil,
+		},
+		{
+			comparedMemory: "1626123",
+			desiredMemory:  desiredMemory,
+			want:           nil,
+		},
+		{
+			comparedMemory: "-1241211",
+			desiredMemory:  desiredMemory,
+			want:           nil,
+		},
 	}
 
-	err := NewMemoryCapacityCheck(testFailedMemoryOne, desiredMemory)
-	if err != nil {
-		t.Errorf("memory check failed, errors: %v", err)
-	} else {
-		t.Logf("memory check passed, input memory: %v, desired memory: %v", testFailedMemoryOne, desiredMemory)
+	for _, eachValue := range testSample {
+		assert.Equal(t, eachValue.want, CheckMemoryCapacity(eachValue.comparedMemory, eachValue.desiredMemory))
 	}
 
-	err = NewMemoryCapacityCheck(testFailedMemoryTwo, desiredMemory)
-	if err != nil {
-		t.Errorf("memory check failed, errors: %v", err)
-	} else {
-		t.Logf("memory check passed, input memory: %v, desired memory: %v", testFailedMemoryOne, desiredMemory)
-	}
 }

@@ -18,8 +18,8 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
-func NewKernelVersionCheck(kernelVersion string, standardVersion string, splitSymbol string, checkStandard string) error {
-	err := operation.VersionSatisfiedStandard(kernelVersion, standardVersion, splitSymbol, checkStandard)
+func CheckKernelVersion(kernelVersion string, standardVersion string, checkStandard string) error {
+	err := operation.CheckVersion(kernelVersion, standardVersion, checkStandard)
 	if err != nil {
 		return err
 	}

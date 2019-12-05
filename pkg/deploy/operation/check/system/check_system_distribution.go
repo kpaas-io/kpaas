@@ -29,43 +29,22 @@ const (
 )
 
 // check if system distribution can be supported
-func NewSystemDistributionCheck(disName string) error {
+func CheckSystemDistribution(disName string) error {
+	logger := logrus.WithFields(logrus.Fields{
+		"actual_value":  disName,
+		"desired_value": fmt.Sprintf("supported distribution: '%v' or '%v' or '%v'", DistributionCentos, DistributionUbuntu, DistributionRHEL),
+	})
+
 	if disName == "" {
-		logrus.WithFields(logrus.Fields{
-			"error_reason": operation.ErrParaInput,
-			"actual_value": disName,
-			"desire_value": fmt.Sprintf("supported distribution: '%v' or '%v' or '%v'", DistributionCentos, DistributionUbuntu, DistributionRHEL),
-		})
-		logrus.Errorf("parameter error")
+		logger.Errorf("%v", operation.ErrParaInput)
 		return fmt.Errorf("%v, can not be empty", operation.ErrParaInput)
 	}
 
-	switch disName {
-	case DistributionCentos:
-		logrus.WithFields(logrus.Fields{
-			"actual_value": disName,
-		})
-		logrus.Infof("distribution check passed, current version: %v", disName)
+	if disName == DistributionCentos || disName == DistributionUbuntu || disName == DistributionRHEL {
+		logrus.Infof("%v", operation.InfoPassed)
 		return nil
-	case DistributionUbuntu:
-		logrus.WithFields(logrus.Fields{
-			"actual_value": disName,
-		})
-		logrus.Infof("distribution check passed, current version: %v", disName)
-		return nil
-	case DistributionRHEL:
-		logrus.WithFields(logrus.Fields{
-			"actual_value": disName,
-		})
-		logrus.Infof("distribution check passed, current version: %v", disName)
-		return nil
-	default:
-		logrus.WithFields(logrus.Fields{
-			"error_reason": "distribution error",
-			"actual_value": disName,
-			"desire_value": fmt.Sprintf("supported distribution: '%v' or '%v' or '%v'", DistributionCentos, DistributionUbuntu, DistributionRHEL),
-		})
-		logrus.Errorf("unsupported distribution")
-		return fmt.Errorf("distribution can not be supported: (%v), desired distribution: (%v, %v, %v)", disName, DistributionCentos, DistributionUbuntu, DistributionRHEL)
+	} else {
+		logger.Errorf("distribution unclear")
+		return fmt.Errorf("unclear distribution, support below: (%v, %v, %v)", DistributionCentos, DistributionUbuntu, DistributionRHEL)
 	}
 }

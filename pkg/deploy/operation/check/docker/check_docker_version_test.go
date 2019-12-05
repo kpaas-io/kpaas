@@ -16,36 +16,45 @@ package docker
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestDockerVersionCheck(t *testing.T) {
-	var desiredDockerVersion = "18.06.0"
-	testPassedDockerVersionArray := [...]string{"18.07.1-ee-12", "18.09.1", "19.03.05"}
-	testFailedDockerVersionOne := "17.03.2-ee-8"
-	testFailedDockerVersionTwo := "17.03.1-ee-3"
-
-	for _, i := range testPassedDockerVersionArray {
-		err := NewDockerVersionCheck(i, desiredDockerVersion, ".", ">")
-		if err != nil {
-			t.Errorf("docker version check failed, input version: %v , desired version: %v, errors: %v", i, desiredDockerVersion, err)
-		} else {
-			t.Logf("docker version check passed, input version: %v, desired version: %v", i, desiredDockerVersion)
-		}
+// test docker if satisfied with minimal version
+func TestCheckDockerVersion(t *testing.T) {
+	testSample := []struct {
+		comparedVersion string
+		desiredVersion  string
+		want            error
+	}{
+		{
+			comparedVersion: "18.07.1-ee-12",
+			desiredVersion:  "18.06.0",
+			want:            nil,
+		},
+		{
+			comparedVersion: "18.09.1",
+			desiredVersion:  "18.06.0",
+			want:            nil,
+		},
+		{
+			comparedVersion: "19.03.05",
+			desiredVersion:  "18.06.0",
+			want:            nil,
+		},
+		{
+			comparedVersion: "17.03.2-ee-8",
+			desiredVersion:  "18.06.0",
+			want:            nil,
+		},
+		{
+			comparedVersion: "17.03.1-ee-7",
+			desiredVersion:  "18.06.0",
+			want:            nil,
+		},
 	}
 
-	err := NewDockerVersionCheck(testFailedDockerVersionOne, desiredDockerVersion, ".", ">")
-	if err != nil {
-		t.Errorf("docker version check failed, input version: %v , desired version: %v, errors: %v", testFailedDockerVersionOne, desiredDockerVersion, err)
-	} else {
-		t.Logf("docker version check passed, input version: %v, desired version: %v", testFailedDockerVersionOne, desiredDockerVersion)
+	for _, eachValue := range testSample {
+		assert.Equal(t, eachValue.want, CheckDockerVersion(eachValue.comparedVersion, eachValue.desiredVersion, ">"))
 	}
-
-
-	err = NewDockerVersionCheck(testFailedDockerVersionTwo, desiredDockerVersion, ".", ">")
-	if err != nil {
-		t.Errorf("docker version check failed, input version: %v , desired version: %v, errors: %v", testFailedDockerVersionTwo, desiredDockerVersion, err)
-	} else {
-		t.Logf("docker version check passed, input version: %v, desired version: %v", testFailedDockerVersionTwo, desiredDockerVersion)
-	}
-
 }

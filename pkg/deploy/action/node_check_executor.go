@@ -20,16 +20,16 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check/docker"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
 const (
-	desireDockerVersion               = "18.06.0"
-	desireKernelVersion               = "4.19.46"
-	desireCPUCore int                 = 8
-	desiredMemoryBase float64         = 16
+	desiredDockerVersion              = "18.06.0"
+	desiredKernelVersion              = "4.19.46"
+	desiredCPUCore            float64 = 8
+	desiredMemoryBase         float64 = 16
 	desiredMemory                     = desiredMemoryBase * operation.GiByteUnits
 	desiredRootDiskVolumeBase float64 = 200
 	desiredRootDiskVolume     float64 = desiredRootDiskVolumeBase * operation.GiByteUnits
@@ -51,9 +51,9 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 	logger.Debug("Start to execute node check action")
 
 	var (
-		reason string
-		detail string
-		status nodeCheckItemStatus
+		reason    string
+		detail    string
+		status    nodeCheckItemStatus
 		fixmethod string
 	)
 
@@ -68,21 +68,23 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		detail = string(stdErr)
 		status = nodeCheckItemFailed
 		fixmethod = "please check your scripts"
+		return err
 	}
 
 	comparedDockerVersion := string(stdOut[:])
-	err = docker.NewDockerVersionCheck(comparedDockerVersion, desireDockerVersion, ".", ">")
+	err = docker.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
 	if err != nil {
 		reason = "docker version not satisfied"
 		detail = string(stdErr)
 		status = nodeCheckItemFailed
-		fixmethod = fmt.Sprintf("please upgrade docker version to %v+", desireDockerVersion)
-	} else {
-		reason = ""
-		detail = ""
-		status = nodeCheckItemSucessful
-		fixmethod = ""
+		fixmethod = fmt.Sprintf("please upgrade docker version to %v+", desiredDockerVersion)
+		return err
 	}
+
+	reason = ""
+	detail = ""
+	status = nodeCheckItemSucessful
+	fixmethod = ""
 
 	dockerVersionItem := &nodeCheckItem{
 		name:        "docker version check",

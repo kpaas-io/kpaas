@@ -15,46 +15,14 @@
 package system
 
 import (
-	"fmt"
-	"strconv"
-
-	"github.com/sirupsen/logrus"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
 // new CPU numbers check task, compare with desired CPU core
-func NewCPUNumsCheck(cpuCore string, desireCPUCore int) error {
-	coreNums, err := strconv.Atoi(cpuCore)
+func CheckCPUNums(cpuCore string, desiredCPUCore float64) error {
+	err := operation.CheckEntity(cpuCore, desiredCPUCore)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error_reason": operation.ErrParaInput,
-			"actual_amount": cpuCore,
-			"desired_amount": desireCPUCore,
-		})
-		logrus.Error("parameter error")
-		return fmt.Errorf("%v, desire core: %v, input core: %v cores", operation.ErrParaInput, desireCPUCore, cpuCore)
+		return err
 	}
-
-	if coreNums < 0 {
-		logrus.WithFields(logrus.Fields{
-			"error_reason": operation.ErrParaInput,
-			"actual_amount": cpuCore,
-			"desired_amount": desireCPUCore,
-		})
-		logrus.Error("cpu core can not be negative")
-		return fmt.Errorf("%v, cpu core can not be negative, input: %v cores", operation.ErrParaInput, cpuCore)
-	}
-
-	if coreNums >= desireCPUCore {
-		return nil
-	}
-
-	logrus.WithFields(logrus.Fields{
-		"error_reason": "cores not enough",
-		"actual_amount": cpuCore,
-		"desired_amount": desireCPUCore,
-	})
-	logrus.Error("node CPU Core numbers not satisfied")
-	return fmt.Errorf("node CPU numbers not enough, desired CPU nums: %v, actual CPU nums: %v cores", desireCPUCore, coreNums)
+	return nil
 }

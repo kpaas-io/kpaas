@@ -16,6 +16,9 @@ package system
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
@@ -24,32 +27,35 @@ const (
 	diskStandard          float64 = desiredRootDiskVolume * operation.GiByteUnits
 )
 
-func TestRootDiskVolumeCheck(t *testing.T) {
-	testPassedRootVolumeArray := [...]string{"287700360", "228492713"}
-	testFailedRootVolumeOne := "51473368"
-	testFailedRootVolumeTwo := "-103079200"
-
-	for _, i := range testPassedRootVolumeArray {
-		err := NewRootDiskVolumeCheck(i, diskStandard)
-		if err != nil {
-			t.Errorf("root disk volume check failed, errors: %v", err)
-		} else {
-			t.Logf("root disk volume check passed, input disk volume: %v, desired disk volume: (%.1f)", i, diskStandard)
-		}
+func TestCheckRootDiskVolume(t *testing.T) {
+	testSample := []struct {
+		rootDiskVolume    string
+		desiredDiskVolume float64
+		want              error
+	}{
+		{
+			rootDiskVolume:    "287700360",
+			desiredDiskVolume: diskStandard,
+			want:              nil,
+		},
+		{
+			rootDiskVolume:    "228492713",
+			desiredDiskVolume: diskStandard,
+			want:              nil,
+		},
+		{
+			rootDiskVolume:    "51473368",
+			desiredDiskVolume: diskStandard,
+			want:              nil,
+		},
+		{
+			rootDiskVolume:    "-103079200",
+			desiredDiskVolume: diskStandard,
+			want:              nil,
+		},
 	}
 
-	err := NewRootDiskVolumeCheck(testFailedRootVolumeOne, diskStandard)
-	if err != nil {
-		t.Errorf("root disk volume check failed, errors: %v", err)
-	} else {
-		t.Logf("root disk volume check passed, input disk volume: %v, desired disk volume: (%.1f)", testFailedRootVolumeOne, diskStandard)
+	for _, eachValue := range testSample {
+		assert.Equal(t, eachValue.want, CheckRootDiskVolume(eachValue.rootDiskVolume, eachValue.desiredDiskVolume))
 	}
-
-	err = NewRootDiskVolumeCheck(testFailedRootVolumeTwo, diskStandard)
-	if err != nil {
-		t.Errorf("root disk volume check failed, errors: %v", err)
-	} else {
-		t.Logf("root disk volume check passed, input disk volume: %v, desired disk volume: (%.1f)", testFailedRootVolumeTwo, diskStandard)
-	}
-
 }

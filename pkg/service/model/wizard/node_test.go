@@ -51,7 +51,7 @@ func TestNewCheckItem(t *testing.T) {
 
 func TestNode_SetCheckResult(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Node          Node
 			CheckResult   constant.CheckResult
@@ -121,7 +121,7 @@ func TestNode_SetCheckResult(t *testing.T) {
 
 func TestNode_SetCheckItem(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Node          Node
 			ItemName      string
@@ -296,7 +296,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 
 func TestNode_SetDeployResult(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Node          Node
 			Role          constant.MachineRole

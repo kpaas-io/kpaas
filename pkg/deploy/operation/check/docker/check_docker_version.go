@@ -23,8 +23,8 @@ import (
 )
 
 const (
-	script               = "/scripts/check_docker_version.sh"
-	remoteDir            = "/tmp"
+	script    = "/scripts/check_docker_version.sh"
+	remoteDir = "/tmp"
 )
 
 type CheckDockerOperation struct {
@@ -47,13 +47,13 @@ func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, e
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir + script, nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir+script, nil))
 	return ops, nil
 }
 
 // new docker version check to compare
-func NewDockerVersionCheck(dockerVersion string, standardVersion string, splitSymbol string, comparedSymbol string) error {
-	err := operation.VersionSatisfiedStandard(dockerVersion, standardVersion, splitSymbol, comparedSymbol)
+func CheckDockerVersion(dockerVersion string, standardVersion string, comparedSymbol string) error {
+	err := operation.CheckVersion(dockerVersion, standardVersion, comparedSymbol)
 	if err != nil {
 		return err
 	}

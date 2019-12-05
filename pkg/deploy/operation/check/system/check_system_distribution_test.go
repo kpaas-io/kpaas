@@ -14,33 +14,40 @@
 
 package system
 
-import "testing"
+import (
+	"testing"
 
-func TestSystemDistributionCheck(t *testing.T) {
-	testPassedSystemDistributionArray := [...]string{"rhel", "centos", "ubuntu"}
-	testFailedSystemDistributionOne := "macos"
-	testFailedSystemDistributionTwo := "windows"
+	"github.com/stretchr/testify/assert"
+)
 
-	for _, i := range testPassedSystemDistributionArray {
-		err := NewSystemDistributionCheck(i)
-		if err != nil {
-			t.Errorf("distribution check failed, input distribution: %v , desired distribution: %v or %v or %v, errors: %v", i, DistributionCentos, DistributionUbuntu, DistributionRHEL, err)
-		} else {
-			t.Logf("distribution check passed, input distribution: %v", i)
-		}
+func TestCheckSystemDistribution(t *testing.T) {
+	testSample := []struct {
+		disName string
+		want    error
+	}{
+		{
+			disName: "rhel",
+			want:    nil,
+		},
+		{
+			disName: "centos",
+			want:    nil,
+		},
+		{
+			disName: "guess what",
+			want:    nil,
+		},
+		{
+			disName: "macos",
+			want:    nil,
+		},
+		{
+			disName: "",
+			want:    nil,
+		},
 	}
 
-	err := NewSystemDistributionCheck(testFailedSystemDistributionOne)
-	if err != nil {
-		t.Errorf("distribution check failed, input distribution: %v , desired distribution: %v or %v or %v, errors: %v", testFailedSystemDistributionOne, DistributionCentos, DistributionUbuntu, DistributionRHEL, err)
-	} else {
-		t.Logf("distribution check passed, input distribution: %v", testFailedSystemDistributionOne)
-	}
-
-	err = NewSystemDistributionCheck(testFailedSystemDistributionTwo)
-	if err != nil {
-		t.Errorf("distribution check failed, input distribution: %v , desired distribution: %v or %v or %v, errors: %v", testFailedSystemDistributionTwo, DistributionCentos, DistributionUbuntu, DistributionRHEL, err)
-	} else {
-		t.Logf("distribution check passed, input distribution: %v", testFailedSystemDistributionTwo)
+	for _, eachValue := range testSample {
+		assert.Equal(t, eachValue.want, CheckSystemDistribution(eachValue.disName))
 	}
 }

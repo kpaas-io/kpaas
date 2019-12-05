@@ -81,6 +81,6 @@ if [ "${err}" == "" ]; then
 	echo "sysctl check OK"
 	exit 0
 else
-	echo "sysctl errors:${err}"
+	echo "sysctl errors:${err}" >&2
 	exit 1
 fi
