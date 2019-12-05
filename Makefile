@@ -93,3 +93,8 @@ assets-deploy-local: assets build_deploy_local
 assets:
 	GO111MODULE=$(GO111MODULE) $(GO) generate ./pkg/deploy/assets
 	@$(GOFMT) -w ./pkg/deploy/assets
+
+.PHONY: pre_commit
+pre_commit: test
+	go fmt ./...
+	go vet ./...
