@@ -57,7 +57,7 @@ func TestWrapErr(t *testing.T) {
 
 func TestNewAppErr(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Code    int
 			Msg     string
@@ -91,7 +91,7 @@ func TestNewAppErr(t *testing.T) {
 
 func TestAppErr_Error(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input *AppErr
 		Want  string
 	}{
@@ -112,7 +112,7 @@ func TestAppErr_Error(t *testing.T) {
 
 func TestE(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input error
 		Want  struct {
 			Code           int
@@ -157,7 +157,7 @@ func TestE(t *testing.T) {
 
 func TestR(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Body       interface{}
 			HTTPMethod string
@@ -224,7 +224,7 @@ func TestR(t *testing.T) {
 
 func TestRJsonP(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Body       interface{}
 			URL        string
