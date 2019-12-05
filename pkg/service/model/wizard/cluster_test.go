@@ -69,7 +69,7 @@ func TestNewKubeAPIServerConnectionData(t *testing.T) {
 
 func TestCluster_GetCheckResult(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input Cluster
 		Want  constant.CheckResult
 	}{
@@ -97,7 +97,7 @@ func TestCluster_GetCheckResult(t *testing.T) {
 
 func TestCluster_GetDeployClusterStatus(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input Cluster
 		Want  DeployClusterStatus
 	}{
@@ -125,7 +125,7 @@ func TestCluster_GetDeployClusterStatus(t *testing.T) {
 
 func TestCluster_AddNode(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Cluster Cluster
 			Node    *Node
@@ -298,7 +298,7 @@ func TestCluster_AddNode(t *testing.T) {
 
 func TestCluster_UpdateNode(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Cluster Cluster
 			Node    *Node
@@ -449,7 +449,7 @@ func TestCluster_UpdateNode(t *testing.T) {
 
 func TestCluster_DeleteNode(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Cluster Cluster
 			IP      string
@@ -611,7 +611,7 @@ func TestCluster_DeleteNode(t *testing.T) {
 
 func TestCluster_GetNode(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Cluster Cluster
 			IP      string
@@ -686,7 +686,7 @@ func TestCluster_GetNode(t *testing.T) {
 
 func TestCluster_GetNodeByName(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Cluster Cluster
 			Name    string
@@ -761,7 +761,7 @@ func TestCluster_GetNodeByName(t *testing.T) {
 
 func TestCluster_MarkNodeChecking(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input Cluster
 		Want  struct {
 			Cluster     Cluster
@@ -861,7 +861,7 @@ func TestCluster_MarkNodeChecking(t *testing.T) {
 
 func TestCluster_ClearClusterCheckingData(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input Cluster
 		Want  Cluster
 	}{
@@ -913,7 +913,7 @@ func TestCluster_ClearClusterCheckingData(t *testing.T) {
 
 func TestCluster_SetClusterCheckResult(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Cluster       Cluster
 			CheckResult   constant.CheckResult
@@ -979,7 +979,7 @@ func TestCluster_SetClusterCheckResult(t *testing.T) {
 
 func TestCluster_ClearClusterDeployData(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input Cluster
 		Want  Cluster
 	}{
@@ -1059,7 +1059,7 @@ func TestCluster_ClearClusterDeployData(t *testing.T) {
 
 func TestCluster_MarkNodeDeploying(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input Cluster
 		Want  struct {
 			Cluster     Cluster
@@ -1146,7 +1146,7 @@ func TestCluster_MarkNodeDeploying(t *testing.T) {
 
 func TestCluster_SetClusterDeploymentStatus(t *testing.T) {
 
-	tests := [] struct {
+	tests := []struct {
 		Input struct {
 			Cluster             Cluster
 			DeployClusterStatus DeployClusterStatus
