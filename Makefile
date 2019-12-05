@@ -29,7 +29,9 @@ else
 	EXTLDFLAGS =
 endif
 
-all: build_service_cross
+all: test build
+
+build: build_service_cross build_deploy_cross_without_protos
 
 .PHONY: service_doc
 
@@ -82,6 +84,11 @@ build_deploy_local: build_deploy_protos
 
 .PHONY: build_deploy_cross
 build_deploy_cross: build_deploy_protos
+	mkdir -p builds/release
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/deploy -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/deploy
+
+.PHONY: build_deploy_cross_without_protos
+build_deploy_cross_without_protos:
 	mkdir -p builds/release
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/deploy -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/deploy
 
