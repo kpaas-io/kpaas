@@ -53,19 +53,19 @@ func TestNode_SetCheckResult(t *testing.T) {
 
 	tests := []struct {
 		Input struct {
-			Node          Node
+			Node          *Node
 			CheckResult   constant.CheckResult
 			FailureDetail *common.FailureDetail
 		}
-		Want Node
+		Want *Node
 	}{
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				CheckResult   constant.CheckResult
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					CheckReport: &CheckReport{
 						CheckResult: constant.CheckResultChecking,
 					},
@@ -73,7 +73,7 @@ func TestNode_SetCheckResult(t *testing.T) {
 				CheckResult:   constant.CheckResultPassed,
 				FailureDetail: nil,
 			},
-			Want: Node{
+			Want: &Node{
 				CheckReport: &CheckReport{
 					CheckResult: constant.CheckResultPassed,
 				},
@@ -81,11 +81,11 @@ func TestNode_SetCheckResult(t *testing.T) {
 		},
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				CheckResult   constant.CheckResult
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					CheckReport: &CheckReport{
 						CheckResult: constant.CheckResultChecking,
 					},
@@ -98,7 +98,7 @@ func TestNode_SetCheckResult(t *testing.T) {
 					LogId:      1,
 				},
 			},
-			Want: Node{
+			Want: &Node{
 				CheckReport: &CheckReport{
 					CheckResult: constant.CheckResultFailed,
 					CheckedError: &common.FailureDetail{
@@ -123,21 +123,21 @@ func TestNode_SetCheckItem(t *testing.T) {
 
 	tests := []struct {
 		Input struct {
-			Node          Node
+			Node          *Node
 			ItemName      string
 			CheckResult   constant.CheckResult
 			FailureDetail *common.FailureDetail
 		}
-		Want Node
+		Want *Node
 	}{
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				ItemName      string
 				CheckResult   constant.CheckResult
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					CheckReport: &CheckReport{
 						CheckItems: []*CheckItem{},
 					},
@@ -146,7 +146,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 				CheckResult:   constant.CheckResultChecking,
 				FailureDetail: nil,
 			},
-			Want: Node{
+			Want: &Node{
 				CheckReport: &CheckReport{
 					CheckItems: []*CheckItem{
 						{
@@ -160,12 +160,12 @@ func TestNode_SetCheckItem(t *testing.T) {
 		},
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				ItemName      string
 				CheckResult   constant.CheckResult
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					CheckReport: &CheckReport{
 						CheckItems: []*CheckItem{
 							{
@@ -180,7 +180,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 				CheckResult:   constant.CheckResultPassed,
 				FailureDetail: nil,
 			},
-			Want: Node{
+			Want: &Node{
 				CheckReport: &CheckReport{
 					CheckItems: []*CheckItem{
 						{
@@ -194,12 +194,12 @@ func TestNode_SetCheckItem(t *testing.T) {
 		},
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				ItemName      string
 				CheckResult   constant.CheckResult
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					CheckReport: &CheckReport{
 						CheckItems: []*CheckItem{
 							{
@@ -219,7 +219,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 					LogId:      1,
 				},
 			},
-			Want: Node{
+			Want: &Node{
 				CheckReport: &CheckReport{
 					CheckItems: []*CheckItem{
 						{
@@ -238,12 +238,12 @@ func TestNode_SetCheckItem(t *testing.T) {
 		},
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				ItemName      string
 				CheckResult   constant.CheckResult
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					CheckReport: &CheckReport{
 						CheckItems: []*CheckItem{
 							{
@@ -263,7 +263,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 					LogId:      1,
 				},
 			},
-			Want: Node{
+			Want: &Node{
 				CheckReport: &CheckReport{
 					CheckItems: []*CheckItem{
 						{
@@ -298,28 +298,28 @@ func TestNode_SetDeployResult(t *testing.T) {
 
 	tests := []struct {
 		Input struct {
-			Node          Node
+			Node          *Node
 			Role          constant.MachineRole
 			Status        DeployStatus
 			FailureDetail *common.FailureDetail
 		}
-		Want Node
+		Want *Node
 	}{
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				Role          constant.MachineRole
 				Status        DeployStatus
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					DeploymentReports: map[constant.MachineRole]*DeploymentReport{},
 				},
 				Role:          constant.MachineRoleMaster,
 				Status:        DeployStatusPending,
 				FailureDetail: nil,
 			},
-			Want: Node{
+			Want: &Node{
 				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 					constant.MachineRoleMaster: {
 						Role:   constant.MachineRoleMaster,
@@ -331,12 +331,12 @@ func TestNode_SetDeployResult(t *testing.T) {
 		},
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				Role          constant.MachineRole
 				Status        DeployStatus
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 						constant.MachineRoleMaster: {
 							Role:   constant.MachineRoleMaster,
@@ -349,7 +349,7 @@ func TestNode_SetDeployResult(t *testing.T) {
 				Status:        DeployStatusDeploying,
 				FailureDetail: nil,
 			},
-			Want: Node{
+			Want: &Node{
 				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 					constant.MachineRoleMaster: {
 						Role:   constant.MachineRoleMaster,
@@ -361,12 +361,12 @@ func TestNode_SetDeployResult(t *testing.T) {
 		},
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				Role          constant.MachineRole
 				Status        DeployStatus
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 						constant.MachineRoleMaster: {
 							Role:   constant.MachineRoleMaster,
@@ -384,7 +384,7 @@ func TestNode_SetDeployResult(t *testing.T) {
 					LogId:      1,
 				},
 			},
-			Want: Node{
+			Want: &Node{
 				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 					constant.MachineRoleMaster: {
 						Role:   constant.MachineRoleMaster,
@@ -401,12 +401,12 @@ func TestNode_SetDeployResult(t *testing.T) {
 		},
 		{
 			Input: struct {
-				Node          Node
+				Node          *Node
 				Role          constant.MachineRole
 				Status        DeployStatus
 				FailureDetail *common.FailureDetail
 			}{
-				Node: Node{
+				Node: &Node{
 					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 						constant.MachineRoleMaster: {
 							Role:   constant.MachineRoleMaster,
@@ -419,7 +419,7 @@ func TestNode_SetDeployResult(t *testing.T) {
 				Status:        DeployStatusCompleted,
 				FailureDetail: nil,
 			},
-			Want: Node{
+			Want: &Node{
 				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 					constant.MachineRoleMaster: {
 						Role:   constant.MachineRoleMaster,
