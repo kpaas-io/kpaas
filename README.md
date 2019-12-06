@@ -2,6 +2,8 @@
 
 KPaaS is a tool for deploying Kubernetes clusters, operating Kubernetes clusters, and managing software lifecycles in Kubernetes clusters.
 
+![](https://github.com/kpaas-io/kpaas/workflows/release/badge.svg)
+
 ## Quick Start
 
 ```shell script
