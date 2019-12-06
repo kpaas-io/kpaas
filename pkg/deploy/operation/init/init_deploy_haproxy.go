@@ -32,8 +32,8 @@ func DeployHaproxy(ipAddresses ...string) error {
 		return fmt.Errorf("%v", operation.ErrParaEmpty)
 	}
 
-	for _, v := range ipAddresses {
-		if ok := operation.CheckIPValid(v); ok {
+	for _, ip := range ipAddresses {
+		if ok := operation.CheckIPValid(ip); ok {
 			continue
 		}
 
