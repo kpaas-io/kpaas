@@ -15,14 +15,192 @@
 package operation
 
 import (
+	"fmt"
 	"net"
+	"strconv"
+	"strings"
+	"unicode"
+
+	"github.com/sirupsen/logrus"
 )
 
 const (
-	ErrParaEmpty = "parameter empty"
-	ErrPara      = "parameter error"
-	ErrInvalid   = "parameter invalid"
+	SplitSymbol              = "."
+	CheckEqual               = "="
+	CheckLarge               = ">"
+	CheckLess                = "<"
+	ErrParaEmpty             = "parameter empty"
+	ErrPara                  = "parameter error"
+	ErrInvalid               = "parameter invalid"
+	InfoPassed               = "check passed"
+	ErrSplitSym              = "error split symbol found"
+	ErrParaInput             = "input parameter invalid"
+	ErrTooHigh               = "version too high"
+	ErrTooLow                = "version too low"
+	ErrNotEqual              = "version not equal"
+	ErrNotEnough             = "amount not enough"
+	UnclearInputPara         = "input parameter not clear"
+	GiByteUnits      float64 = 1000 * 1000
 )
+
+// check if version is satisfied with standard version
+// checkStandard controls compared method
+func CheckVersion(comparedVersion string, standardVersion string, comparedSymbol string) error {
+	logger := logrus.WithFields(logrus.Fields{
+		"actual_version":  comparedVersion,
+		"desired_version": standardVersion,
+	})
+
+	if err := checkVersionValid(comparedVersion); err != nil {
+		return err
+	}
+	if err := checkVersionValid(standardVersion); err != nil {
+		return err
+	}
+
+	comparedVerStr := strings.Split(strings.TrimSpace(comparedVersion), "-")[0]
+	standardVerStr := strings.Split(strings.TrimSpace(standardVersion), "-")[0]
+
+	switch comparedSymbol {
+	case CheckEqual:
+
+		if comparedVersion == standardVersion {
+			return nil
+		}
+
+		logger.Errorf("%v", ErrNotEqual)
+		return fmt.Errorf("%v, desired version: %v, actual version: %v", ErrNotEqual, standardVersion, comparedVersion)
+
+	case CheckLarge:
+
+		result := versionLargerAndEqual(comparedVerStr, standardVerStr)
+		if result >= 0 {
+			logger.Infof("check version passed")
+			return nil
+		}
+
+		logger.Errorf("%v", ErrTooLow)
+		return fmt.Errorf("%v, desired version: %v, actual version: %v", ErrTooLow, standardVersion, comparedVersion)
+
+	case CheckLess:
+
+		result := versionLargerAndEqual(comparedVerStr, standardVerStr)
+		if result <= 0 {
+			logger.Infof("check version passed")
+			return nil
+		}
+
+		logger.Errorf("%v", ErrTooHigh)
+		return fmt.Errorf("%v, desired version: %v, actual version: %v", ErrTooHigh, standardVersion, comparedVersion)
+
+	default:
+		logger.Errorf("%v", UnclearInputPara)
+		return fmt.Errorf("%v, desired version: %v, actual version: %v", UnclearInputPara, standardVersion, comparedVersion)
+	}
+}
+
+// check if first version larger than second version
+func versionLargerAndEqual(firstVersion string, secondVersion string) int {
+	firstArray := strings.Split(firstVersion, ".")
+	secondArray := strings.Split(secondVersion, ".")
+
+	for i := 0; i < findMaxLength(firstArray, secondArray); i++ {
+		var firstInt int
+		var secondInt int
+
+		if i < len(firstArray) {
+			firstInt, _ = strconv.Atoi(firstArray[i])
+		}
+		if i < len(secondArray) {
+			secondInt, _ = strconv.Atoi(secondArray[i])
+		}
+		if firstInt > secondInt {
+			return 1
+		} else if firstInt < secondInt {
+			return -1
+		}
+	}
+	return 0
+}
+
+// check if entity resource satisfied minimal requirements
+func CheckEntity(comparedEntity string, desiredEntity float64) error {
+	logger := logrus.WithFields(logrus.Fields{
+		"actual_amount":  comparedEntity,
+		"desired_amount": desiredEntity,
+	})
+
+	comparedEntityFloat64, err := strconv.ParseFloat(comparedEntity, 64)
+	if err != nil {
+		logger.Errorf("%v", ErrParaInput)
+		return fmt.Errorf("%v, desired amount: %v, actual amount: %v", ErrParaInput, desiredEntity, comparedEntity)
+	}
+
+	if comparedEntityFloat64 < float64(0) {
+		logger.Errorf("%v", ErrParaInput)
+		return fmt.Errorf("%v, input parameter can not be negative, desired amount: %.1f", ErrParaInput, desiredEntity)
+	}
+
+	if comparedEntityFloat64 >= desiredEntity {
+		logger.Infof("compared satisfied")
+		return nil
+	}
+
+	logger.Errorf("%v", ErrNotEnough)
+	return fmt.Errorf("%v, desired amount: %.1f, actual amount: %v", ErrNotEnough, desiredEntity, comparedEntity)
+}
+
+// check if raw input contains non-digit character
+func checkContainsNonDigit(rawInput string) bool {
+	bareRawInput := strings.ReplaceAll(rawInput, ".", "")
+	for _, eachChar := range bareRawInput {
+		if !unicode.IsDigit(eachChar) {
+			return false
+		}
+	}
+	return true
+}
+
+// check if input is invalid
+func checkVersionValid(rawVersion string) error {
+	logger := logrus.WithFields(logrus.Fields{
+		"input_version": rawVersion,
+	})
+
+	// check if version is empty
+	if rawVersion == "" {
+		logger.Errorf("%v", ErrParaInput)
+		return fmt.Errorf("%v, input version: %v", ErrParaInput, rawVersion)
+	}
+
+	// check if not contains split symbol
+	if !strings.Contains(rawVersion, SplitSymbol) {
+		logger.Errorf("%v,", ErrSplitSym)
+		return fmt.Errorf("%v: split symbol: %v", ErrSplitSym, SplitSymbol)
+	}
+
+	splitedVersion := strings.Split(strings.TrimSpace(rawVersion), "-")[0]
+
+	// check if input contains non-digit char
+	if ok := checkContainsNonDigit(splitedVersion); !ok {
+		logger.Errorf("%v", ErrParaInput)
+		return fmt.Errorf("%v, contains non-digit char, input version: %v", ErrParaInput, rawVersion)
+	}
+	if ok := checkContainsNonDigit(splitedVersion); !ok {
+		logger.Errorf("%v", ErrParaInput)
+		return fmt.Errorf("%v, contains non-digit char, input version: %v", ErrParaInput, rawVersion)
+	}
+
+	return nil
+}
+
+// find max length of two arrays
+func findMaxLength(firstArr []string, secondArr []string) int {
+	if len(firstArr) >= len(secondArr) {
+		return len(firstArr)
+	}
+	return len(secondArr)
+}
 
 // check if ip valid as 0.0.0.0 or defined in RFC1122, RFC4632, RFC4291
 func CheckIPValid(rawIP string) bool {

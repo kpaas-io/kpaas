@@ -4,7 +4,7 @@
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//      http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	script    = "/scripts/checkdocker.sh"
+	script    = "/scripts/check_docker_version.sh"
 	remoteDir = "/tmp"
 )
 
@@ -47,6 +47,15 @@ func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, e
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", "/tmp/scripts/checkdocker.sh", nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir+script, nil))
 	return ops, nil
+}
+
+// check docker version if version larger or equal than standard version
+func CheckDockerVersion(dockerVersion string, standardVersion string, comparedSymbol string) error {
+	err := operation.CheckVersion(dockerVersion, standardVersion, comparedSymbol)
+	if err != nil {
+		return err
+	}
+	return nil
 }
