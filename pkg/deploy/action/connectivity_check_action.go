@@ -21,17 +21,19 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/ssh"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine/ssh"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+// ConnectivityCheckItem an item representing one check item of checking wheter a node can connect to another by the protocol and port.
 type ConnectivityCheckItem struct {
 	Protocol consts.Protocol
 	Port     uint16
 }
 
+// ConnectivityCheckActionConfig configuration of checking connectivity from soruce to destination.
 type ConnectivityCheckActionConfig struct {
 	SourceNode             *pb.Node
 	DestinationNode        *pb.Node
@@ -46,6 +48,7 @@ type connectivityCheckAction struct {
 	checkItems      []ConnectivityCheckItem
 }
 
+// NewConnectivityCheckAction creates an action to check connectivity from soruce to destination.
 func NewConnectivityCheckAction(cfg *ConnectivityCheckActionConfig) (Action, error) {
 	var err error
 	defer func() {
@@ -92,8 +95,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 	dstNode := connectivityCheckAction.destinationNode
 	srcNode := connectivityCheckAction.sourceNode
 	// start SSH connection to destination node to dump packets
-	sshClientDst, err := ssh.Dial("tcp",
-		fmt.Sprintf("%s:%d", dstNode.Ip, dstNode.Ssh.Port), nil)
+	sshClientDst, err := ssh.NewClient(dstNode.Ssh.Auth.Username, dstNode.Ip, dstNode.Ssh)
 	if err != nil {
 		connectivityCheckAction.status = ActionFailed
 		connectivityCheckAction.err = &pb.Error{
@@ -106,8 +108,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 	}
 
 	// start SSH connection to source node to send packets
-	sshClientSrc, err := ssh.Dial("tcp",
-		fmt.Sprintf("%s:%d", srcNode.Ip, srcNode.Ssh.Port), nil)
+	sshClientSrc, err := ssh.NewClient(srcNode.Ssh.Auth.Username, srcNode.Ip, srcNode.Ssh)
 	if err != nil {
 		connectivityCheckAction.status = ActionFailed
 		connectivityCheckAction.err = &pb.Error{
@@ -157,10 +158,12 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 
 		// first, start the capturing on destination node.
 		sshSessionDst.Start(strings.Join(captureCommand, " "))
-		captureChan := make(chan error, 1)
+		captureChan := make(chan error)
 		go func(errCh chan error) {
 			errCh <- sshSessionDst.Wait()
 		}(captureChan)
+
+		// sleep one second to make sure that the packet is sent after capturing started
 		time.Sleep(time.Second)
 		sshSessionSrc.Start(strings.Join(sendCommand, " "))
 		err := <-captureChan
@@ -172,7 +175,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 					srcNode.Name, string(checkItem.Protocol), dstNode.Name, checkItem.Port),
 				FixMethods: "configure network or firewall to allow these packets",
 			}
-			return fmt.Errorf("check connectivity failed: %s -> %s", srcNode.Name, dstNode.Name)
+			return nil
 		}
 	}
 	connectivityCheckAction.status = ActionDone

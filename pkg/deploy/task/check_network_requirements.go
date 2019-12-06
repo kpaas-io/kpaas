@@ -17,7 +17,6 @@ package task
 import (
 	"fmt"
 	"math/rand"
-	"sync"
 	"time"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/action"
@@ -62,7 +61,7 @@ func NewCheckNetworkRequirementsTask(
 
 type checkNetworkRequirementsProcessor struct{}
 
-func (p *checkNetworkRequirementsProcessor) StartTask(task Task) error {
+func (p *checkNetworkRequirementsProcessor) SplitTask(task Task) error {
 	checkNetworkRequirementsTask, ok := task.(*checkNetworkRequirementsTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, task)
@@ -85,6 +84,7 @@ func (p *checkNetworkRequirementsProcessor) StartTask(task Task) error {
 			}
 		}
 		actions, err = p.splitActionsCalico(checkNetworkRequirementsTask)
+		checkNetworkRequirementsTask.actions = actions
 		if err != nil {
 			return fmt.Errorf("failed to split actions, error %v", err)
 		}
@@ -93,25 +93,6 @@ func (p *checkNetworkRequirementsProcessor) StartTask(task Task) error {
 			checkNetworkRequirementsTask.networkOptions.NetworkType)
 	}
 
-	var wg sync.WaitGroup
-	// execute the actions concurrently
-	for _, act := range actions {
-		wg.Add(1)
-		go action.ExecuteAction(act, &wg)
-	}
-
-	wg.Wait()
-
-	passed := true
-	for _, act := range actions {
-		if act.GetStatus() == action.ActionFailed {
-			checkNetworkRequirementsTask.SetStatus(TaskFailed)
-			passed = false
-		}
-	}
-	if passed {
-		checkNetworkRequirementsTask.SetStatus(TaskDone)
-	}
 	return nil
 }
 

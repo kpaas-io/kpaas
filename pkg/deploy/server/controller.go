@@ -144,7 +144,8 @@ func (c *controller) FetchKubeConfig(ctx context.Context, req *pb.FetchKubeConfi
 
 	logrus.Info("Ends FetchKubeConfig request: succeeded")
 	return &pb.FetchKubeConfigReply{
-		KubeConfig: kubeConfigTask.(*task.FetchKubeConfigTask).KubeConfig, nil
+		KubeConfig: kubeConfigTask.(*task.FetchKubeConfigTask).KubeConfig,
+	}, nil
 }
 
 func (c *controller) CheckNetworkRequirements(
@@ -164,7 +165,7 @@ func (c *controller) CheckNetworkRequirements(
 
 	checkTask, err := task.NewCheckNetworkRequirementsTask(taskName, taskConfig)
 	if err == nil {
-		err = c.storeAndLanuchTask(checkTask)
+		err = c.storeAndExecuteTask(checkTask)
 	}
 	if err != nil {
 		logrus.Errorf("failed to create task for CheckNetworkRequirements, error %v", err)
