@@ -15,13 +15,23 @@
 package operation
 
 import (
-	"regexp"
+	"net"
 )
 
-func IPValidationCheck(IP string) bool {
-	re := regexp.MustCompile(`(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}`)
-	matchIP := re.FindAllString(IP, -1)
-	if matchIP != nil {
+const (
+	ErrParaEmpty = "parameter empty"
+	ErrPara      = "parameter error"
+	ErrInvalid   = "parameter invalid"
+)
+
+// check if ip valid as 0.0.0.0 or defined in RFC1122, RFC4632, RFC4291
+func CheckIPValid(rawIP string) bool {
+	if rawIP == "0.0.0.0" {
+		return true
+	}
+
+	parsedRawIP := net.ParseIP(rawIP)
+	if ok := parsedRawIP.IsGlobalUnicast(); ok {
 		return true
 	}
 	return false

@@ -17,33 +17,31 @@ package init
 import (
 	"fmt"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	"github.com/sirupsen/logrus"
+
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
-func NewDeployHaproxy(IPaddress ...string) error {
-	if len(IPaddress) == 0 {
-		logrus.WithFields(logrus.Fields{
-			"error_reason": "parameter error",
-		})
-		logrus.Error("IP address can not be empty")
-		return fmt.Errorf("input IP address can not be empty, input: (%v)", IPaddress)
+func DeployHaproxy(ipAddresses ...string) error {
+	logger := logrus.WithFields(logrus.Fields{
+		"error_reason": operation.ErrPara,
+	})
+
+	if len(ipAddresses) == 0 {
+		logger.Errorf("%v", operation.ErrParaEmpty)
+		return fmt.Errorf("%v", operation.ErrParaEmpty)
 	}
-	for _, v := range IPaddress {
-		if ok := operation.IPValidationCheck(v); ok {
-			return nil
+
+	for _, v := range ipAddresses {
+		if ok := operation.CheckIPValid(v); ok {
+			continue
 		}
 
 		logrus.WithFields(logrus.Fields{
-			"error_reason": "input IP address error",
-		})
-		logrus.Error("IP address is not valid: %v", v)
-		return fmt.Errorf("input IP address is not validate: (%v)", IPaddress)
+			"error_reason": operation.ErrPara,
+		}).Errorf("%v", operation.ErrInvalid)
+		return fmt.Errorf("%v", operation.ErrInvalid)
 	}
 
-	logrus.WithFields(logrus.Fields{
-		"error_reason": "input IP address error",
-	})
-	logrus.Error("IP addresses is not valid: %v", IPaddress)
-	return fmt.Errorf("input IP address (%v) is not validate", IPaddress)
+	return nil
 }

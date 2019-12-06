@@ -16,28 +16,37 @@ package init
 
 import (
 	"fmt"
+	"testing"
 
-	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
-func DeployKeepalived(ipAddress string, ethernet string) error {
-	logger := logrus.WithFields(logrus.Fields{
-		"error_reason": operation.ErrPara,
-	})
-
-	if ipAddress == "" || ethernet == "" {
-		logger.Errorf("%v", operation.ErrParaEmpty)
-		return fmt.Errorf("%v", operation.ErrParaEmpty)
+func TestDeployHaproxy(t *testing.T) {
+	testCases := []struct {
+		ipAddresses string
+		want        error
+	}{
+		{
+			ipAddresses: "192.168.3.255",
+			want:        nil,
+		},
+		{
+			ipAddresses: "255.255.255.255",
+			want:        fmt.Errorf(operation.ErrInvalid),
+		},
+		{
+			ipAddresses: "0.0.0.0",
+			want:        nil,
+		},
+		{
+			ipAddresses: "-1,-1,-1,-1",
+			want:        fmt.Errorf(operation.ErrInvalid),
+		},
 	}
 
-	if ok := operation.CheckIPValid(ipAddress); ok {
-		return nil
+	for _, cs := range testCases {
+		assert.Equal(t, cs.want, DeployHaproxy(cs.ipAddresses))
 	}
-
-	logrus.WithFields(logrus.Fields{
-		"error_reason": operation.ErrPara,
-	}).Errorf("%v", operation.ErrInvalid)
-	return fmt.Errorf(operation.ErrInvalid)
 }
