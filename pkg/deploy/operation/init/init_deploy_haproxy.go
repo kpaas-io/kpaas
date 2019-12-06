@@ -22,7 +22,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
-func DeployHaproxy(ipAddresses ...string) error {
+func CheckHaproxyParameter(ipAddresses ...string) error {
 	logger := logrus.WithFields(logrus.Fields{
 		"error_reason": operation.ErrPara,
 	})

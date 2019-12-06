@@ -22,7 +22,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
-func DeployKeepalived(ipAddress string, ethernet string) error {
+func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 	logger := logrus.WithFields(logrus.Fields{
 		"error_reason": operation.ErrPara,
 	})
