@@ -147,7 +147,7 @@ func CheckEntity(comparedEntity string, desiredEntity float64) error {
 	}
 
 	logger.Errorf("%v", ErrNotEnough)
-	return fmt.Errorf("%v, desired amount: %v, actual amount: %v", ErrNotEnough, desiredEntity, comparedEntity)
+	return fmt.Errorf("%v, desired amount: %.1f, actual amount: %v", ErrNotEnough, desiredEntity, comparedEntity)
 }
 
 // check if raw input contains non-digit character

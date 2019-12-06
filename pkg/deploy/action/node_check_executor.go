@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	desiredDockerVersion              = "18.06.0"
+	desiredDockerVersion              = "18.09.0"
 	desiredKernelVersion              = "4.19.46"
 	desiredCPUCore            float64 = 8
 	desiredMemoryBase         float64 = 16

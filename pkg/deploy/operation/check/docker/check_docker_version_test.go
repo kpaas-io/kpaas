@@ -15,9 +15,15 @@
 package docker
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	desiredDockerVersion = "18.09.0"
+	versionTooLow        = "version too low"
 )
 
 // test docker if satisfied with minimal version
@@ -29,28 +35,28 @@ func TestCheckDockerVersion(t *testing.T) {
 	}{
 		{
 			comparedVersion: "18.07.1-ee-12",
-			desiredVersion:  "18.06.0",
-			want:            nil,
+			desiredVersion:  desiredDockerVersion,
+			want:            fmt.Errorf("%v, desired version: %v, actual version: 18.07.1-ee-12", versionTooLow, desiredDockerVersion),
 		},
 		{
 			comparedVersion: "18.09.1",
-			desiredVersion:  "18.06.0",
+			desiredVersion:  desiredDockerVersion,
 			want:            nil,
 		},
 		{
 			comparedVersion: "19.03.05",
-			desiredVersion:  "18.06.0",
+			desiredVersion:  desiredDockerVersion,
 			want:            nil,
 		},
 		{
 			comparedVersion: "17.03.2-ee-8",
-			desiredVersion:  "18.06.0",
-			want:            nil,
+			desiredVersion:  desiredDockerVersion,
+			want:            fmt.Errorf("%v, desired version: %v, actual version: 17.03.2-ee-8", versionTooLow, desiredDockerVersion),
 		},
 		{
 			comparedVersion: "17.03.1-ee-7",
-			desiredVersion:  "18.06.0",
-			want:            nil,
+			desiredVersion:  desiredDockerVersion,
+			want:            fmt.Errorf("%v, desired version: %v, actual version: 17.03.1-ee-7", versionTooLow, desiredDockerVersion),
 		},
 	}
 

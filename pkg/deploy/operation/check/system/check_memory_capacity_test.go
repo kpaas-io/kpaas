@@ -15,6 +15,7 @@
 package system
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -52,12 +53,12 @@ func TestCheckMemoryCapacity(t *testing.T) {
 		{
 			comparedMemory: "1626123",
 			desiredMemory:  desiredMemory,
-			want:           nil,
+			want:           fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 1626123", desiredMemory),
 		},
 		{
 			comparedMemory: "-1241211",
 			desiredMemory:  desiredMemory,
-			want:           nil,
+			want:           fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.1f", desiredMemory),
 		},
 	}
 

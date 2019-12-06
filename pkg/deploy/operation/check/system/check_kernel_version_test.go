@@ -15,6 +15,7 @@
 package system
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,12 +45,12 @@ func TestCheckKernelVersion(t *testing.T) {
 		{
 			comparedVersion: "3.10.0-957.21.3.el7.x86_64",
 			desiredVersion:  desiredKernelVersion,
-			want:            nil,
+			want:            fmt.Errorf("version too low, desired version: %v, actual version: 3.10.0-957.21.3.el7.x86_64", desiredKernelVersion),
 		},
 		{
 			comparedVersion: "4.18.5-041805-generic",
 			desiredVersion:  desiredKernelVersion,
-			want:            nil,
+			want:            fmt.Errorf("version too low, desired version: %v, actual version: 4.18.5-041805-generic", desiredKernelVersion),
 		},
 	}
 

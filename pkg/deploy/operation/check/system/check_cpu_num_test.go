@@ -15,13 +15,14 @@
 package system
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 const (
-	desireCPUCore float64 = 8
+	desiredCPUCore float64 = 8
 )
 
 // unit test of CheckCPUNums
@@ -33,28 +34,28 @@ func TestCheckCPUNums(t *testing.T) {
 	}{
 		{
 			cpuCore:     "8",
-			desiredCore: desireCPUCore,
+			desiredCore: desiredCPUCore,
 			want:        nil,
 		},
 		{
 			cpuCore:     "32767",
-			desiredCore: desireCPUCore,
+			desiredCore: desiredCPUCore,
 			want:        nil,
 		},
 		{
 			cpuCore:     "100000000",
-			desiredCore: desireCPUCore,
+			desiredCore: desiredCPUCore,
 			want:        nil,
 		},
 		{
 			cpuCore:     "7",
-			desiredCore: desireCPUCore,
-			want:        nil,
+			desiredCore: desiredCPUCore,
+			want:        fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 7", desiredCPUCore),
 		},
 		{
 			cpuCore:     "-100",
-			desiredCore: desireCPUCore,
-			want:        nil,
+			desiredCore: desiredCPUCore,
+			want:        fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.1f", desiredCPUCore),
 		},
 	}
 

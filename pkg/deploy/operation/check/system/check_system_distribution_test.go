@@ -15,9 +15,16 @@
 package system
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	desiredCentos = "centos"
+	desiredUbuntu = "ubuntu"
+	desiredRHEL   = "rhel"
 )
 
 // unit test of CheckSystemDistribution
@@ -36,15 +43,15 @@ func TestCheckSystemDistribution(t *testing.T) {
 		},
 		{
 			disName: "guess what",
-			want:    nil,
+			want:    fmt.Errorf("unclear distribution, support below: (%v, %v, %v)", desiredCentos, desiredUbuntu, desiredRHEL),
 		},
 		{
 			disName: "macos",
-			want:    nil,
+			want:    fmt.Errorf("unclear distribution, support below: (%v, %v, %v)", desiredCentos, desiredUbuntu, desiredRHEL),
 		},
 		{
 			disName: "",
-			want:    nil,
+			want:    fmt.Errorf("input parameter invalid, can not be empty"),
 		},
 	}
 
