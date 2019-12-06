@@ -115,3 +115,9 @@ func (mock *DeployController) GetDeployResult(ctx context.Context, in *protos.Ge
 		},
 	}, nil
 }
+
+func (mock *DeployController) FetchKubeConfig(ctx context.Context, in *protos.FetchKubeConfigRequest, opts ...grpc.CallOption) (*protos.FetchKubeConfigReply, error) {
+	return &protos.FetchKubeConfigReply{
+		KubeConfig: "kube config content",
+	}, nil
+}

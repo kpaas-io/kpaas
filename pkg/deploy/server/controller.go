@@ -109,6 +109,45 @@ func (c *controller) GetDeployResult(context.Context, *pb.GetDeployResultRequest
 	return nil, nil
 }
 
+func (c *controller) FetchKubeConfig(ctx context.Context, req *pb.FetchKubeConfigRequest) (*pb.FetchKubeConfigReply, error) {
+	logrus.Info("Begins FetchKubeConfig request")
+
+	var err error
+	defer func() {
+		if err != nil {
+			logrus.Errorf("request failed: %s", err)
+		}
+	}()
+
+	taskName := getFetchKubeConfigTaskName(req)
+	taskConfig := &task.FetchKubeConfigTaskConfig{
+		Node:            req.Node,
+		LogFileBasePath: c.logFileLoc,
+	}
+
+	kubeConfigTask, err := task.NewFetchKubeConfigTask(taskName, taskConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = c.storeAndExecuteTask(kubeConfigTask); err != nil {
+		return nil, err
+	}
+
+	taskErr := kubeConfigTask.GetErr()
+	if taskErr != nil {
+		err = fmt.Errorf(taskErr.String())
+		return &pb.FetchKubeConfigReply{
+			Err: taskErr,
+		}, err
+	}
+
+	logrus.Info("Ends FetchKubeConfig request: succeeded")
+	return &pb.FetchKubeConfigReply{
+		KubeConfig: kubeConfigTask.(*task.FetchKubeConfigTask).KubeConfig,
+	}, nil
+}
+
 func (c *controller) storeTask(task task.Task) error {
 	if c.store == nil {
 		return fmt.Errorf("no task store")
@@ -117,18 +156,26 @@ func (c *controller) storeTask(task task.Task) error {
 	return c.store.AddTask(task)
 }
 
+// Store the task and start the task, will not wait task to finish execution.
 func (c *controller) storeAndLanuchTask(aTask task.Task) error {
-	if c.store == nil {
-		return fmt.Errorf("no task store")
-	}
-
 	// store the task
-	if err := c.store.AddTask(aTask); err != nil {
+	if err := c.storeTask(aTask); err != nil {
 		return err
 	}
 
 	// launch the task
 	return task.StartTask(aTask)
+}
+
+// Store the task and wait the task to finish execution.
+func (c *controller) storeAndExecuteTask(aTask task.Task) error {
+	// store the task
+	if err := c.storeTask(aTask); err != nil {
+		return err
+	}
+
+	// execute the task
+	return task.ExecuteTask(aTask)
 }
 
 func getCheckNodeTaskName(req *pb.CheckNodesRequest) string {
@@ -145,4 +192,9 @@ func getDeployTaskName(req *pb.DeployRequest) string {
 	// }
 
 	return fmt.Sprintf("%s-%s", clusterName, "deploy")
+}
+
+func getFetchKubeConfigTaskName(req *pb.FetchKubeConfigRequest) string {
+	// use a fixed name for now, it may be changed in the future
+	return "fetch-kube-config"
 }

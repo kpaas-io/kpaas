@@ -12,45 +12,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package idcreator
+package action
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-func TestInitCreator(t *testing.T) {
+func TestNewFetchKubeConfigAction(t *testing.T) {
+	// test invalid paramters
+	tests := []*FetchKubeConfigActionConfig{
+		nil,
+		&FetchKubeConfigActionConfig{},
+	}
+	for _, test := range tests {
+		_, err := NewFetchKubeConfigAction(test)
+		assert.Error(t, err)
+	}
 
-	currentLogIdCreator := idCreator
-
-	InitCreator(uint16(rand.Int31()))
-
-	assert.NotEqual(t, currentLogIdCreator, idCreator)
-}
-
-func TestNextID(t *testing.T) {
-
-	id1, err := idCreator.NextID()
-	assert.Nil(t, err)
-	assert.Greater(t, id1, uint64(0))
-
-	id2, err := idCreator.NextID()
-	assert.Nil(t, err)
-	assert.Greater(t, id2, uint64(0))
-
-	assert.NotEqual(t, id1, id2)
-}
-
-func TestNextString(t *testing.T) {
-	str1, err := NextString()
+	cfg := &FetchKubeConfigActionConfig{
+		Node: &pb.Node{},
+	}
+	act, err := NewFetchKubeConfigAction(cfg)
 	assert.NoError(t, err)
-	assert.NotEqual(t, str1, "0")
-
-	str2, err := NextString()
-	assert.NoError(t, err)
-	assert.NotEqual(t, str2, "0")
-
-	assert.NotEqual(t, str1, str2)
+	assert.NotNil(t, act)
+	assert.IsType(t, &FetchKubeConfigAction{}, act)
+	assert.Equal(t, ActionTypeFetchKubeConfig, act.GetType())
+	assert.Equal(t, ActionPending, act.GetStatus())
+	assert.Equal(t, cfg.Node, act.(*FetchKubeConfigAction).node)
 }

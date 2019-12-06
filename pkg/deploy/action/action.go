@@ -15,21 +15,24 @@
 package action
 
 import (
+	"fmt"
 	"path/filepath"
 	"time"
 
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
 )
 
 // Type represents the type of an action
 type Type string
 
 const (
-	ActionTypeNodeCheck     Type = "NodeCheck"
-	ActionTypeDeployEtcd    Type = "DeployEtcd"
-	ActionTypeDeployMaster  Type = "DeployMaster"
-	ActionTypeDeployWorker  Type = "DeployWorker"
-	ActionTypeDeployIngress Type = "DeployIngress"
+	ActionTypeNodeCheck       Type = "NodeCheck"
+	ActionTypeDeployEtcd      Type = "DeployEtcd"
+	ActionTypeDeployMaster    Type = "DeployMaster"
+	ActionTypeDeployWorker    Type = "DeployWorker"
+	ActionTypeDeployIngress   Type = "DeployIngress"
+	ActionTypeFetchKubeConfig Type = "FetchKubeConfig"
 )
 
 // Status represents the status of an action
@@ -108,4 +111,13 @@ func GenActionLogFilePath(basePath, actionName string) string {
 		return ""
 	}
 	return filepath.Join(basePath, actionName)
+}
+
+// GenActionName generates a unique action name with the action type as prefix.
+func GenActionName(actionType Type) (string, error) {
+	str, err := idcreator.NextString()
+	if err != nil {
+		return "", fmt.Errorf("failed to generate action name: %s", err)
+	}
+	return fmt.Sprintf("%s-%s", actionType, str), nil
 }
