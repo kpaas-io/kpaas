@@ -57,6 +57,6 @@ func TestDeployKeepalived(t *testing.T) {
 	}
 
 	for _, cs := range testCases {
-		assert.Equal(t, cs.want, DeployKeepalived(cs.ipAddress, cs.ethernet))
+		assert.Equal(t, cs.want, CheckKeepalivedParameter(cs.ipAddress, cs.ethernet))
 	}
 }

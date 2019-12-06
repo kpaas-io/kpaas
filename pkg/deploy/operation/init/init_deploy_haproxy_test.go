@@ -47,6 +47,6 @@ func TestDeployHaproxy(t *testing.T) {
 	}
 
 	for _, cs := range testCases {
-		assert.Equal(t, cs.want, DeployHaproxy(cs.ipAddresses))
+		assert.Equal(t, cs.want, CheckHaproxyParameter(cs.ipAddresses))
 	}
 }
