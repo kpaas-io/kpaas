@@ -29,7 +29,9 @@ else
 	EXTLDFLAGS =
 endif
 
-all: build_service_cross
+all: test build
+
+build: build_service_cross_without_doc build_deploy_cross_without_protos
 
 .PHONY: service_doc
 
@@ -61,6 +63,11 @@ build_service_cross: service_doc
 	mkdir -p builds/release
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/service -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/service
 
+.PHONY: build_service_cross_without_doc
+build_service_cross_without_doc:
+	mkdir -p builds/release
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/service -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/service
+
 .PHONY: run_service_local
 run_service_local: build_service_local
 	builds/debug/service --log-level=debug
@@ -85,6 +92,11 @@ build_deploy_cross: build_deploy_protos
 	mkdir -p builds/release
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/deploy -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/deploy
 
+.PHONY: build_deploy_cross_without_protos
+build_deploy_cross_without_protos:
+	mkdir -p builds/release
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/deploy -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/deploy
+
 assets-deploy-cross: assets build_deploy_cross
 
 assets-deploy-local: assets build_deploy_local
@@ -93,3 +105,8 @@ assets-deploy-local: assets build_deploy_local
 assets:
 	GO111MODULE=$(GO111MODULE) $(GO) generate ./pkg/deploy/assets
 	@$(GOFMT) -w ./pkg/deploy/assets
+
+.PHONY: pre_commit
+pre_commit: test
+	go fmt ./...
+	go vet ./...

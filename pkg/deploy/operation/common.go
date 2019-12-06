@@ -16,6 +16,7 @@ package operation
 
 import (
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"unicode"
@@ -28,6 +29,9 @@ const (
 	CheckEqual               = "="
 	CheckLarge               = ">"
 	CheckLess                = "<"
+	ErrParaEmpty             = "parameter empty"
+	ErrPara                  = "parameter error"
+	ErrInvalid               = "parameter invalid"
 	InfoPassed               = "check passed"
 	ErrSplitSym              = "error split symbol found"
 	ErrParaInput             = "input parameter invalid"
@@ -196,4 +200,17 @@ func findMaxLength(firstArr []string, secondArr []string) int {
 		return len(firstArr)
 	}
 	return len(secondArr)
+}
+
+// check if ip valid as 0.0.0.0 or defined in RFC1122, RFC4632, RFC4291
+func CheckIPValid(rawIP string) bool {
+	if rawIP == "0.0.0.0" {
+		return true
+	}
+
+	parsedRawIP := net.ParseIP(rawIP)
+	if ok := parsedRawIP.IsGlobalUnicast(); ok {
+		return true
+	}
+	return false
 }

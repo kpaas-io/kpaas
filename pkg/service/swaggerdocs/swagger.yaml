@@ -291,9 +291,14 @@ definitions:
       revision:
         type: integer
       values:
+        $ref: '#/definitions/api.HelmValues'
         type: object
       version:
         type: string
+    type: object
+  api.HelmValues:
+    additionalProperties:
+      type: object
     type: object
   api.Label:
     properties:
@@ -534,7 +539,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.Cluster'
-          type: object
       produces:
       - application/json
       responses:
@@ -660,7 +664,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.NodeData'
-          type: object
       produces:
       - application/json
       responses:
@@ -747,7 +750,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.UpdateNodeData'
-          type: object
       - description: Node IP Address
         in: path
         name: ip
@@ -828,6 +830,8 @@ paths:
           schema:
             $ref: '#/definitions/h.AppErr'
       summary: list releases
+      tags:
+      - helm
     post:
       description: Install a helm release in a cluster from specified chart and values
       operationId: InstallRelease
@@ -890,6 +894,8 @@ paths:
           schema:
             $ref: '#/definitions/h.AppErr'
       summary: uninstall a release
+      tags:
+      - helm
     get:
       description: get manifest, chart, and values of a named release
       operationId: GetRelease
@@ -921,6 +927,8 @@ paths:
           schema:
             $ref: '#/definitions/h.AppErr'
       summary: get information of a named release
+      tags:
+      - helm
     put:
       description: Upgrade an installed release with new chart and/or values
       operationId: UpgradeRelease
@@ -1024,6 +1032,8 @@ paths:
           schema:
             $ref: '#/definitions/h.AppErr'
       summary: rollback a release
+      tags:
+      - helm
   /api/v1/helm/render:
     post:
       description: render chart templates locally and display the output
@@ -1042,6 +1052,8 @@ paths:
           schema:
             $ref: '#/definitions/h.AppErr'
       summary: render templates in a chart
+      tags:
+      - helm
   /api/v1/ssh/tests:
     post:
       consumes:
@@ -1055,7 +1067,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.ConnectionData'
-          type: object
       produces:
       - application/json
       responses:
@@ -1104,7 +1115,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.SSHCertificate'
-          type: object
       produces:
       - application/json
       responses:

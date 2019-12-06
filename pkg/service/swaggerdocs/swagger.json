@@ -97,7 +97,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -285,7 +284,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -373,7 +371,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -492,6 +489,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "helm"
+                ],
                 "summary": "list releases",
                 "operationId": "ListRelease",
                 "parameters": [
@@ -581,6 +581,9 @@
                 "description": "get manifest, chart, and values of a named release",
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "helm"
                 ],
                 "summary": "get information of a named release",
                 "operationId": "GetRelease",
@@ -681,6 +684,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "helm"
+                ],
                 "summary": "uninstall a release",
                 "operationId": "UninstallRelease",
                 "parameters": [
@@ -766,6 +772,9 @@
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "helm"
+                ],
                 "summary": "rollback a release",
                 "operationId": "RollbackRelease",
                 "parameters": [
@@ -820,6 +829,9 @@
                     "application/x-yaml",
                     "application/json"
                 ],
+                "tags": [
+                    "helm"
+                ],
                 "summary": "render templates in a chart",
                 "operationId": "RenderTemplate",
                 "responses": {
@@ -860,7 +872,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -933,7 +944,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
@@ -1344,11 +1354,18 @@
                     "type": "integer"
                 },
                 "values": {
-                    "type": "object"
+                    "type": "object",
+                    "$ref": "#/definitions/api.HelmValues"
                 },
                 "version": {
                     "type": "string"
                 }
+            }
+        },
+        "api.HelmValues": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "object"
             }
         },
         "api.Label": {

@@ -124,21 +124,21 @@ func TestE(t *testing.T) {
 			Want: struct {
 				Code           int
 				ResponseString string
-			}{Code: ENotFound.Status, ResponseString: `{"msg":"NotFound","payload":null}`},
+			}{Code: ENotFound.Status, ResponseString: `{"msg":"NotFound","payload":null}` + "\n"},
 		},
 		{
 			Input: EParamsError,
 			Want: struct {
 				Code           int
 				ResponseString string
-			}{Code: EParamsError.Status, ResponseString: `{"msg":"ParamsError","payload":null}`},
+			}{Code: EParamsError.Status, ResponseString: `{"msg":"ParamsError","payload":null}` + "\n"},
 		},
 		{
 			Input: errors.New("BadRequest"),
 			Want: struct {
 				Code           int
 				ResponseString string
-			}{Code: http.StatusInternalServerError, ResponseString: `{"msg":"BadRequest","payload":null}`},
+			}{Code: http.StatusInternalServerError, ResponseString: `{"msg":"BadRequest","payload":null}` + "\n"},
 		},
 	}
 
@@ -178,7 +178,7 @@ func TestR(t *testing.T) {
 			Want: struct {
 				Code           int
 				ResponseString string
-			}{Code: http.StatusOK, ResponseString: `{"Hello":"World"}`},
+			}{Code: http.StatusOK, ResponseString: `{"Hello":"World"}` + "\n"},
 		},
 		{
 			Input: struct {
@@ -191,7 +191,7 @@ func TestR(t *testing.T) {
 			Want: struct {
 				Code           int
 				ResponseString string
-			}{Code: http.StatusCreated, ResponseString: `{"Hello":"World"}`},
+			}{Code: http.StatusCreated, ResponseString: `{"Hello":"World"}` + "\n"},
 		},
 		{
 			Input: struct {
@@ -248,7 +248,7 @@ func TestRJsonP(t *testing.T) {
 			Want: struct {
 				Code           int
 				ResponseString string
-			}{Code: http.StatusOK, ResponseString: `c({"Hello":"World"})`},
+			}{Code: http.StatusOK, ResponseString: `c({"Hello":"World"});`},
 		},
 		{
 			Input: struct {
@@ -263,7 +263,7 @@ func TestRJsonP(t *testing.T) {
 			Want: struct {
 				Code           int
 				ResponseString string
-			}{Code: http.StatusCreated, ResponseString: `c({"Hello":"World"})`},
+			}{Code: http.StatusCreated, ResponseString: `c({"Hello":"World"});`},
 		},
 		{
 			Input: struct {
