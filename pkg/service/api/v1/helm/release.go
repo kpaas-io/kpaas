@@ -76,6 +76,7 @@ func UpgradeRelease(c *gin.Context) {
 // @ID RollbackRelease
 // @Summary rollback a release
 // @Description roll back a release to an earlier version
+// @Tags helm
 // @Produce application/json
 // @Param cluster path string  true "cluster to rollback release in"
 // @Param namespace path string true "kubernetes namespace in that cluster to rollback release in"
@@ -97,6 +98,7 @@ func RollbackRelease(c *gin.Context) {
 // @ID GetRelease
 // @Summary get information of a named release
 // @Description get manifest, chart, and values of a named release
+// @Tags helm
 // @Produce application/json
 // @Param cluster path string  true "kubernetes cluster where the release is"
 // @Param namespace path string true "kubernetes namespace where the release is"
@@ -120,6 +122,7 @@ func GetRelease(c *gin.Context) {
 // @ID ListRelease
 // @Summary list releases
 // @Description list all releases in a namespace
+// @Tags helm
 // @Produce application/json
 // @Param cluster path string  true "kubernetes cluster to list releases in"
 // @Param namespace path string true "kubernetes namespace to list release in"
@@ -142,6 +145,7 @@ func ListRelease(c *gin.Context) {
 // @ID UninstallRelease
 // @Summary uninstall a release
 // @Description uninstall a named release and deleted all resources in kubernetes created for the release
+// @Tags helm
 // @Produce application/json
 // @Param cluster path string  true "kubernetes cluster where the release is"
 // @Param namespace path string true "kubernetes namespace where the release is"
@@ -181,6 +185,7 @@ func ExportRelease(c *gin.Context) {
 // @ID RenderTemplate
 // @Summary render templates in a chart
 // @Description render chart templates locally and display the output
+// @Tags helm
 // @Produce application/x-yaml
 // @Produce application/json
 // @Success 201
