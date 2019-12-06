@@ -31,7 +31,7 @@ endif
 
 all: test build
 
-build: build_service_cross build_deploy_cross_without_protos
+build: build_service_cross_without_doc build_deploy_cross_without_protos
 
 .PHONY: service_doc
 
@@ -60,6 +60,11 @@ build_service_local: service_doc
 
 .PHONY: build_service_cross
 build_service_cross: service_doc
+	mkdir -p builds/release
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/service -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/service
+
+.PHONY: build_service_cross_without_doc
+build_service_cross_without_doc:
 	mkdir -p builds/release
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o builds/release/service -ldflags '${EXTLDFLAGS}-X github.com/kpaas-io/kpaas/pkg/utils/version.VersionDev=build.$(BUILD_NUMBER)' github.com/kpaas-io/kpaas/run/service
 
