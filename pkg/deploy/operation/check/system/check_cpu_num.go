@@ -18,7 +18,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
-// new CPU numbers check task, compare with desired CPU core
+// check if CPU numbers larger or equal than desired cores
 func CheckCPUNums(cpuCore string, desiredCPUCore float64) error {
 	err := operation.CheckEntity(cpuCore, desiredCPUCore)
 	if err != nil {

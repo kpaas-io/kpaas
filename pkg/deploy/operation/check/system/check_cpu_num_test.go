@@ -24,7 +24,7 @@ const (
 	desireCPUCore float64 = 8
 )
 
-// test cpu cores if satisfied with minimal requirement
+// unit test of CheckCPUNums
 func TestCheckCPUNums(t *testing.T) {
 	testSample := []struct {
 		cpuCore     string

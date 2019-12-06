@@ -18,6 +18,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
+// check if kernel version larger or equal than standard version
 func CheckKernelVersion(kernelVersion string, standardVersion string, checkStandard string) error {
 	err := operation.CheckVersion(kernelVersion, standardVersion, checkStandard)
 	if err != nil {

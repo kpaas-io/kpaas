@@ -47,7 +47,10 @@ func CheckVersion(comparedVersion string, standardVersion string, comparedSymbol
 		"desired_version": standardVersion,
 	})
 
-	if err := checkVersionValid(comparedVersion, standardVersion); err != nil {
+	if err := checkVersionValid(comparedVersion); err != nil {
+		return err
+	}
+	if err := checkVersionValid(standardVersion); err != nil {
 		return err
 	}
 
@@ -66,7 +69,7 @@ func CheckVersion(comparedVersion string, standardVersion string, comparedSymbol
 
 	case CheckLarge:
 
-		result := versionLarger(comparedVerStr, standardVerStr)
+		result := versionLargerAndEqual(comparedVerStr, standardVerStr)
 		if result >= 0 {
 			logger.Infof("check version passed")
 			return nil
@@ -77,7 +80,7 @@ func CheckVersion(comparedVersion string, standardVersion string, comparedSymbol
 
 	case CheckLess:
 
-		result := versionLarger(comparedVerStr, standardVerStr)
+		result := versionLargerAndEqual(comparedVerStr, standardVerStr)
 		if result <= 0 {
 			logger.Infof("check version passed")
 			return nil
@@ -93,14 +96,13 @@ func CheckVersion(comparedVersion string, standardVersion string, comparedSymbol
 }
 
 // check if first version larger than second version
-func versionLarger(firstVer string, secondVer string) int {
-	firstArray := strings.Split(firstVer, ".")
-	secondArray := strings.Split(secondVer, ".")
+func versionLargerAndEqual(firstVersion string, secondVersion string) int {
+	firstArray := strings.Split(firstVersion, ".")
+	secondArray := strings.Split(secondVersion, ".")
 
 	for i := 0; i < findMaxLength(firstArray, secondArray); i++ {
 		var firstInt int
 		var secondInt int
-		var compare = 0
 
 		if i < len(firstArray) {
 			firstInt, _ = strconv.Atoi(firstArray[i])
@@ -109,12 +111,9 @@ func versionLarger(firstVer string, secondVer string) int {
 			secondInt, _ = strconv.Atoi(secondArray[i])
 		}
 		if firstInt > secondInt {
-			compare = 1
+			return 1
 		} else if firstInt < secondInt {
-			compare = -1
-		}
-		if compare != 0 {
-			return compare
+			return -1
 		}
 	}
 	return 0
@@ -159,35 +158,33 @@ func checkContainsNonDigit(rawInput string) bool {
 }
 
 // check if input is invalid
-func checkVersionValid(comparedVersion string, standardVersion string) error {
+func checkVersionValid(rawVersion string) error {
 	logger := logrus.WithFields(logrus.Fields{
-		"actual_version":  comparedVersion,
-		"desired_version": standardVersion,
+		"input_version": rawVersion,
 	})
 
-	// check if input is empty
-	if comparedVersion == "" || standardVersion == "" {
+	// check if version is empty
+	if rawVersion == "" {
 		logger.Errorf("%v", ErrParaInput)
-		return fmt.Errorf("%v, desired version: %v, actual version: %v", ErrParaInput, comparedVersion, standardVersion)
+		return fmt.Errorf("%v, input version: %v", ErrParaInput, rawVersion)
 	}
 
-	// check if input not contains split symbol
-	if !strings.Contains(comparedVersion, SplitSymbol) || !strings.Contains(standardVersion, SplitSymbol) {
+	// check if not contains split symbol
+	if !strings.Contains(rawVersion, SplitSymbol) {
 		logger.Error("%v,", ErrSplitSym)
 		return fmt.Errorf("%v: split symbol: %v", ErrSplitSym, SplitSymbol)
 	}
 
-	comparedVersion = strings.Split(strings.TrimSpace(comparedVersion), "-")[0]
-	standardVersion = strings.Split(strings.TrimSpace(standardVersion), "-")[0]
+	splitedVersion := strings.Split(strings.TrimSpace(rawVersion), "-")[0]
 
 	// check if input contains non-digit char
-	if ok := checkContainsNonDigit(comparedVersion); !ok {
+	if ok := checkContainsNonDigit(splitedVersion); !ok {
 		logger.Error("%v", ErrParaInput)
-		return fmt.Errorf("%v, contains non-digit char, desired version: %v, actual version: %v", ErrParaInput, comparedVersion, standardVersion)
+		return fmt.Errorf("%v, contains non-digit char, input version: %v", ErrParaInput, rawVersion)
 	}
-	if ok := checkContainsNonDigit(standardVersion); !ok {
+	if ok := checkContainsNonDigit(splitedVersion); !ok {
 		logger.Error("%v", ErrParaInput)
-		return fmt.Errorf("%v, contains non-digit char, desired version: %v, actual version: %v", ErrParaInput, comparedVersion, standardVersion)
+		return fmt.Errorf("%v, contains non-digit char, input version: %v", ErrParaInput, rawVersion)
 	}
 
 	return nil

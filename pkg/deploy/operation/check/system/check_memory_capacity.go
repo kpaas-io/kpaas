@@ -18,6 +18,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
+// check if memory capacity satisfied with minimal requirement
 func CheckMemoryCapacity(comparedMemory string, desiredMemory float64) error {
 	err := operation.CheckEntity(comparedMemory, desiredMemory)
 	if err != nil {

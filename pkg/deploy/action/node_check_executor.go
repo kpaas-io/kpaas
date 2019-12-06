@@ -81,10 +81,7 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		return err
 	}
 
-	reason = ""
-	detail = ""
 	status = nodeCheckItemSucessful
-	fixmethod = ""
 
 	dockerVersionItem := &nodeCheckItem{
 		name:        "docker version check",

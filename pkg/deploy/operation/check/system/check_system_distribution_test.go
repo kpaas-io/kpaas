@@ -20,6 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// unit test of CheckSystemDistribution
 func TestCheckSystemDistribution(t *testing.T) {
 	testSample := []struct {
 		disName string

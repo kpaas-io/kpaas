@@ -27,6 +27,7 @@ const (
 	diskStandard          float64 = desiredRootDiskVolume * operation.GiByteUnits
 )
 
+// unit test of CheckRootDiskVolume
 func TestCheckRootDiskVolume(t *testing.T) {
 	testSample := []struct {
 		rootDiskVolume    string

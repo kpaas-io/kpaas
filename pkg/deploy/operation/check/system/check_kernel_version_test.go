@@ -24,7 +24,7 @@ const (
 	desiredKernelVersion = "4.19.46"
 )
 
-// test cpu cores if satisfied with minimal requirement
+// unit test of CheckKernelVersion
 func TestCheckKernelVersion(t *testing.T) {
 	testSample := []struct {
 		comparedVersion string

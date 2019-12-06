@@ -27,6 +27,7 @@ const (
 	desiredMemory             = desiredMemoryBase * operation.GiByteUnits
 )
 
+// unit test of CheckMemoryCapacity
 func TestCheckMemoryCapacity(t *testing.T) {
 	testSample := []struct {
 		comparedMemory string

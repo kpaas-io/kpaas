@@ -51,7 +51,7 @@ func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, e
 	return ops, nil
 }
 
-// new docker version check to compare
+// check docker version if version larger or equal than standard version
 func CheckDockerVersion(dockerVersion string, standardVersion string, comparedSymbol string) error {
 	err := operation.CheckVersion(dockerVersion, standardVersion, comparedSymbol)
 	if err != nil {

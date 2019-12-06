@@ -18,48 +18,11 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
-// compare root disk volume with desire root disk volume
+// check if root disk volume satisfied with desired disk volume
 func CheckRootDiskVolume(rootDiskVolume string, desiredDiskVolume float64) error {
 	err := operation.CheckEntity(rootDiskVolume, desiredDiskVolume)
 	if err != nil {
 		return err
 	}
 	return nil
-
-	//var diskCapacity float64
-	//
-	//diskVolumeFloat, err := strconv.ParseFloat(rootDiskVolume, 64)
-	//if err != nil {
-	//	logrus.WithFields(logrus.Fields{
-	//		"error_reason": operation.ErrParaInput,
-	//		"actual_amount": rootDiskVolume,
-	//		"desired_amount": desiredDiskVolume,
-	//	})
-	//	logrus.Error("parameter error")
-	//	return fmt.Errorf("%v, desired disk volume: %v, input disk volume: %v", operation.ErrParaInput, desiredDiskVolume, rootDiskVolume)
-	//}
-	//
-	//diskCapacity = diskVolumeFloat / 1024 / 1024
-	//
-	//if diskCapacity < float64(0) {
-	//	logrus.WithFields(logrus.Fields{
-	//		"error_reason": operation.ErrParaInput,
-	//		"actual_amount": rootDiskVolume,
-	//		"desired_amount": desiredDiskVolume,
-	//	})
-	//	logrus.Error("root disk volume can not be negative")
-	//	return fmt.Errorf("%v, root disk volume can not be negative, input actual volume: %v", operation.ErrParaInput, rootDiskVolume)
-	//}
-	//
-	//if diskVolumeFloat >= desiredDiskVolume {
-	//	return nil
-	//}
-	//
-	//logrus.WithFields(logrus.Fields{
-	//	"error_reason": "root disk not enough",
-	//	"actual_amount": rootDiskVolume,
-	//	"desired_amount": desiredDiskVolume,
-	//})
-	//logrus.Errorf("node root disk not satisfied")
-	//return fmt.Errorf("root disk not enough, desired disk volume: (%.1f), actual disk volume: (%v)", desiredDiskVolume, rootDiskVolume)
 }
