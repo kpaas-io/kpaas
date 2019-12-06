@@ -94,7 +94,7 @@ func CheckVersion(comparedVersion string, standardVersion string, comparedSymbol
 		return fmt.Errorf("%v, desired version: %v, actual version: %v", ErrTooHigh, standardVersion, comparedVersion)
 
 	default:
-		logger.Error("%v", UnclearInputPara)
+		logger.Errorf("%v", UnclearInputPara)
 		return fmt.Errorf("%v, desired version: %v, actual version: %v", UnclearInputPara, standardVersion, comparedVersion)
 	}
 }
@@ -175,7 +175,7 @@ func checkVersionValid(rawVersion string) error {
 
 	// check if not contains split symbol
 	if !strings.Contains(rawVersion, SplitSymbol) {
-		logger.Error("%v,", ErrSplitSym)
+		logger.Errorf("%v,", ErrSplitSym)
 		return fmt.Errorf("%v: split symbol: %v", ErrSplitSym, SplitSymbol)
 	}
 
@@ -183,11 +183,11 @@ func checkVersionValid(rawVersion string) error {
 
 	// check if input contains non-digit char
 	if ok := checkContainsNonDigit(splitedVersion); !ok {
-		logger.Error("%v", ErrParaInput)
+		logger.Errorf("%v", ErrParaInput)
 		return fmt.Errorf("%v, contains non-digit char, input version: %v", ErrParaInput, rawVersion)
 	}
 	if ok := checkContainsNonDigit(splitedVersion); !ok {
-		logger.Error("%v", ErrParaInput)
+		logger.Errorf("%v", ErrParaInput)
 		return fmt.Errorf("%v, contains non-digit char, input version: %v", ErrParaInput, rawVersion)
 	}
 
