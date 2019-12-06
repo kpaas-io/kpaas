@@ -52,7 +52,7 @@ jobs:
           image: kpaas/kpaas
           tag: latest
           registry: docker.io
-          dockerfile: ./builds/docker/service/Dockerfile
+          dockerfile: ./builds/docker/kpaas/Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
