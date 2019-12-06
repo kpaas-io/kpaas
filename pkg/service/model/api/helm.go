@@ -15,17 +15,18 @@
 package api
 
 type (
+	HelmValues map[string]interface{}
 	// HelmRelease presents a helm release.
 	HelmRelease struct {
 		Cluster string `json:"cluster"`
 		// empty Name means to generate a name, only used in installing a release.
-		Name         string                 `json:"name,omitempty"`
-		Namespace    string                 `json:"namespace"`
-		Chart        string                 `json:"chart,omitempty"`
-		ChartRepo    string                 `json:"repo,omitempty"`
-		ChartVersion string                 `json:"version,omitempty"`
-		Values       map[string]interface{} `json:"values,omitempty"`
-		Revision     uint32                 `json:"revision,omitempty"`
-		Manifest     string                 `json:"manifest,omitempty"`
+		Name         string     `json:"name,omitempty"`
+		Namespace    string     `json:"namespace"`
+		Chart        string     `json:"chart,omitempty"`
+		ChartRepo    string     `json:"repo,omitempty"`
+		ChartVersion string     `json:"version,omitempty"`
+		Values       HelmValues `json:"values,omitempty"`
+		Revision     uint32     `json:"revision,omitempty"`
+		Manifest     string     `json:"manifest,omitempty"`
 	}
 )
