@@ -41,7 +41,7 @@ func (a *fetchKubeConfigExecutor) Execute(act Action) error {
 
 	// Update action
 	kubeCfgAction.status = ActionDone
-	kubeCfgAction.KubeConfig = "todo: the content of kube config file"
+	kubeCfgAction.KubeConfig = []byte("todo: the content of kube config file")
 
 	logger.Debug("Finsih to execute action")
 	return nil

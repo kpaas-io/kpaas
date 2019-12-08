@@ -32,7 +32,7 @@ type FetchKubeConfigActionConfig struct {
 type FetchKubeConfigAction struct {
 	base
 	node       *pb.Node
-	KubeConfig string
+	KubeConfig []byte
 }
 
 // NewFetchKubeConfigAction returns a fetch-kube-config action based on the config.

@@ -84,7 +84,7 @@ func TestProcessExtraResult(t *testing.T) {
 	}
 	kubeconfigAct, err := action.NewFetchKubeConfigAction(actCfg)
 	assert.NoError(t, err)
-	kubeConfigContent := "test content"
+	kubeConfigContent := []byte("test content")
 	kubeconfigAct.(*action.FetchKubeConfigAction).KubeConfig = kubeConfigContent
 	kubeConfigTask.(*FetchKubeConfigTask).actions = []action.Action{kubeconfigAct}
 

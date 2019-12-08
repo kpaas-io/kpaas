@@ -33,7 +33,7 @@ type FetchKubeConfigTask struct {
 	node *pb.Node
 
 	// KubeConfig stores the task result: content of kube config file.
-	KubeConfig string
+	KubeConfig []byte
 }
 
 // NewFetchKubeConfigTask returns a fetch-kube-config task based on the config.

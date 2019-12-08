@@ -215,6 +215,6 @@ message FetchKubeConfigRequest {
 
 // FetchKubeConfigReply contains the response of getting kube config.
 message FetchKubeConfigReply {
-  string kubeConfig = 1;
+  bytes kubeConfig = 1;
   Error err = 2;
 }

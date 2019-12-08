@@ -47,6 +47,8 @@ func NewProcessor(taskType Type) (Processor, error) {
 		processor = &nodeCheckProcessor{}
 	case TaskTypeDeploy:
 		processor = &deployProcessor{}
+	case TaskTypeFetchKubeConfig:
+		processor = &fetchKubeConfigProcessor{}
 	default:
 		return nil, fmt.Errorf("%s: %s", consts.MsgTaskTypeUnsupported, taskType)
 	}

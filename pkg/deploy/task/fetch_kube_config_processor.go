@@ -78,7 +78,7 @@ func (p *fetchKubeConfigProcessor) ProcessExtraResult(t Task) error {
 	}
 
 	kubeCfgTask.KubeConfig = kubeCfgAction.KubeConfig
-	logger.Debugf("KubeConfig: %s", kubeCfgTask.KubeConfig)
+	logger.Debugf("KubeConfig: %v", kubeCfgTask.KubeConfig)
 	return nil
 }
 
