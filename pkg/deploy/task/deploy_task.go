@@ -42,11 +42,10 @@ type deployTask struct {
 func NewDeployTask(taskName string, taskConfig *DeployTaskConfig) (Task, error) {
 	var err error
 	if taskConfig == nil {
-		err = fmt.Errorf("Invalid task config: nil")
+		err = fmt.Errorf("invalid task config: nil")
 
 	} else if len(taskConfig.NodeConfigs) == 0 {
-		err = fmt.Errorf("Invalid task config: node deploy configs is empty")
-
+		err = fmt.Errorf("invalid task config: node deploy configs is empty")
 	}
 
 	if err != nil {
@@ -57,7 +56,7 @@ func NewDeployTask(taskName string, taskConfig *DeployTaskConfig) (Task, error) 
 	task := &deployTask{
 		base: base{
 			name:              taskName,
-			taskType:          TaskTypeNodeCheck,
+			taskType:          TaskTypeDeploy,
 			status:            TaskPending,
 			logFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
 			creationTimestamp: time.Now(),

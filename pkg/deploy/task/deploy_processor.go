@@ -70,35 +70,35 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy master sub tasks with priority = 30
 	if nodes, ok := roles[consts.NodeRoleMaster]; ok {
-		etcdTask, err := p.createDeploySubTask(consts.NodeRoleMaster, deployTask.name, nodes, deployTask.logFilePath, 30)
+		masterTask, err := p.createDeploySubTask(consts.NodeRoleMaster, deployTask.name, nodes, deployTask.logFilePath, 30)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy master sub tasks: %s", err)
 			logger.Error(err)
 			return err
 		}
-		subTasks = append(subTasks, etcdTask)
+		subTasks = append(subTasks, masterTask)
 	}
 
 	// create the deploy worker sub tasks with priority = 40
 	if nodes, ok := roles[consts.NodeRoleWorker]; ok {
-		etcdTask, err := p.createDeploySubTask(consts.NodeRoleWorker, deployTask.name, nodes, deployTask.logFilePath, 40)
+		workerTask, err := p.createDeploySubTask(consts.NodeRoleWorker, deployTask.name, nodes, deployTask.logFilePath, 40)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy worker sub tasks: %s", err)
 			logger.Error(err)
 			return err
 		}
-		subTasks = append(subTasks, etcdTask)
+		subTasks = append(subTasks, workerTask)
 	}
 
 	// create the deploy ingress sub tasks with priority = 50
 	if nodes, ok := roles[consts.NodeRoleIngress]; ok {
-		etcdTask, err := p.createDeploySubTask(consts.NodeRoleIngress, deployTask.name, nodes, deployTask.logFilePath, 50)
+		ingressTask, err := p.createDeploySubTask(consts.NodeRoleIngress, deployTask.name, nodes, deployTask.logFilePath, 50)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy ingress sub tasks: %s", err)
 			logger.Error(err)
 			return err
 		}
-		subTasks = append(subTasks, etcdTask)
+		subTasks = append(subTasks, ingressTask)
 	}
 
 	deployTask.subTasks = subTasks
