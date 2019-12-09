@@ -32,7 +32,7 @@ type ExecClient struct {
 // NewExecClient create a new execution client
 func NewExecClient(node *pb.Node) (*ExecClient, error) {
 	// use IP as host to create ssh client
-	sshClient, err := mssh.NewClient(node.Ssh.User, node.Ip, node.Ssh)
+	sshClient, err := mssh.NewClient(node.Ssh.Auth.UserName, node.Ip, node.Ssh)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create new ssh client to machine: %v(%v), error: %v", node.Name, node.Ip, err)
 	}

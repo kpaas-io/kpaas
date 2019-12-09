@@ -159,7 +159,7 @@ func TestConvertModelConnectionDataToDeployControllerSSHData(t *testing.T) {
 		Port: 22,
 		Auth: &protos.Auth{
 			Type:       "password",
-			Username:   "root",
+			UserName:   "root",
 			Credential: "123456",
 		},
 	}, convertModelConnectionDataToDeployControllerSSHData(&wizard.ConnectionData{
@@ -203,7 +203,7 @@ ls3Q/5aeF7hB2MXfAAAAGEx1Y2t5Ym95c0BMdWNreU1hYy5sb2NhbAEC
 		Port: 22,
 		Auth: &protos.Auth{
 			Type:       "privatekey",
-			Username:   "root",
+			UserName:   "root",
 			Credential: privateKey,
 		},
 	}, convertModelConnectionDataToDeployControllerSSHData(&wizard.ConnectionData{

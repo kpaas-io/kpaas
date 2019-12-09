@@ -47,13 +47,14 @@ type Task interface {
 type Type string
 
 const (
-	TaskTypeNodeCheck     Type = "NodeCheck"
-	TaskTypeInit          Type = "init"
-	TaskTypeDeploy        Type = "Deploy"
-	TaskTypeDeployEtcd    Type = "DeployEtcd"
-	TaskTypeDeployMaster  Type = "DeployMaster"
-	TaskTypeDeployWorker  Type = "DeployWorker"
-	TaskTypeDeployIngress Type = "DeployIngess"
+	TaskTypeNodeCheck       Type = "NodeCheck"
+	TaskTypeInit            Type = "init"
+	TaskTypeDeploy          Type = "Deploy"
+	TaskTypeDeployEtcd      Type = "DeployEtcd"
+	TaskTypeDeployMaster    Type = "DeployMaster"
+	TaskTypeDeployWorker    Type = "DeployWorker"
+	TaskTypeDeployIngress   Type = "DeployIngess"
+	TaskTypeFetchKubeConfig Type = "FetchKubeConfig"
 )
 
 // Status represents the status of a task
