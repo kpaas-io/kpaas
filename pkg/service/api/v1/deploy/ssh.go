@@ -74,7 +74,7 @@ func TestConnectNode(c *gin.Context) {
 func getCallTestConnectionData(requestData *api.ConnectionData) *protos.TestConnectionRequest {
 
 	auth := &protos.Auth{
-		UserName: requestData.Username,
+		Username: requestData.Username,
 	}
 
 	switch requestData.AuthenticationType {
