@@ -36,25 +36,36 @@ const (
 
 type CheckDistributionOperation struct {
 	operation.BaseOperation
+	operation.CheckOperations
 }
 
-func NewCheckDistributionOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckRootDiskOperation{}
+func (ckops *CheckDistributionOperation) getScript() string {
+	ckops.Script = systemDistributionScript
+	return ckops.Script
+}
+
+func (ckops *CheckDistributionOperation) getScriptPath() string {
+	ckops.ScriptPath = systemDistributionRemoteDir
+	return ckops.ScriptPath
+}
+
+func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckDistributionOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
 	}
 
-	scriptFile, err := assets.Assets.Open(systemDistributionScript)
+	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.PutFile(scriptFile, systemDistributionRemoteDir+systemDistributionScript); err != nil {
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", systemDistributionRemoteDir+systemDistributionScript, nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
 }
 

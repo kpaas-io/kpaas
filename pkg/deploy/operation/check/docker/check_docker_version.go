@@ -23,33 +23,64 @@ import (
 )
 
 const (
-	script    = "/scripts/check_docker_version.sh"
-	remoteDir = "/tmp"
+	dockerScript    = "/scripts/check_docker_version.sh"
+	dockerRemoteDir = "/tmp"
 )
 
 type CheckDockerOperation struct {
 	operation.BaseOperation
+	operation.CheckOperations
 }
 
-func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckDockerOperation) getScript() string {
+	ckops.Script = dockerScript
+	return ckops.Script
+}
+
+func (ckops *CheckDockerOperation) getScriptPath() string {
+	ckops.ScriptPath = dockerRemoteDir
+	return ckops.ScriptPath
+}
+
+func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckDockerOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
 	}
 
-	scriptFile, err := assets.Assets.Open(script)
+	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.PutFile(scriptFile, remoteDir+script); err != nil {
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir+script, nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
 }
+
+//func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+//	ops := &CheckDockerOperation{}
+//	m, err := machine.NewMachine(config.Node)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	scriptFile, err := assets.Assets.Open(script)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	if err := m.PutFile(scriptFile, remoteDir+script); err != nil {
+//		return nil, err
+//	}
+//
+//	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir+script, nil))
+//	return ops, nil
+//}
 
 // check docker version if version larger or equal than standard version
 func CheckDockerVersion(dockerVersion string, standardVersion string, comparedSymbol string) error {

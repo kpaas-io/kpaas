@@ -17,10 +17,9 @@ package system
 import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
-	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 const (
@@ -30,25 +29,36 @@ const (
 
 type CheckMemoryOperation struct {
 	operation.BaseOperation
+	operation.CheckOperations
 }
 
-func NewCheckMemoryOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckMemoryOperation) getScript() string {
+	ckops.Script = memoryScript
+	return ckops.Script
+}
+
+func (ckops *CheckMemoryOperation) getScriptPath() string {
+	ckops.ScriptPath = memoryRemoteDir
+	return ckops.ScriptPath
+}
+
+func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckMemoryOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
 	}
 
-	scriptFile, err := assets.Assets.Open(memoryScript)
+	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.PutFile(scriptFile, memoryRemoteDir+memoryScript); err != nil {
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", memoryRemoteDir+memoryScript, nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
 }
 

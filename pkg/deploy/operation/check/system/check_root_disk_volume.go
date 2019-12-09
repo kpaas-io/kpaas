@@ -29,25 +29,36 @@ const (
 
 type CheckRootDiskOperation struct {
 	operation.BaseOperation
+	operation.CheckOperations
 }
 
-func NewCheckRootDiskOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckRootDiskOperation) getScript() string {
+	ckops.Script = rootDiskScript
+	return ckops.Script
+}
+
+func (ckops *CheckRootDiskOperation) getScriptPath() string {
+	ckops.ScriptPath = rootDiskRemoteDir
+	return ckops.ScriptPath
+}
+
+func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckRootDiskOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
 	}
 
-	scriptFile, err := assets.Assets.Open(rootDiskScript)
+	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.PutFile(scriptFile, rootDiskRemoteDir+rootDiskScript); err != nil {
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", rootDiskRemoteDir+rootDiskScript, nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
 }
 

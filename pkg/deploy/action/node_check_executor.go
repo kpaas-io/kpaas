@@ -41,6 +41,45 @@ var systemDistributions = [3]string{"centos", "ubuntu", "rhel"}
 type nodeCheckExecutor struct {
 }
 
+func ItemsCheckScripts(items string, config *pb.NodeCheckConfig) (string, *nodeCheckItem, error) {
+
+	var (
+		reason    string
+		detail    string
+		status    nodeCheckItemStatus
+		fixMethod string
+	)
+
+	checkItemReport := &nodeCheckItem{
+		name:        fmt.Sprintf("%v check", items),
+		description: fmt.Sprintf("%v check", items),
+		status:      status,
+		err: &pb.Error{
+			Reason:     reason,
+			Detail:     detail,
+			FixMethods: fixMethod,
+		},
+	}
+
+	checkItems := operation.NewCheckOperations().CreateOperations(items)
+	op, err := checkItems.GetOperations(config)
+	if err != nil {
+		return "", checkItemReport, fmt.Errorf("failed to create %v check operation, error: %v", items, err)
+	}
+
+	stdErr, stdOut, err := op.Do()
+	if err != nil {
+		checkItemReport.err.Reason = fmt.Sprintf("run check %v command failed", items)
+		checkItemReport.err.Detail = string(stdErr)
+		checkItemReport.status = nodeCheckItemFailed
+		checkItemReport.err.FixMethods = "please check your scripts"
+		return "", checkItemReport, fmt.Errorf("failed to run check %v scripts", items)
+	}
+
+	checkItemStdOut := string(stdOut[:])
+	return checkItemStdOut, checkItemReport, nil
+}
+
 func (a *nodeCheckExecutor) Execute(act Action) error {
 	nodeCheckAction, ok := act.(*nodeCheckAction)
 	if !ok {
@@ -53,246 +92,113 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 
 	logger.Debug("Start to execute node check action")
 
-	var (
-		reason    string
-		detail    string
-		status    nodeCheckItemStatus
-		fixmethod string
-	)
-
 	// check docker
-	op, err := docker.NewCheckDockerOperation(nodeCheckAction.nodeCheckConfig)
+	comparedDockerVersion, report, err := ItemsCheckScripts("docker", nodeCheckAction.nodeCheckConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create docker check operation, error: %v", err)
-	}
-
-	stdErr, stdOut, err := op.Do()
-	if err != nil {
-		reason = "run check docker command failed"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = "please check your scripts"
 		return err
 	}
 
-	comparedDockerVersion := string(stdOut[:])
 	err = docker.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
 	if err != nil {
-		reason = "docker version not enough"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = fmt.Sprintf("please upgrade docker version to %v+", desiredDockerVersion)
+		report.err.Reason = "docker version too low"
+		report.err.Detail = string(report.err.Detail)
+		report.status = nodeCheckItemFailed
+		report.err.FixMethods = fmt.Sprintf("please upgrade docker version to %v+", desiredDockerVersion)
 		return err
 	}
 
-	status = nodeCheckItemSucessful
+	report.status = nodeCheckItemSucessful
+	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
 
-	dockerVersionItem := &nodeCheckItem{
-		name:        "docker version check",
-		description: "docker version check",
-		status:      status,
-		err: &pb.Error{
-			Reason:     reason,
-			Detail:     detail,
-			FixMethods: fixmethod,
-		},
-	}
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, dockerVersionItem)
-
-	// check CPU
-	op, err = system.NewCheckCPUOperation(nodeCheckAction.nodeCheckConfig)
+	//// check CPU
+	cpuCore, report, err := ItemsCheckScripts("cpu", nodeCheckAction.nodeCheckConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create check cpu operation, error: %v", err)
-	}
-
-	stdErr, stdOut, err = op.Do()
-	if err != nil {
-		reason = "run check cpu command failed"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = "please check your scripts"
 		return err
 	}
 
-	cpuCore := string(stdOut[:])
 	err = system.CheckCPUNums(cpuCore, desiredCPUCore)
 	if err != nil {
-		reason = "cpu cores not enough"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = fmt.Sprintf("please optimize cpu cores to %v", desiredCPUCore)
+		report.err.Reason = "cpu cores not enough"
+		report.err.Detail = string(report.err.Detail)
+		report.status = nodeCheckItemFailed
+		report.err.FixMethods = fmt.Sprintf("please optimize cpu cores to %v", desiredCPUCore)
 		return err
 	}
 
-	status = nodeCheckItemSucessful
-
-	cpuCoreItem := &nodeCheckItem{
-		name:        "cpu core check",
-		description: "cpu core check",
-		status:      status,
-		err: &pb.Error{
-			Reason:     reason,
-			Detail:     detail,
-			FixMethods: fixmethod,
-		},
-	}
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, cpuCoreItem)
+	report.status = nodeCheckItemSucessful
+	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
 
 	// check kernel version
-	op, err = system.NewCheckKernelOperation(nodeCheckAction.nodeCheckConfig)
+	kernelVersion, report, err := ItemsCheckScripts("kernel", nodeCheckAction.nodeCheckConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create check kernel operation, error: %v", err)
-	}
-
-	stdErr, stdOut, err = op.Do()
-	if err != nil {
-		reason = "run check kernel command failed"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = "please check your scripts"
 		return err
 	}
 
-	kernelVersion := string(stdOut[:])
 	err = system.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
 	if err != nil {
-		reason = "kernel version not enough"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = fmt.Sprintf("please upgrade your kernel version to %v", desiredKernelVersion)
+		report.err.Reason = "kernel version too low"
+		report.err.Detail = string(report.err.Detail)
+		report.status = nodeCheckItemFailed
+		report.err.FixMethods = fmt.Sprintf("please optimize kernel version to %v", desiredKernelVersion)
 		return err
 	}
 
-	status = nodeCheckItemSucessful
-
-	kernelItem := &nodeCheckItem{
-		name:        "kernel version check",
-		description: "kernel version check",
-		status:      status,
-		err: &pb.Error{
-			Reason:     reason,
-			Detail:     detail,
-			FixMethods: fixmethod,
-		},
-	}
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, kernelItem)
+	report.status = nodeCheckItemSucessful
+	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
 
 	// check memory capacity
-	op, err = system.NewCheckMemoryOperation(nodeCheckAction.nodeCheckConfig)
+	memoryCap, report, err := ItemsCheckScripts("memory", nodeCheckAction.nodeCheckConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create check memory operation, error: %v", err)
-	}
-
-	stdErr, stdOut, err = op.Do()
-	if err != nil {
-		reason = "run check memory command failed"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = "please check your scripts"
 		return err
 	}
 
-	memoryCap := string(stdOut[:])
 	err = system.CheckMemoryCapacity(memoryCap, desiredMemory)
 	if err != nil {
-		reason = "memory capacity not enough"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = fmt.Sprintf("please optimize your memory capacity to %v", desiredMemory)
+		report.err.Reason = "memory capacity not enough"
+		report.err.Detail = string(report.err.Detail)
+		report.status = nodeCheckItemFailed
+		report.err.FixMethods = fmt.Sprintf("please optimize memory capacity to %v", desiredMemory)
 		return err
 	}
 
-	status = nodeCheckItemSucessful
-
-	memoryItem := &nodeCheckItem{
-		name:        "memory capacity check",
-		description: "memory capacity check",
-		status:      status,
-		err: &pb.Error{
-			Reason:     reason,
-			Detail:     detail,
-			FixMethods: fixmethod,
-		},
-	}
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, memoryItem)
+	report.status = nodeCheckItemSucessful
+	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
 
 	// check root disk volume
-	op, err = system.NewCheckRootDiskOperation(nodeCheckAction.nodeCheckConfig)
+	rootDiskVolume, report, err := ItemsCheckScripts("disk", nodeCheckAction.nodeCheckConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create check memory operation, error: %v", err)
-	}
-
-	stdErr, stdOut, err = op.Do()
-	if err != nil {
-		reason = "run check root disk command failed"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = "please check your scripts"
 		return err
 	}
 
-	rootDiskVolume := string(stdOut[:])
 	err = system.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
 	if err != nil {
-		reason = "root disk volume not enough"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = fmt.Sprintf("please optimize your root disk volume to %v", desiredRootDiskVolume)
+		report.err.Reason = "root disk volume is not enough"
+		report.err.Detail = string(report.err.Detail)
+		report.status = nodeCheckItemFailed
+		report.err.FixMethods = fmt.Sprintf("please optimize root disk volume to %v", desiredRootDiskVolume)
 		return err
 	}
 
-	status = nodeCheckItemSucessful
-
-	rootDiskItem := &nodeCheckItem{
-		name:        "root disk volume check",
-		description: "root disk volume check",
-		status:      status,
-		err: &pb.Error{
-			Reason:     reason,
-			Detail:     detail,
-			FixMethods: fixmethod,
-		},
-	}
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, rootDiskItem)
+	report.status = nodeCheckItemSucessful
+	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
 
 	// check system distribution
-	op, err = system.NewCheckDistributionOperation(nodeCheckAction.nodeCheckConfig)
+	disName, report, err := ItemsCheckScripts("distribution", nodeCheckAction.nodeCheckConfig)
 	if err != nil {
-		return fmt.Errorf("failed to create check system distribution, error: %v", err)
-	}
-
-	stdErr, stdOut, err = op.Do()
-	if err != nil {
-		reason = "run check system distribution command failed"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = "please check your scripts"
 		return err
 	}
 
-	disName := string(stdOut[:])
 	err = system.CheckSystemDistribution(disName)
 	if err != nil {
-		reason = "system distribution not supported"
-		detail = string(stdErr)
-		status = nodeCheckItemFailed
-		fixmethod = fmt.Sprintf("please change your system distribution, supported: %v", systemDistributions)
+		report.err.Reason = "system distribution is not supported"
+		report.err.Detail = string(report.err.Detail)
+		report.status = nodeCheckItemFailed
+		report.err.FixMethods = fmt.Sprintf("please change suitable distribution to %v", systemDistributions)
 		return err
 	}
 
-	status = nodeCheckItemSucessful
-
-	systemDistributionItem := &nodeCheckItem{
-		name:        "system distribution check",
-		description: "system distribution check",
-		status:      status,
-		err: &pb.Error{
-			Reason:     reason,
-			Detail:     detail,
-			FixMethods: fixmethod,
-		},
-	}
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, systemDistributionItem)
+	report.status = nodeCheckItemSucessful
+	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
 
 	nodeCheckAction.status = ActionDone
 	logger.Debug("Finish to execute node check action")

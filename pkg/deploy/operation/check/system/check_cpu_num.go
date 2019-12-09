@@ -15,11 +15,10 @@
 package system
 
 import (
-	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -30,25 +29,36 @@ const (
 
 type CheckCPUOperation struct {
 	operation.BaseOperation
+	operation.CheckOperations
 }
 
-func NewCheckCPUOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckCPUOperation) getScript() string {
+	ckops.Script = cpuScript
+	return ckops.Script
+}
+
+func (ckops *CheckCPUOperation) getScriptPath() string {
+	ckops.ScriptPath = cpuRemoteDir + cpuScript
+	return ckops.ScriptPath
+}
+
+func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckCPUOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
 	}
 
-	scriptFile, err := assets.Assets.Open(cpuScript)
+	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.PutFile(scriptFile, cpuRemoteDir+cpuScript); err != nil {
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", cpuRemoteDir+cpuScript, nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
 }
 
