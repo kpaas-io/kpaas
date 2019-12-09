@@ -32,8 +32,8 @@ message Auth {
   string type = 1;
   // credential stores the content of password or privatekey
   string credential = 2;
-  // userName is the user name used for password auth. 
-  string userName = 3;
+  // username is the user name used for password auth. 
+  string username = 3;
 }
 
 // SSH contains the ssh login info.
