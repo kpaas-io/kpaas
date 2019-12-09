@@ -31,6 +31,41 @@ var doc = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/v1/deploy/wizard/batchnodes": {
+            "post": {
+                "description": "Upload batch nodes configuration file to node list",
+                "consumes": [
+                    "text/plain"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "nodes"
+                ],
+                "summary": "Upload batch nodes configuration",
+                "operationId": "UploadBatchNodes",
+                "parameters": [
+                    {
+                        "description": "node list",
+                        "name": "nodes",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.GetNodeListResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/deploy/wizard/checks": {
             "get": {
                 "description": "Get the result of the check node",

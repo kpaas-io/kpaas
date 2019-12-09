@@ -30,9 +30,9 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
-// @ID AddSSHCertificate
-// @Summary Add SSH login private key
-// @Description Add SSH login private key
+// @ID UploadBatchNodes
+// @Summary Upload batch nodes configuration
+// @Description Upload batch nodes configuration file to node list
 // @Tags nodes
 // @Accept text/plain
 // @Produce application/json
