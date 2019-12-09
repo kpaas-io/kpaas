@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker
+package check
 
 import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
@@ -23,27 +23,27 @@ import (
 )
 
 const (
-	dockerScript    = "/scripts/check_docker_version.sh"
-	dockerRemoteDir = "/tmp"
+	memoryScript    = "/scripts/check_memory_capacity.sh"
+	memoryRemoteDir = "/tmp"
 )
 
-type CheckDockerOperation struct {
+type CheckMemoryOperation struct {
 	operation.BaseOperation
-	operation.CheckOperations
+	CheckOperations
 }
 
-func (ckops *CheckDockerOperation) getScript() string {
-	ckops.Script = dockerScript
+func (ckops *CheckMemoryOperation) getScript() string {
+	ckops.Script = memoryScript
 	return ckops.Script
 }
 
-func (ckops *CheckDockerOperation) getScriptPath() string {
-	ckops.ScriptPath = dockerRemoteDir
+func (ckops *CheckMemoryOperation) getScriptPath() string {
+	ckops.ScriptPath = memoryRemoteDir
 	return ckops.ScriptPath
 }
 
-func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckDockerOperation{}
+func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckMemoryOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
@@ -62,31 +62,12 @@ func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (op
 	return ops, nil
 }
 
-//func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
-//	ops := &CheckDockerOperation{}
-//	m, err := machine.NewMachine(config.Node)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	scriptFile, err := assets.Assets.Open(script)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if err := m.PutFile(scriptFile, remoteDir+script); err != nil {
-//		return nil, err
-//	}
-//
-//	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir+script, nil))
-//	return ops, nil
-//}
-
-// check docker version if version larger or equal than standard version
-func CheckDockerVersion(dockerVersion string, standardVersion string, comparedSymbol string) error {
-	err := operation.CheckVersion(dockerVersion, standardVersion, comparedSymbol)
+// check if memory capacity satisfied with minimal requirement
+func CheckMemoryCapacity(comparedMemory string, desiredMemory float64) error {
+	err := operation.CheckEntity(comparedMemory, desiredMemory)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

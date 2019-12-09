@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
+package check
 
 import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
@@ -23,27 +23,27 @@ import (
 )
 
 const (
-	kernelScript    = "/scripts/check_kernel_version.sh"
-	kernelRemoteDir = "/tmp"
+	dockerScript    = "/scripts/check_docker_version.sh"
+	dockerRemoteDir = "/tmp"
 )
 
-type CheckKernelOperation struct {
+type CheckDockerOperation struct {
 	operation.BaseOperation
-	operation.CheckOperations
+	CheckOperations
 }
 
-func (ckops *CheckKernelOperation) getScript() string {
-	ckops.Script = kernelScript
+func (ckops *CheckDockerOperation) getScript() string {
+	ckops.Script = dockerScript
 	return ckops.Script
 }
 
-func (ckops *CheckKernelOperation) getScriptPath() string {
-	ckops.ScriptPath = kernelRemoteDir + kernelScript
+func (ckops *CheckDockerOperation) getScriptPath() string {
+	ckops.ScriptPath = dockerRemoteDir
 	return ckops.ScriptPath
 }
 
-func (ckops *CheckKernelOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckKernelOperation{}
+func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckDockerOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
@@ -62,9 +62,29 @@ func (ckops *CheckKernelOperation) GetOperations(config *pb.NodeCheckConfig) (op
 	return ops, nil
 }
 
-// check if kernel version larger or equal than standard version
-func CheckKernelVersion(kernelVersion string, standardVersion string, checkStandard string) error {
-	err := operation.CheckVersion(kernelVersion, standardVersion, checkStandard)
+//func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+//	ops := &CheckDockerOperation{}
+//	m, err := machine.NewMachine(config.Node)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	scriptFile, err := assets.Assets.Open(script)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	if err := m.PutFile(scriptFile, remoteDir+script); err != nil {
+//		return nil, err
+//	}
+//
+//	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir+script, nil))
+//	return ops, nil
+//}
+
+// check docker version if version larger or equal than standard version
+func CheckDockerVersion(dockerVersion string, standardVersion string, comparedSymbol string) error {
+	err := operation.CheckVersion(dockerVersion, standardVersion, comparedSymbol)
 	if err != nil {
 		return err
 	}

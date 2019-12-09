@@ -21,8 +21,7 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check/docker"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check/system"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -61,7 +60,7 @@ func ItemsCheckScripts(items string, config *pb.NodeCheckConfig) (string, *nodeC
 		},
 	}
 
-	checkItems := operation.NewCheckOperations().CreateOperations(items)
+	checkItems := check.NewCheckOperations().CreateOperations(items)
 	op, err := checkItems.GetOperations(config)
 	if err != nil {
 		return "", checkItemReport, fmt.Errorf("failed to create %v check operation, error: %v", items, err)
@@ -98,7 +97,7 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		return err
 	}
 
-	err = docker.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
+	err = check.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
 	if err != nil {
 		report.err.Reason = "docker version too low"
 		report.err.Detail = string(report.err.Detail)
@@ -116,7 +115,7 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		return err
 	}
 
-	err = system.CheckCPUNums(cpuCore, desiredCPUCore)
+	err = check.CheckCPUNums(cpuCore, desiredCPUCore)
 	if err != nil {
 		report.err.Reason = "cpu cores not enough"
 		report.err.Detail = string(report.err.Detail)
@@ -134,7 +133,7 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		return err
 	}
 
-	err = system.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
+	err = check.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
 	if err != nil {
 		report.err.Reason = "kernel version too low"
 		report.err.Detail = string(report.err.Detail)
@@ -152,7 +151,7 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		return err
 	}
 
-	err = system.CheckMemoryCapacity(memoryCap, desiredMemory)
+	err = check.CheckMemoryCapacity(memoryCap, desiredMemory)
 	if err != nil {
 		report.err.Reason = "memory capacity not enough"
 		report.err.Detail = string(report.err.Detail)
@@ -170,7 +169,7 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		return err
 	}
 
-	err = system.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
+	err = check.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
 	if err != nil {
 		report.err.Reason = "root disk volume is not enough"
 		report.err.Detail = string(report.err.Detail)
@@ -188,7 +187,7 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		return err
 	}
 
-	err = system.CheckSystemDistribution(disName)
+	err = check.CheckSystemDistribution(disName)
 	if err != nil {
 		report.err.Reason = "system distribution is not supported"
 		report.err.Detail = string(report.err.Detail)

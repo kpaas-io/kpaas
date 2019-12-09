@@ -22,10 +22,6 @@ import (
 	"unicode"
 
 	"github.com/sirupsen/logrus"
-
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check/docker"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check/system"
-	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 const (
@@ -47,42 +43,18 @@ const (
 	GiByteUnits      float64 = 1000 * 1000
 )
 
-type OperationsGenerator struct{}
+//type OperationsGenerator struct{}
 
-type CheckOperations struct {
-	Script     string
-	ScriptPath string
-}
-
-type CheckAction interface {
-	GetOperations(config *pb.NodeCheckConfig) (Operation, error)
-	getScript() string
-	getScriptPath() string
-}
-
-func NewCheckOperations() *OperationsGenerator {
-	return &OperationsGenerator{}
-}
-
-func (og *OperationsGenerator) CreateOperations(itemNames string) CheckAction {
-	switch itemNames {
-	case "docker":
-		return &docker.CheckDockerOperation{}
-	case "cpu":
-		return &system.CheckCPUOperation{}
-	case "kernel":
-		return &system.CheckKernelOperation{}
-	case "memory":
-		return &system.CheckMemoryOperation{}
-	case "disk":
-		return &system.CheckRootDiskOperation{}
-	case "distribution":
-		return &system.CheckDistributionOperation{}
-	default:
-		panic("wrong type figured")
-		return nil
-	}
-}
+//type CheckOperations struct {
+//	Script     string
+//	ScriptPath string
+//}
+//
+//type CheckAction interface {
+//	GetOperations(config *pb.NodeCheckConfig) (Operation, error)
+//	getScript() string
+//	getScriptPath() string
+//}
 
 // check if version is satisfied with standard version
 // checkStandard controls compared method

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
+package check
 
 import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
@@ -29,7 +29,7 @@ const (
 
 type CheckRootDiskOperation struct {
 	operation.BaseOperation
-	operation.CheckOperations
+	CheckOperations
 }
 
 func (ckops *CheckRootDiskOperation) getScript() string {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
+package check
 
 import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
@@ -23,27 +23,27 @@ import (
 )
 
 const (
-	memoryScript    = "/scripts/check_memory_capacity.sh"
-	memoryRemoteDir = "/tmp"
+	kernelScript    = "/scripts/check_kernel_version.sh"
+	kernelRemoteDir = "/tmp"
 )
 
-type CheckMemoryOperation struct {
+type CheckKernelOperation struct {
 	operation.BaseOperation
-	operation.CheckOperations
+	CheckOperations
 }
 
-func (ckops *CheckMemoryOperation) getScript() string {
-	ckops.Script = memoryScript
+func (ckops *CheckKernelOperation) getScript() string {
+	ckops.Script = kernelScript
 	return ckops.Script
 }
 
-func (ckops *CheckMemoryOperation) getScriptPath() string {
-	ckops.ScriptPath = memoryRemoteDir
+func (ckops *CheckKernelOperation) getScriptPath() string {
+	ckops.ScriptPath = kernelRemoteDir + kernelScript
 	return ckops.ScriptPath
 }
 
-func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckMemoryOperation{}
+func (ckops *CheckKernelOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckKernelOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
@@ -62,12 +62,11 @@ func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (op
 	return ops, nil
 }
 
-// check if memory capacity satisfied with minimal requirement
-func CheckMemoryCapacity(comparedMemory string, desiredMemory float64) error {
-	err := operation.CheckEntity(comparedMemory, desiredMemory)
+// check if kernel version larger or equal than standard version
+func CheckKernelVersion(kernelVersion string, standardVersion string, checkStandard string) error {
+	err := operation.CheckVersion(kernelVersion, standardVersion, checkStandard)
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
