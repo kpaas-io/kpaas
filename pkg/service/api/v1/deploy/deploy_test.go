@@ -171,6 +171,40 @@ func TestGetDeployReport(t *testing.T) {
 	assert.Nil(t, responseData.DeployClusterError)
 }
 
+func TestFetchKubeConfigContent(t *testing.T) {
+
+	tests := []struct {
+		OriginNodeList []*wizard.Node
+		WantKubeConfig string
+	}{
+		{
+			OriginNodeList: []*wizard.Node{
+				{
+					ConnectionData: wizard.ConnectionData{
+						IP:                 "192.168.1.1",
+						Port:               22,
+						Username:           "root",
+						AuthenticationType: wizard.AuthenticationTypePassword,
+						Password:           "123456",
+					},
+					Name:         "k8s-master1",
+					MachineRoles: []constant.MachineRole{constant.MachineRoleMaster},
+				},
+			},
+			WantKubeConfig: "kube config content",
+		},
+	}
+
+	for _, test := range tests {
+
+		wizard.ClearCurrentWizardData()
+		wizardData := wizard.GetCurrentWizard()
+		wizardData.Nodes = test.OriginNodeList
+		fetchKubeConfigContent()
+		assert.Equal(t, test.WantKubeConfig, *wizardData.KubeConfig)
+	}
+}
+
 func sortRoles(roles []api.DeploymentResponseData) []api.DeploymentResponseData {
 
 	sort.SliceStable(roles, func(i, j int) bool {
