@@ -15,8 +15,41 @@
 package system
 
 import (
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
+
+const (
+	rootDiskScript    = "/scripts/check_root_disk_volume.sh"
+	rootDiskRemoteDir = "/tmp"
+)
+
+type CheckRootDiskOperation struct {
+	operation.BaseOperation
+}
+
+func NewCheckRootDiskOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckRootDiskOperation{}
+	m, err := machine.NewMachine(config.Node)
+	if err != nil {
+		return nil, err
+	}
+
+	scriptFile, err := assets.Assets.Open(rootDiskScript)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, rootDiskRemoteDir+rootDiskScript); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", rootDiskRemoteDir+rootDiskScript, nil))
+	return ops, nil
+}
 
 // check if root disk volume satisfied with desired disk volume
 func CheckRootDiskVolume(rootDiskVolume string, desiredDiskVolume float64) error {

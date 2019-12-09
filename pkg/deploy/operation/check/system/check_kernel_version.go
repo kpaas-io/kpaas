@@ -15,8 +15,42 @@
 package system
 
 import (
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
+
+const (
+	kernelScript    = "/scripts/check_kernel_version.sh"
+	kernelRemoteDir = "/tmp"
+)
+
+type CheckKernelOperation struct {
+	operation.BaseOperation
+}
+
+func NewCheckKernelOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckKernelOperation{}
+	m, err := machine.NewMachine(config.Node)
+	if err != nil {
+		return nil, err
+	}
+
+	scriptFile, err := assets.Assets.Open(kernelScript)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, kernelRemoteDir+kernelScript); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", kernelRemoteDir+kernelScript, nil))
+	return ops, nil
+}
 
 // check if kernel version larger or equal than standard version
 func CheckKernelVersion(kernelVersion string, standardVersion string, checkStandard string) error {

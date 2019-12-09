@@ -15,8 +15,42 @@
 package system
 
 import (
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
+
+const (
+	cpuScript    = "/scripts/check_cpu_num.sh"
+	cpuRemoteDir = "/tmp"
+)
+
+type CheckCPUOperation struct {
+	operation.BaseOperation
+}
+
+func NewCheckCPUOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckCPUOperation{}
+	m, err := machine.NewMachine(config.Node)
+	if err != nil {
+		return nil, err
+	}
+
+	scriptFile, err := assets.Assets.Open(cpuScript)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, cpuRemoteDir+cpuScript); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", cpuRemoteDir+cpuScript, nil))
+	return ops, nil
+}
 
 // check if CPU numbers larger or equal than desired cores
 func CheckCPUNums(cpuCore string, desiredCPUCore float64) error {
