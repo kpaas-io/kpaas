@@ -41,7 +41,7 @@ jobs:
           image: kpaas/kpaas
           tag: ${{ steps.calc-tag.outputs.TAG }}
           registry: docker.io
-          dockerfile: ./builds/docker/service/Dockerfile
+          dockerfile: ./builds/docker/kpaas/Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
