@@ -22,6 +22,7 @@ require (
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
+	github.com/magiconair/properties v1.8.0
 	github.com/mailru/easyjson v0.7.0 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
