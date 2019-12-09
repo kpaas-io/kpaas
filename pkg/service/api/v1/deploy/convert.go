@@ -217,7 +217,7 @@ func convertModelConnectionDataToDeployControllerSSHData(data *wizard.Connection
 	}
 
 	auth := &protos.Auth{
-		Username: data.Username,
+		UserName: data.Username,
 	}
 	switch data.AuthenticationType {
 	case wizard.AuthenticationTypePassword:

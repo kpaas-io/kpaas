@@ -15,6 +15,7 @@
 package idcreator
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/sony/sonyflake"
@@ -45,4 +46,10 @@ func InitCreator(serviceId uint16) {
 func NextID() (uint64, error) {
 
 	return idCreator.NextID()
+}
+
+func NextString() (string, error) {
+
+	uid, err := idCreator.NextID()
+	return fmt.Sprintf("%x", uid), err
 }

@@ -32,6 +32,13 @@ type Processor interface {
 	SplitTask(task Task) error
 }
 
+// ExtraResult defines the interface to process the task's extra result,
+// Task extra result is the specific output of a task, which is not the task's status and err.
+// Task processor can implment this interface optionally.
+type ExtraResult interface {
+	ProcessExtraResult(task Task) error
+}
+
 // NewProcessor is a simple factory method to return a task processor based on task type.
 func NewProcessor(taskType Type) (Processor, error) {
 	var processor Processor
@@ -40,6 +47,8 @@ func NewProcessor(taskType Type) (Processor, error) {
 		processor = &nodeCheckProcessor{}
 	case TaskTypeDeploy:
 		processor = &deployProcessor{}
+	case TaskTypeFetchKubeConfig:
+		processor = &fetchKubeConfigProcessor{}
 	default:
 		return nil, fmt.Errorf("%s: %s", consts.MsgTaskTypeUnsupported, taskType)
 	}
@@ -104,6 +113,12 @@ func ExecuteTask(t Task) error {
 	logger.Debug("Step 4: Stat Task")
 	if err := statTask(t); err != nil {
 		logger.Error("Failed in Step 4")
+		return err
+	}
+
+	logger.Debug("Step 5: Process Extra Result")
+	if err := processExtraResult(t); err != nil {
+		logger.Error("Failed in Step 5")
 		return err
 	}
 
@@ -332,4 +347,33 @@ func statTask(t Task) error {
 
 	logger.Debug("Finish to gen task summary")
 	return nil
+}
+
+func processExtraResult(t Task) error {
+	if t == nil {
+		return consts.ErrEmptyTask
+	}
+
+	logger := logrus.WithFields(logrus.Fields{
+		consts.LogFieldTask: t.GetName(),
+	})
+
+	// Create the task processor
+	processor, err := NewProcessor(t.GetType())
+	if err != nil {
+		t.SetStatus(TaskFailed)
+		t.SetErr(&pb.Error{
+			Reason: "failed to create task processor",
+			Detail: err.Error(),
+		})
+		logger.Debug("Failed to split task")
+		return err
+	}
+
+	// Check if the processor implemented the ExraResult interface
+	extraResult, ok := processor.(ExtraResult)
+	if !ok {
+		return nil
+	}
+	return extraResult.ProcessExtraResult(t)
 }
