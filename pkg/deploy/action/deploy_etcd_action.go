@@ -15,6 +15,8 @@
 package action
 
 import (
+	"crypto"
+	"crypto/x509"
 	"fmt"
 	"time"
 
@@ -23,15 +25,23 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+type deployEtcdStatus string
+
 // DeployEtcdActionConfig represents the config for a ectd deploy in a node
 type DeployEtcdActionConfig struct {
+	CaCrt           *x509.Certificate
+	CaKey           crypto.Signer
 	Node            *pb.Node
+	ClusterNodes    []*pb.Node
 	LogFileBasePath string
 }
 
 type deployEtcdAction struct {
 	base
-	node *pb.Node
+	caCrt        *x509.Certificate
+	caKey        crypto.Signer
+	node         *pb.Node
+	clusterNodes []*pb.Node
 }
 
 // NewDeployEtcdAction returns a deploy etcd action based on the config.
@@ -41,7 +51,7 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 	if cfg == nil {
 		err = fmt.Errorf("action config is nil")
 	} else if cfg.Node == nil {
-		err = fmt.Errorf("Invalid node check config: node is nil")
+		err = fmt.Errorf("invalid node check config: node is nil")
 	}
 
 	if err != nil {
@@ -58,7 +68,10 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 			logFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
 			creationTimestamp: time.Now(),
 		},
-		node: cfg.Node,
+		caCrt:        cfg.CaCrt,
+		caKey:        cfg.CaKey,
+		node:         cfg.Node,
+		clusterNodes: cfg.ClusterNodes,
 	}, nil
 }
 

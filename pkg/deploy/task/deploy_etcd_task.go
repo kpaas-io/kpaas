@@ -45,7 +45,6 @@ func NewDeployEtcdTask(taskName string, taskConfig *DeployEtcdTaskConfig) (Task,
 
 	} else if len(taskConfig.Nodes) == 0 {
 		err = fmt.Errorf("invalid task config: nodes is empty")
-
 	}
 
 	if err != nil {

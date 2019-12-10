@@ -20,6 +20,8 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type deployEtcdExecutor struct {
@@ -37,14 +39,29 @@ func (a *deployEtcdExecutor) Execute(act Action) error {
 
 	logger.Debug("Start to execute deploy etcd action")
 
-	node := etcdAction.node
+	config := &etcd.DeployEtcdOperationConfig{
+		Logger:       logger,
+		Node:         etcdAction.node,
+		CACrt:        etcdAction.caCrt,
+		CAKey:        etcdAction.caKey,
+		ClusterNodes: etcdAction.clusterNodes,
+	}
+	op, err := etcd.NewDeployEtcdOperation(config)
+	if err != nil {
+		return fmt.Errorf("failed to get etcd operation, error: %v", err)
+	}
 
-	logger.Debugf("Start to deploy etcd on nodes: %s", node.Name)
+	logger.Debugf("Start to deploy etcd on nodes: %s", etcdAction.node.Name)
 
-	// TODO: install etcd on the node
-
-	// TODO: update action status
 	etcdAction.status = ActionDone
+	if err := op.Do(); err != nil {
+		etcdAction.status = ActionFailed
+		etcdAction.err = &pb.Error{
+			Reason:     err.Error(),
+			Detail:     err.Error(),
+			FixMethods: "",
+		}
+	}
 
 	logger.Debug("Finish to execute deploy etcd action")
 	return nil
