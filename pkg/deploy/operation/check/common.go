@@ -19,6 +19,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+type ItemEnum int
+
 type OperationsGenerator struct{}
 
 type CheckOperations struct {
@@ -32,23 +34,32 @@ type CheckAction interface {
 	getScriptPath() string
 }
 
+const (
+	Docker       ItemEnum = 0
+	CPU          ItemEnum = 1
+	Kernel       ItemEnum = 2
+	Memory       ItemEnum = 3
+	Disk         ItemEnum = 4
+	Distribution ItemEnum = 5
+)
+
 func NewCheckOperations() *OperationsGenerator {
 	return &OperationsGenerator{}
 }
 
-func (og *OperationsGenerator) CreateOperations(itemNames string) CheckAction {
-	switch itemNames {
-	case "docker":
+func (og *OperationsGenerator) CreateOperations(item ItemEnum) CheckAction {
+	switch item {
+	case Docker:
 		return &CheckDockerOperation{}
-	case "cpu":
+	case CPU:
 		return &CheckCPUOperation{}
-	case "kernel":
+	case Kernel:
 		return &CheckKernelOperation{}
-	case "memory":
+	case Memory:
 		return &CheckMemoryOperation{}
-	case "disk":
+	case Disk:
 		return &CheckRootDiskOperation{}
-	case "distribution":
+	case Distribution:
 		return &CheckDistributionOperation{}
 	default:
 		return nil

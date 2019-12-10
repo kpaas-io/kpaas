@@ -62,26 +62,6 @@ func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (op
 	return ops, nil
 }
 
-//func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
-//	ops := &CheckDockerOperation{}
-//	m, err := machine.NewMachine(config.Node)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	scriptFile, err := assets.Assets.Open(script)
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	if err := m.PutFile(scriptFile, remoteDir+script); err != nil {
-//		return nil, err
-//	}
-//
-//	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir+script, nil))
-//	return ops, nil
-//}
-
 // check docker version if version larger or equal than standard version
 func CheckDockerVersion(dockerVersion string, standardVersion string, comparedSymbol string) error {
 	err := operation.CheckVersion(dockerVersion, standardVersion, comparedSymbol)

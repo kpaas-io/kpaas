@@ -16,6 +16,7 @@ package action
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -33,54 +34,212 @@ const (
 	desiredMemory                     = desiredMemoryByteBase * operation.GiByteUnits
 	desiredDiskVolumeByteBase float64 = 200
 	desiredRootDiskVolume             = desiredDiskVolumeByteBase * operation.GiByteUnits
+
+	ItemActionPending = "pending"
+	ItemActionDoing   = "doing"
+	ItemActionDone    = "done"
+	ItemActionFailed  = "failed"
+
+	ItemErrEmpty     = "empty parameter"
+	ItemErrOperation = "failed to generate operations"
+	ItemErrScript    = "invalid script"
+
+	ItemHelperEmpty     = "please input suitable check item"
+	ItemHelperOperation = "please check your operations"
+	ItemHelperScript    = "please check your script"
 )
 
-var systemDistributions = [3]string{"centos", "ubuntu", "rhel"}
+var systemDistributions = [3]string{check.DistributionCentos, check.DistributionUbuntu, check.DistributionRHEL}
 
 type nodeCheckExecutor struct {
 }
 
 // due to items, ItemsCheckScripts exec remote scripts and return std, report, error
-func ItemsCheckScripts(items string, config *pb.NodeCheckConfig) (string, *nodeCheckItem, error) {
+func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkItemReport *nodeCheckItem) (string, *nodeCheckItem, error) {
 
-	var (
-		reason    string
-		detail    string
-		status    nodeCheckItemStatus
-		fixMethod string
-	)
-
-	checkItemReport := &nodeCheckItem{
-		name:        fmt.Sprintf("%v check", items),
-		description: fmt.Sprintf("%v check", items),
-		status:      status,
-		err: &pb.Error{
-			Reason:     reason,
-			Detail:     detail,
-			FixMethods: fixMethod,
-		},
+	checkItemReport = &nodeCheckItem{
+		name:        fmt.Sprintf("%v check", item),
+		description: fmt.Sprintf("%v check", item),
 	}
 
-	checkItems := check.NewCheckOperations().CreateOperations(items)
+	checkItems := check.NewCheckOperations().CreateOperations(item)
 	if checkItems == nil {
-		return "", checkItemReport, fmt.Errorf("items is illegal to create")
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.Reason = ItemErrEmpty
+		checkItemReport.err.Detail = ItemErrEmpty
+		checkItemReport.err.FixMethods = ItemHelperEmpty
 	}
+
 	op, err := checkItems.GetOperations(config)
 	if err != nil {
-		return "", checkItemReport, fmt.Errorf("failed to create %v check operation, error: %v", items, err)
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.Reason = ItemErrOperation
+		checkItemReport.err.Detail = err.Error()
+		checkItemReport.err.FixMethods = ItemHelperOperation
 	}
 
 	stdErr, stdOut, err := op.Do()
 	if err != nil {
-		checkItemReport.err.Reason = fmt.Sprintf("run check %v command failed", items)
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.Reason = ItemErrScript
 		checkItemReport.err.Detail = string(stdErr)
-		checkItemReport.status = nodeCheckItemFailed
-		checkItemReport.err.FixMethods = "please check your scripts"
-		return "", checkItemReport, fmt.Errorf("failed to run check %v scripts", items)
+		checkItemReport.err.FixMethods = ItemHelperScript
 	}
 
-	checkItemStdOut := string(stdOut[:])
+	checkItemStdOut := string(stdOut)
 	return checkItemStdOut, checkItemReport, nil
+}
+
+func CheckDockerExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.status = ItemActionDoing
+	comparedDockerVersion, checkItemReport, err := ExecuteCheckScript(check.Docker, ncAction.nodeCheckConfig, checkItemReport)
+	UpdateCheckItems(ncAction, checkItemReport)
+	if err != nil {
+		checkItemReport.status = ItemActionFailed
+	}
+
+	err = check.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
+	if err != nil {
+		checkItemReport.err.Reason = "docker version too low"
+		checkItemReport.err.Detail = err.Error()
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.FixMethods = fmt.Sprintf("please upgrade docker version to %v+", desiredDockerVersion)
+	} else {
+		checkItemReport.status = ItemActionDone
+	}
+	UpdateCheckItems(ncAction, checkItemReport)
+
+	wg.Done()
+}
+
+func newNodeCheckItem() *nodeCheckItem {
+
+	return &nodeCheckItem{
+		status: ItemActionPending,
+		err:    &pb.Error{},
+	}
+}
+
+func CheckCPUExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.status = ItemActionDoing
+	cpuCore, checkItemReport, err := ExecuteCheckScript(check.CPU, ncAction.nodeCheckConfig, checkItemReport)
+	UpdateCheckItems(ncAction, checkItemReport)
+	if err != nil {
+		checkItemReport.status = ItemActionFailed
+	}
+
+	err = check.CheckCPUNums(cpuCore, desiredCPUCore)
+	if err != nil {
+		checkItemReport.err.Reason = "cpu cores not enough"
+		checkItemReport.err.Detail = err.Error()
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.FixMethods = fmt.Sprintf("please optimize cpu cores to %v", desiredCPUCore)
+	} else {
+		checkItemReport.status = ItemActionDone
+	}
+	UpdateCheckItems(ncAction, checkItemReport)
+
+	wg.Done()
+}
+
+func CheckKernelExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.status = ItemActionDoing
+	kernelVersion, checkItemReport, err := ExecuteCheckScript(check.Kernel, ncAction.nodeCheckConfig, checkItemReport)
+	UpdateCheckItems(ncAction, checkItemReport)
+	if err != nil {
+		checkItemReport.status = ItemActionFailed
+	}
+
+	err = check.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
+	if err != nil {
+		checkItemReport.err.Reason = "kernel version too low"
+		checkItemReport.err.Detail = err.Error()
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.FixMethods = fmt.Sprintf("please optimize kernel version to %v", desiredKernelVersion)
+	} else {
+		checkItemReport.status = ItemActionDone
+	}
+	UpdateCheckItems(ncAction, checkItemReport)
+
+	wg.Done()
+}
+
+func CheckMemoryExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.status = ItemActionDoing
+	memoryCap, checkItemReport, err := ExecuteCheckScript(check.Memory, ncAction.nodeCheckConfig, checkItemReport)
+	UpdateCheckItems(ncAction, checkItemReport)
+	if err != nil {
+		checkItemReport.status = ItemActionFailed
+	}
+
+	err = check.CheckMemoryCapacity(memoryCap, desiredMemory)
+	if err != nil {
+		checkItemReport.err.Reason = "memory capacity not enough"
+		checkItemReport.err.Detail = err.Error()
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.FixMethods = fmt.Sprintf("please optimize memory capacity to %v", desiredMemory)
+	} else {
+		checkItemReport.status = ItemActionDone
+	}
+	UpdateCheckItems(ncAction, checkItemReport)
+
+	wg.Done()
+}
+
+func CheckRootDiskExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.status = ItemActionDoing
+	rootDiskVolume, checkItemReport, err := ExecuteCheckScript(check.Disk, ncAction.nodeCheckConfig, checkItemReport)
+	UpdateCheckItems(ncAction, checkItemReport)
+	if err != nil {
+		checkItemReport.status = ItemActionFailed
+	}
+
+	err = check.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
+	if err != nil {
+		checkItemReport.err.Reason = "root disk volume is not enough"
+		checkItemReport.err.Detail = err.Error()
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.FixMethods = fmt.Sprintf("please optimize root disk volume to %v", desiredRootDiskVolume)
+	} else {
+		checkItemReport.status = ItemActionDone
+	}
+	UpdateCheckItems(ncAction, checkItemReport)
+
+	wg.Done()
+}
+
+func CheckDistributionExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.status = ItemActionDoing
+	disName, checkItemReport, err := ExecuteCheckScript(check.Distribution, ncAction.nodeCheckConfig, checkItemReport)
+	UpdateCheckItems(ncAction, checkItemReport)
+	if err != nil {
+		checkItemReport.status = ItemActionFailed
+	}
+
+	err = check.CheckSystemDistribution(disName)
+	if err != nil {
+		checkItemReport.err.Reason = "system distribution is not supported"
+		checkItemReport.err.Detail = err.Error()
+		checkItemReport.status = ItemActionFailed
+		checkItemReport.err.FixMethods = fmt.Sprintf("please change suitable distribution to %v", systemDistributions)
+	} else {
+		checkItemReport.status = ItemActionDone
+	}
+	UpdateCheckItems(ncAction, checkItemReport)
+
+	wg.Done()
 }
 
 func (a *nodeCheckExecutor) Execute(act Action) error {
@@ -93,117 +252,43 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 		consts.LogFieldAction: act.GetName(),
 	})
 
+	var wg sync.WaitGroup
+
 	logger.Debug("Start to execute node check action")
 
-	// check docker
-	comparedDockerVersion, report, err := ItemsCheckScripts("docker", nodeCheckAction.nodeCheckConfig)
-	if err != nil {
-		return err
-	}
-
-	err = check.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
-	if err != nil {
-		report.err.Reason = "docker version too low"
-		report.err.Detail = string(report.err.Detail)
-		report.status = nodeCheckItemFailed
-		report.err.FixMethods = fmt.Sprintf("please upgrade docker version to %v+", desiredDockerVersion)
-		return err
-	}
-
-	report.status = nodeCheckItemSucessful
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
-
-	//// check CPU
-	cpuCore, report, err := ItemsCheckScripts("cpu", nodeCheckAction.nodeCheckConfig)
-	if err != nil {
-		return err
-	}
-
-	err = check.CheckCPUNums(cpuCore, desiredCPUCore)
-	if err != nil {
-		report.err.Reason = "cpu cores not enough"
-		report.err.Detail = string(report.err.Detail)
-		report.status = nodeCheckItemFailed
-		report.err.FixMethods = fmt.Sprintf("please optimize cpu cores to %v", desiredCPUCore)
-		return err
-	}
-
-	report.status = nodeCheckItemSucessful
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
-
-	// check kernel version
-	kernelVersion, report, err := ItemsCheckScripts("kernel", nodeCheckAction.nodeCheckConfig)
-	if err != nil {
-		return err
-	}
-
-	err = check.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
-	if err != nil {
-		report.err.Reason = "kernel version too low"
-		report.err.Detail = string(report.err.Detail)
-		report.status = nodeCheckItemFailed
-		report.err.FixMethods = fmt.Sprintf("please optimize kernel version to %v", desiredKernelVersion)
-		return err
-	}
-
-	report.status = nodeCheckItemSucessful
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
-
-	// check memory capacity
-	memoryCap, report, err := ItemsCheckScripts("memory", nodeCheckAction.nodeCheckConfig)
-	if err != nil {
-		return err
-	}
-
-	err = check.CheckMemoryCapacity(memoryCap, desiredMemory)
-	if err != nil {
-		report.err.Reason = "memory capacity not enough"
-		report.err.Detail = string(report.err.Detail)
-		report.status = nodeCheckItemFailed
-		report.err.FixMethods = fmt.Sprintf("please optimize memory capacity to %v", desiredMemory)
-		return err
-	}
-
-	report.status = nodeCheckItemSucessful
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
-
-	// check root disk volume
-	rootDiskVolume, report, err := ItemsCheckScripts("disk", nodeCheckAction.nodeCheckConfig)
-	if err != nil {
-		return err
-	}
-
-	err = check.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
-	if err != nil {
-		report.err.Reason = "root disk volume is not enough"
-		report.err.Detail = string(report.err.Detail)
-		report.status = nodeCheckItemFailed
-		report.err.FixMethods = fmt.Sprintf("please optimize root disk volume to %v", desiredRootDiskVolume)
-		return err
-	}
-
-	report.status = nodeCheckItemSucessful
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
-
-	// check system distribution
-	disName, report, err := ItemsCheckScripts("distribution", nodeCheckAction.nodeCheckConfig)
-	if err != nil {
-		return err
-	}
-
-	err = check.CheckSystemDistribution(disName)
-	if err != nil {
-		report.err.Reason = "system distribution is not supported"
-		report.err.Detail = string(report.err.Detail)
-		report.status = nodeCheckItemFailed
-		report.err.FixMethods = fmt.Sprintf("please change suitable distribution to %v", systemDistributions)
-		return err
-	}
-
-	report.status = nodeCheckItemSucessful
-	nodeCheckAction.checkItems = append(nodeCheckAction.checkItems, report)
+	// check docker, CPU, kernel, memory, disk, distribution
+	wg.Add(6)
+	go CheckDockerExecutor(nodeCheckAction, &wg)
+	go CheckCPUExecutor(nodeCheckAction, &wg)
+	go CheckKernelExecutor(nodeCheckAction, &wg)
+	go CheckMemoryExecutor(nodeCheckAction, &wg)
+	go CheckRootDiskExecutor(nodeCheckAction, &wg)
+	go CheckDistributionExecutor(nodeCheckAction, &wg)
+	wg.Wait()
 
 	nodeCheckAction.status = ActionDone
 	logger.Debug("Finish to execute node check action")
 	return nil
+}
+
+// update check items with matching name
+func UpdateCheckItems(checkAction *nodeCheckAction, report *nodeCheckItem) {
+
+	checkAction.Lock()
+	defer checkAction.Unlock()
+
+	updatedFlag := false
+
+	for _, item := range checkAction.checkItems {
+		if item.name == report.name {
+			updatedFlag = true
+			item.err = report.err
+			item.status = report.status
+			item.description = report.description
+		}
+	}
+
+	if updatedFlag == false {
+		checkAction.checkItems = append(checkAction.checkItems, report)
+	}
 }
