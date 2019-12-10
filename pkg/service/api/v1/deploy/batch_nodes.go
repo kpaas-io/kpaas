@@ -48,8 +48,8 @@ func UploadBatchNodes(c *gin.Context) {
 		return
 	}
 
-	nodeList := make([]*wizard.Node, 0, len(*requestData))
-	for _, data := range *requestData {
+	nodeList := make([]*wizard.Node, 0, len(requestData))
+	for _, data := range requestData {
 
 		node := wizard.NewNode()
 		node.Name = data.Name
@@ -84,7 +84,7 @@ func UploadBatchNodes(c *gin.Context) {
 	})
 }
 
-func getUploadBatchNodesRequestData(c *gin.Context) (nodeList *[]*api.NodeData, err error) {
+func getUploadBatchNodesRequestData(c *gin.Context) (nodeList []*api.NodeData, err error) {
 
 	data, err := c.GetRawData()
 	log.ReqEntry(c).Tracef("rawData: %v, err: %v", string(data), err)
@@ -111,8 +111,7 @@ func getUploadBatchNodesRequestData(c *gin.Context) (nodeList *[]*api.NodeData, 
 		return
 	}
 
-	nodeList = new([]*api.NodeData)
-	*nodeList = make([]*api.NodeData, 0, len(matches))
+	nodeList = make([]*api.NodeData, 0, len(matches))
 
 	ipList := make(map[string]bool)
 	nameList := make(map[string]bool)
@@ -185,7 +184,7 @@ func getUploadBatchNodesRequestData(c *gin.Context) (nodeList *[]*api.NodeData, 
 		ipList[matchMap["ip"]] = true
 		nameList[matchMap["nodeName"]] = true
 
-		*nodeList = append(*nodeList, node)
+		nodeList = append(nodeList, node)
 	}
 
 	return
