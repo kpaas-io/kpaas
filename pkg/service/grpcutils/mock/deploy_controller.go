@@ -118,6 +118,31 @@ func (mock *DeployController) GetDeployResult(ctx context.Context, in *protos.Ge
 
 func (mock *DeployController) FetchKubeConfig(ctx context.Context, in *protos.FetchKubeConfigRequest, opts ...grpc.CallOption) (*protos.FetchKubeConfigReply, error) {
 	return &protos.FetchKubeConfigReply{
-		KubeConfig: []byte("kube config content"),
+		KubeConfig: []byte("kube config content")}, nil
+}
+
+func (mock *DeployController) CheckNetworkRequirements(
+	ctx context.Context, in *protos.CheckNetworkRequirementRequest, opts ...grpc.CallOption) (
+	*protos.CheckNetworkRequirementsReply, error) {
+	return &protos.CheckNetworkRequirementsReply{
+		Passed: true,
+		Err:    nil,
+		Nodes:  []*protos.NodeCheckResult{},
+		Connectivities: []*protos.ConnectivityCheckResult{
+			&protos.ConnectivityCheckResult{
+				SourceNodeName:      "master1",
+				DestinationNodeName: "master2",
+				Status:              "successful",
+				Err:                 nil,
+				Items: []*protos.ItemCheckResult{
+					&protos.ItemCheckResult{
+						Item:   &protos.CheckItem{Name: "vxlan", Description: "connectivity of UDP port passing vxlan packets"},
+						Status: "successful",
+						Err:    nil,
+						Logs:   "",
+					},
+				},
+			},
+		},
 	}, nil
 }

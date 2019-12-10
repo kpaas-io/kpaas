@@ -36,6 +36,8 @@ func NewExecutor(actionType Type) (Executor, error) {
 		executor = &nodeCheckExecutor{}
 	case ActionTypeDeployEtcd:
 		executor = &deployEtcdExecutor{}
+	case ActionTypeConnectivityCheck:
+		executor = &connectivityCheckExecutor{}
 	default:
 		return nil, fmt.Errorf("%s: %s", consts.MsgActionTypeUnsupported, actionType)
 	}
