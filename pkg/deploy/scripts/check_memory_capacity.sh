@@ -13,4 +13,4 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-free | awk '/Mem/{print $2}'
+free -b | awk '/Mem/{print $2}'

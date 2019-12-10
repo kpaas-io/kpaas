@@ -29,10 +29,10 @@ const (
 	desiredDockerVersion              = "18.09.0"
 	desiredKernelVersion              = "4.19.46"
 	desiredCPUCore            float64 = 8
-	desiredMemoryBase         float64 = 16
-	desiredMemory                     = desiredMemoryBase * operation.GiByteUnits
-	desiredRootDiskVolumeBase float64 = 200
-	desiredRootDiskVolume             = desiredRootDiskVolumeBase * operation.GiByteUnits
+	desiredMemoryByteBase     float64 = 16
+	desiredMemory                     = desiredMemoryByteBase * operation.GiByteUnits
+	desiredDiskVolumeByteBase float64 = 200
+	desiredRootDiskVolume             = desiredDiskVolumeByteBase * operation.GiByteUnits
 )
 
 var systemDistributions = [3]string{"centos", "ubuntu", "rhel"}
@@ -40,6 +40,7 @@ var systemDistributions = [3]string{"centos", "ubuntu", "rhel"}
 type nodeCheckExecutor struct {
 }
 
+// due to items, ItemsCheckScripts exec remote scripts and return std, report, error
 func ItemsCheckScripts(items string, config *pb.NodeCheckConfig) (string, *nodeCheckItem, error) {
 
 	var (
@@ -61,6 +62,9 @@ func ItemsCheckScripts(items string, config *pb.NodeCheckConfig) (string, *nodeC
 	}
 
 	checkItems := check.NewCheckOperations().CreateOperations(items)
+	if checkItems == nil {
+		return "", checkItemReport, fmt.Errorf("items is illegal to create")
+	}
 	op, err := checkItems.GetOperations(config)
 	if err != nil {
 		return "", checkItemReport, fmt.Errorf("failed to create %v check operation, error: %v", items, err)

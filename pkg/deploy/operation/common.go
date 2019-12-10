@@ -40,21 +40,8 @@ const (
 	ErrNotEqual              = "version not equal"
 	ErrNotEnough             = "amount not enough"
 	UnclearInputPara         = "input parameter not clear"
-	GiByteUnits      float64 = 1000 * 1000
+	GiByteUnits      float64 = 1000 * 1000 * 1000
 )
-
-//type OperationsGenerator struct{}
-
-//type CheckOperations struct {
-//	Script     string
-//	ScriptPath string
-//}
-//
-//type CheckAction interface {
-//	GetOperations(config *pb.NodeCheckConfig) (Operation, error)
-//	getScript() string
-//	getScriptPath() string
-//}
 
 // check if version is satisfied with standard version
 // checkStandard controls compared method

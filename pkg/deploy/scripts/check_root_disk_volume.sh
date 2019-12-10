@@ -13,4 +13,4 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-df / | awk '/\//{print $2}'
+df -B1 / | awk '/\//{print $2}'

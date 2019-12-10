@@ -18,14 +18,14 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
-
 	"github.com/stretchr/testify/assert"
+
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 )
 
 const (
-	desiredMemoryBase float64 = 16
-	desiredMemory             = desiredMemoryBase * operation.GiByteUnits
+	desiredMemoryByteBase float64 = 16
+	desiredMemory                 = desiredMemoryByteBase * operation.GiByteUnits
 )
 
 // unit test of CheckMemoryCapacity
@@ -36,24 +36,24 @@ func TestCheckMemoryCapacity(t *testing.T) {
 		want           error
 	}{
 		{
-			comparedMemory: "264116772",
+			comparedMemory: "264116772442",
 			desiredMemory:  desiredMemory,
 			want:           nil,
 		},
 		{
-			comparedMemory: "16422896",
+			comparedMemory: "16422896121",
 			desiredMemory:  desiredMemory,
 			want:           nil,
 		},
 		{
-			comparedMemory: "16267396",
+			comparedMemory: "16267396000",
 			desiredMemory:  desiredMemory,
 			want:           nil,
 		},
 		{
-			comparedMemory: "1626123",
+			comparedMemory: "1626123214",
 			desiredMemory:  desiredMemory,
-			want:           fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 1626123", desiredMemory),
+			want:           fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 1626123214", desiredMemory),
 		},
 		{
 			comparedMemory: "-1241211",
