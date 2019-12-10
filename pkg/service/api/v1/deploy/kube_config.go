@@ -41,8 +41,9 @@ func DownloadKubeConfig(c *gin.Context) {
 
 	if wizardData.KubeConfig == nil ||
 		*wizardData.KubeConfig == "" {
-		h.E(c, h.ENotFound.WithPayload("kubeconfig file has not ready yet"))
-		// TODO Lucky Hurry up and update the configuration file
+		h.E(c, h.ENotFound.WithPayload("kubeconfig file has not ready yet, try it later"))
+
+		fetchKubeConfigContent()
 		return
 	}
 

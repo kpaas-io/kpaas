@@ -100,6 +100,10 @@ func TestAppErr_Error(t *testing.T) {
 			Want:  `{"msg":"BadRequest","payload":null}`,
 		},
 		{
+			Input: NewAppErr(http.StatusBadRequest, "Parameters Error", "username not fill"),
+			Want:  `{"msg":"Parameters Error","payload":"username not fill"}`,
+		},
+		{
 			Input: NewAppErr(http.StatusInternalServerError, "InternalServerError", make(chan int)),
 			Want:  ``,
 		},
