@@ -16,6 +16,7 @@ package wizard
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -1207,5 +1208,232 @@ func TestCluster_SetClusterDeploymentStatus(t *testing.T) {
 
 		item.Input.Cluster.SetClusterDeploymentStatus(item.Input.DeployClusterStatus, item.Input.FailureDetail)
 		assert.Equal(t, item.Want, item.Input.Cluster)
+	}
+}
+
+func TestCluster_AddNodeList(t *testing.T) {
+
+	tests := []struct {
+		BaseNodeList []*Node
+		Input        []*Node
+		Want         error
+		WantNodeList []*Node
+	}{
+		{
+			BaseNodeList: []*Node{},
+			Input: []*Node{
+				{
+					ConnectionData:      ConnectionData{},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+			Want: nil,
+			WantNodeList: []*Node{
+				{
+					ConnectionData:      ConnectionData{},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+		},
+		{
+			BaseNodeList: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.1",
+						Port: 22,
+					},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+			Input: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.2",
+						Port: 22,
+					},
+					Name:                "k8s-master2",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+			Want: nil,
+			WantNodeList: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.1",
+						Port: 22,
+					},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.2",
+						Port: 22,
+					},
+					Name:                "k8s-master2",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+		},
+		{
+			BaseNodeList: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.1",
+						Port: 22,
+					},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+			Input: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.1",
+						Port: 22,
+					},
+					Name:                "k8s-master2",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+			Want: h.EExists.WithPayload(fmt.Sprintf("node ip 192.168.31.1 was exist")),
+			WantNodeList: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.1",
+						Port: 22,
+					},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+		},
+		{
+			BaseNodeList: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.1",
+						Port: 22,
+					},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+			Input: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.2",
+						Port: 22,
+					},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+			Want: h.EExists.WithPayload(fmt.Sprintf("node name k8s-master1 was exist")),
+			WantNodeList: []*Node{
+				{
+					ConnectionData: ConnectionData{
+						IP:   "192.168.31.1",
+						Port: 22,
+					},
+					Name:                "k8s-master1",
+					Description:         "k8s-description",
+					MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleWorker},
+					Labels:              []*Label{},
+					Taints:              []*Taint{},
+					CheckReport:         &CheckReport{},
+					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DockerRootDirectory: "/var/lib/docker",
+					rwLock:              sync.RWMutex{},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		cluster := NewCluster()
+		cluster.Nodes = test.BaseNodeList
+		assert.Equal(t, test.Want, cluster.AddNodeList(test.Input))
+		assert.Equal(t, test.WantNodeList, cluster.Nodes)
 	}
 }

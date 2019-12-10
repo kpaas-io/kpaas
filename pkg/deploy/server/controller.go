@@ -148,6 +148,41 @@ func (c *controller) FetchKubeConfig(ctx context.Context, req *pb.FetchKubeConfi
 	}, nil
 }
 
+func (c *controller) CheckNetworkRequirements(
+	context context.Context, req *pb.CheckNetworkRequirementRequest) (
+	*pb.CheckNetworkRequirementsReply, error) {
+	logrus.Info("Begins CheckNetworkRequirements request")
+	taskConfig := &task.CheckNetworkRequirementsTaskConfig{
+		Nodes:           req.GetNodes(),
+		NetworkOptions:  req.GetOptions(),
+		LogFileBasePath: c.logFileLoc,
+	}
+
+	taskName := "check-network-requirements"
+	if taskConfig.NetworkOptions != nil {
+		taskName = taskName + "-" + taskConfig.NetworkOptions.GetNetworkType()
+	}
+
+	checkTask, err := task.NewCheckNetworkRequirementsTask(taskName, taskConfig)
+	if err == nil {
+		err = c.storeAndExecuteTask(checkTask)
+	}
+	if err != nil {
+		logrus.Errorf("failed to create task for CheckNetworkRequirements, error %v", err)
+		return &pb.CheckNetworkRequirementsReply{
+			Passed: false,
+			Err: &pb.Error{
+				Reason: consts.MsgRequestFailed,
+				Detail: err.Error(),
+			},
+		}, err
+	}
+	logrus.Info("CheckNetworkRequirements request succeeded")
+	return &pb.CheckNetworkRequirementsReply{
+		Passed: true,
+	}, nil
+}
+
 func (c *controller) storeTask(task task.Task) error {
 	if c.store == nil {
 		return fmt.Errorf("no task store")

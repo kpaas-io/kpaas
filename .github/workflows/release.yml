@@ -1,8 +1,9 @@
 name: release
 on:
   push:
-    branches:
-      - 'master'
+    tags:
+      - 'v*'
+      - 'V*'
 
 jobs:
 
@@ -27,9 +28,11 @@ jobs:
 
       - name: calc tag
         run: |
-          tag=`date +%Y%m%d%H%M%S`
+          tag=`echo "release-${tagName}"`
           echo "::set-output name=TAG::${tag}"
         id: calc-tag
+        with:
+          tagName: ${{ GITHUB_REF }}
 
       - name: Make file
         run: |
@@ -45,3 +48,51 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Build image and publish( latest )
+        uses: mr-smithers-excellent/docker-build-push@v1.0
+        with:
+          image: kpaas/kpaas
+          tag: latest
+          registry: docker.io
+          dockerfile: ./builds/docker/kpaas/Dockerfile
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Download last release commit hash
+        uses: actions/download-artifact@v1
+        with:
+          name: release-hash
+
+      - name: Generate Changelog
+        shell: bash
+        run: |
+          commitHash=`cat release-hash/latest`
+          if [ -n "${commitHash}" ]; then
+            git log --oneline > CHANGELOG.txt
+          else
+            git log --oneline "${commitHash}"... > CHANGELOG.txt
+          fi
+
+          echo "\n\nDocker Image: https://hub.docker.com/r/kpaas/kpaas\n\`\`\`bash\ndocker pull kpaas/kpaas:${TAG}\n\`\`\`" >> CHANGELOG.txt
+
+        env:
+          TAG: ${{ steps.calc-tag.outputs.TAG }}
+
+      - name: Release in github
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: CHANGELOG.txt
+          name: Release ${{ steps.calc-tag.outputs.TAG }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log last release commit hash
+        shell: bash
+        run: |
+          git log -n 1 --pretty=format:%h > release-hash/latest
+
+      - name: Upload last release commit hash
+        uses: actions/upload-artifact@v1
+        with:
+          name: release-hash
+          path: release-hash/latest

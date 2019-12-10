@@ -25,6 +25,7 @@ service DeployContoller {
   rpc Deploy(DeployRequest) returns (DeployReply) {}
   rpc GetDeployResult(GetDeployResultRequest) returns (GetDeployResultReply) {}
   rpc FetchKubeConfig(FetchKubeConfigRequest) returns (FetchKubeConfigReply) {}
+  rpc CheckNetworkRequirements(CheckNetworkRequirementRequest) returns (CheckNetworkRequirementsReply) {}
 }
 
 message Auth {
@@ -207,7 +208,6 @@ message GetDeployResultReply {
   repeated DeployItemResult items = 3;
 }
 
-
 // FetchKubeConfigRequest contains the request of getting kube config.
 message FetchKubeConfigRequest {
   Node node = 1; 
@@ -217,4 +217,42 @@ message FetchKubeConfigRequest {
 message FetchKubeConfigReply {
   bytes kubeConfig = 1;
   Error err = 2;
+}
+
+// CalicoOptions options for checking requirements for deploying calico network.
+message CalicoOptions {
+  // if checkConnectivityAll = true, check connectivity between each pair of nodes bidirectionally.
+  bool checkConnectivityAll = 1;
+  // EncapsulationMode could be ["vxlan","ipip","none"].
+  string encapsulationMode = 2;
+  uint32 vxlanPort = 10;
+}
+
+// NetworkOptions options for deploying network. affects checked items.
+message NetworkOptions {
+  string NetworkType = 1;
+  // options for a specified network type. Starts from 10 to reserve field 2-9.
+  CalicoOptions calicoOptions = 10;
+}
+
+// CheckNetworkRequirementRequest nodes and network options when checking 
+message CheckNetworkRequirementRequest {
+  repeated Node nodes = 1;
+  NetworkOptions options = 2;
+}
+
+message ConnectivityCheckResult {
+  string SourceNodeName = 1;
+  string DestinationNodeName = 2;
+  string status = 3;
+  Error err = 4;
+  repeated ItemCheckResult items = 5;
+} 
+
+// CheckNetworkRequirementsReply 
+message CheckNetworkRequirementsReply {
+  bool passed = 1;
+  Error err = 2;
+  repeated NodeCheckResult nodes = 3;
+  repeated ConnectivityCheckResult connectivities = 4; 
 }

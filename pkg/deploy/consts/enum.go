@@ -22,3 +22,17 @@ const (
 	NodeRoleWorker  NodeRole = "worker"
 	NodeRoleIngress NodeRole = "ingress"
 )
+
+type NetworkType string
+
+const (
+	NetworkTypeCalico NetworkType = "calico"
+)
+
+type Protocol string
+
+const (
+	ProtocolTCP  = "tcp"
+	ProtocolUDP  = "udp"
+	ProtocolIPIP = "ipip"
+)

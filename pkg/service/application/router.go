@@ -41,6 +41,8 @@ func (a *app) setRoutes() {
 	wizardGroup.PUT("/nodes/{ip}", deploy.UpdateNode)
 	wizardGroup.DELETE("/nodes/{ip}", deploy.DeleteNode)
 
+	wizardGroup.POST("/batchnodes", deploy.UploadBatchNodes)
+
 	wizardGroup.POST("/checks", deploy.CheckNodeList)
 	wizardGroup.GET("/checks", deploy.GetCheckingNodeListResult)
 

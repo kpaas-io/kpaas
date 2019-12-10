@@ -63,6 +63,7 @@ func (e *AppErr) Error() string {
 
 func E(c *gin.Context, e error) {
 
+	logrus.Tracef("response error: (%T)%v", e, e)
 	switch err := e.(type) {
 	case *AppErr:
 		c.JSON(err.Status, err)

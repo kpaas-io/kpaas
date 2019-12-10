@@ -16,6 +16,7 @@ package wizard
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -345,6 +346,39 @@ func (cluster *Cluster) SetClusterDeploymentStatus(status DeployClusterStatus, f
 	if failureDetail != nil {
 		cluster.DeployClusterError = failureDetail.Clone()
 	}
+}
+
+func (cluster *Cluster) AddNodeList(nodes []*Node) error {
+
+	cluster.lock.Lock()
+	defer cluster.lock.Unlock()
+
+	ipExistsList := make(map[string]bool)
+	nameExistsList := make(map[string]bool)
+
+	for _, iterateNode := range cluster.Nodes {
+		ipExistsList[iterateNode.IP] = true
+		nameExistsList[iterateNode.Name] = true
+	}
+
+	for _, iterateNode := range nodes {
+
+		if _, exist := ipExistsList[iterateNode.IP]; exist {
+			return h.EExists.WithPayload(fmt.Sprintf("node ip %s was exist", iterateNode.IP))
+		}
+		ipExistsList[iterateNode.IP] = true
+
+		if _, exist := nameExistsList[iterateNode.Name]; exist {
+			return h.EExists.WithPayload(fmt.Sprintf("node name %s was exist", iterateNode.Name))
+		}
+		nameExistsList[iterateNode.Name] = true
+	}
+
+	for _, iterateNode := range nodes {
+		cluster.Nodes = append(cluster.Nodes, iterateNode)
+	}
+
+	return nil
 }
 
 func NewClusterInfo() *ClusterInfo {

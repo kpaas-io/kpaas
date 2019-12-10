@@ -256,6 +256,40 @@ func refreshDeployResultOneTime() {
 
 	switch wizardData.DeployClusterStatus {
 	case wizard.DeployClusterStatusSuccessful, wizard.DeployClusterStatusWorkedButHaveError:
-		// TODO Lucky Update KubeConfig Data
+
+		fetchKubeConfigContent()
 	}
+}
+
+func fetchKubeConfigContent() {
+
+	wizardData := wizard.GetCurrentWizard()
+	client := clientUtils.GetDeployController()
+	ctx := context.Background()
+
+	var node *wizard.Node
+	for _, iterateNode := range wizardData.Nodes {
+		if iterateNode.IsMatchMachineRole(constant.MachineRoleMaster) {
+			node = iterateNode
+			break
+		}
+	}
+
+	if node == nil {
+		logrus.Errorf("There is no master finish, it is not possible.")
+		return
+	}
+
+	fetchResponse, err := client.FetchKubeConfig(ctx, &protos.FetchKubeConfigRequest{Node: &protos.Node{
+		Name: node.Name,
+		Ip:   node.IP,
+		Ssh:  convertModelConnectionDataToDeployControllerSSHData(&node.ConnectionData),
+	}})
+
+	if err != nil {
+		logrus.Errorf("Call gRPC deploy controller error, errorMessage: %v", err)
+		return
+	}
+	kubeConfig := string(fetchResponse.GetKubeConfig())
+	wizardData.KubeConfig = &kubeConfig
 }
