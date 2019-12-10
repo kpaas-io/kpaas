@@ -12,21 +12,62 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
+package check
 
 import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 const (
-	DistributionCentos string = "centos"
-	DistributionUbuntu string = "ubuntu"
-	DistributionRHEL   string = "rhel"
+	DistributionCentos          string = "centos"
+	DistributionUbuntu          string = "ubuntu"
+	DistributionRHEL            string = "rhel"
+	systemDistributionScript           = "/scripts/check_system_distribution.sh"
+	systemDistributionRemoteDir        = "/tmp"
 )
+
+type CheckDistributionOperation struct {
+	operation.BaseOperation
+	CheckOperations
+}
+
+func (ckops *CheckDistributionOperation) getScript() string {
+	ckops.Script = systemDistributionScript
+	return ckops.Script
+}
+
+func (ckops *CheckDistributionOperation) getScriptPath() string {
+	ckops.ScriptPath = systemDistributionRemoteDir
+	return ckops.ScriptPath
+}
+
+func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckDistributionOperation{}
+	m, err := machine.NewMachine(config.Node)
+	if err != nil {
+		return nil, err
+	}
+
+	scriptFile, err := assets.Assets.Open(ckops.getScript())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
+	return ops, nil
+}
 
 // check if system distribution can be supported
 func CheckSystemDistribution(disName string) error {

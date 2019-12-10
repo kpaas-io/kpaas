@@ -16,6 +16,7 @@ package action
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -33,6 +34,7 @@ type nodeCheckAction struct {
 	base
 	nodeCheckConfig *pb.NodeCheckConfig
 	checkItems      []*nodeCheckItem
+	sync.RWMutex
 }
 
 type nodeCheckItemStatus string

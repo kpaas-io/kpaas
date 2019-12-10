@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package docker
+package check
 
 import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
@@ -23,39 +23,51 @@ import (
 )
 
 const (
-	script    = "/scripts/check_docker_version.sh"
-	remoteDir = "/tmp"
+	memoryScript    = "/scripts/check_memory_capacity.sh"
+	memoryRemoteDir = "/tmp"
 )
 
-type CheckDockerOperation struct {
+type CheckMemoryOperation struct {
 	operation.BaseOperation
+	CheckOperations
 }
 
-func NewCheckDockerOperation(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckDockerOperation{}
+func (ckops *CheckMemoryOperation) getScript() string {
+	ckops.Script = memoryScript
+	return ckops.Script
+}
+
+func (ckops *CheckMemoryOperation) getScriptPath() string {
+	ckops.ScriptPath = memoryRemoteDir
+	return ckops.ScriptPath
+}
+
+func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckMemoryOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
 	}
 
-	scriptFile, err := assets.Assets.Open(script)
+	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.PutFile(scriptFile, remoteDir+script); err != nil {
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", remoteDir+script, nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
 }
 
-// check docker version if version larger or equal than standard version
-func CheckDockerVersion(dockerVersion string, standardVersion string, comparedSymbol string) error {
-	err := operation.CheckVersion(dockerVersion, standardVersion, comparedSymbol)
+// check if memory capacity satisfied with minimal requirement
+func CheckMemoryCapacity(comparedMemory string, desiredMemory float64) error {
+	err := operation.CheckEntity(comparedMemory, desiredMemory)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

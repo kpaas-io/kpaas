@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package system
+package check
 
 import (
 	"fmt"
@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	desiredRootDiskVolume float64 = 200
-	diskStandard          float64 = desiredRootDiskVolume * operation.GiByteUnits
+	desiredRootDiskByteVolume float64 = 200
+	diskStandard              float64 = desiredRootDiskByteVolume * operation.GiByteUnits
 )
 
 // unit test of CheckRootDiskVolume
@@ -36,22 +36,22 @@ func TestCheckRootDiskVolume(t *testing.T) {
 		want              error
 	}{
 		{
-			rootDiskVolume:    "287700360",
+			rootDiskVolume:    "287700360772",
 			desiredDiskVolume: diskStandard,
 			want:              nil,
 		},
 		{
-			rootDiskVolume:    "228492713",
+			rootDiskVolume:    "228492713842",
 			desiredDiskVolume: diskStandard,
 			want:              nil,
 		},
 		{
-			rootDiskVolume:    "51473368",
+			rootDiskVolume:    "51473368953",
 			desiredDiskVolume: diskStandard,
-			want:              fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 51473368", diskStandard),
+			want:              fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 51473368953", diskStandard),
 		},
 		{
-			rootDiskVolume:    "-103079200",
+			rootDiskVolume:    "-1",
 			desiredDiskVolume: diskStandard,
 			want:              fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.1f", diskStandard),
 		},

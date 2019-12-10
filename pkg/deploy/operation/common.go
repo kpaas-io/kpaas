@@ -40,7 +40,7 @@ const (
 	ErrNotEqual              = "version not equal"
 	ErrNotEnough             = "amount not enough"
 	UnclearInputPara         = "input parameter not clear"
-	GiByteUnits      float64 = 1000 * 1000
+	GiByteUnits      float64 = 1000 * 1000 * 1000
 )
 
 // check if version is satisfied with standard version
