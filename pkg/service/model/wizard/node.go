@@ -179,6 +179,20 @@ func (node *Node) SetDeployResult(role constant.MachineRole, status DeployStatus
 	node.DeploymentReports[role].Error = detail
 }
 
+func (node *Node) IsMatchMachineRole(role constant.MachineRole) bool {
+
+	node.rwLock.RLock()
+	defer node.rwLock.RUnlock()
+
+	for _, iterateRole := range node.MachineRoles {
+		if iterateRole == role {
+			return true
+		}
+	}
+
+	return false
+}
+
 func NewDeploymentReport() *DeploymentReport {
 
 	report := new(DeploymentReport)

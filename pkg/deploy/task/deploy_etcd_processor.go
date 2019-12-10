@@ -16,6 +16,7 @@ package task
 
 import (
 	"fmt"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
 
 	"github.com/sirupsen/logrus"
 
@@ -42,12 +43,22 @@ func (p *deployEtcdProcessor) SplitTask(t Task) error {
 
 	etcdTask := t.(*deployEtcdTask)
 
+	// generate etcd ca cert and key and put it into every action
+	caCertConfig := etcd.GetCaCrtConfig()
+	caCrt, cakey, err := etcd.CreateAsCA(caCertConfig)
+	if err != nil {
+		return fmt.Errorf("failed to get etcd-ca key and cert, error: %v", err)
+	}
+
 	// split task into actions: will create a action for every node, the action type
 	// is ActionTypeDeployEtcd
 	actions := make([]action.Action, 0, len(etcdTask.nodes))
 	for _, node := range etcdTask.nodes {
 		actionCfg := &action.DeployEtcdActionConfig{
+			CaCrt:           caCrt,
+			CaKey:           cakey,
 			Node:            node,
+			ClusterNodes:    etcdTask.nodes,
 			LogFileBasePath: etcdTask.logFilePath,
 		}
 		act, err := action.NewDeployEtcdAction(actionCfg)

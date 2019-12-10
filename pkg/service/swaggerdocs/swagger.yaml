@@ -486,6 +486,29 @@ info:
   title: kpaasRestfulApi
   version: "0.1"
 paths:
+  /api/v1/deploy/wizard/batchnodes:
+    post:
+      consumes:
+      - text/plain
+      description: Upload batch nodes configuration file to node list
+      operationId: UploadBatchNodes
+      parameters:
+      - description: node list
+        in: body
+        name: nodes
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.GetNodeListResponse'
+      summary: Upload batch nodes configuration
+      tags:
+      - nodes
   /api/v1/deploy/wizard/checks:
     get:
       description: Get the result of the check node
