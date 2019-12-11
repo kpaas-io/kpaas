@@ -37,7 +37,7 @@ const (
 // @Produce application/json
 // @Param cluster path string true "cluster to create release in"
 // @Param namespace path string true "kubernetes namespace in that cluster to create release in"s
-// @Success 201 {object} api.SuccessfulOption
+// @Success 201 {object} api.HelmRelease
 // @Failure 409 {object} h.AppErr
 // @Failure 400 {object} h.AppErr
 // @Router  /api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases [post]
@@ -47,7 +47,12 @@ func InstallRelease(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	h.R(c, api.SuccessfulOption{Success: true})
+	res, err := installRelease(c, &release)
+	if err != nil {
+		h.E(c, err)
+		return
+	}
+	h.R(c, res)
 }
 
 // UpgradeRelease upgrade a helm release by its name.

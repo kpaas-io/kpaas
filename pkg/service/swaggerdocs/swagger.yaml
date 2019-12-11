@@ -562,6 +562,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.Cluster'
+          type: object
       produces:
       - application/json
       responses:
@@ -687,6 +688,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.NodeData'
+          type: object
       produces:
       - application/json
       responses:
@@ -773,6 +775,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.UpdateNodeData'
+          type: object
       - description: Node IP Address
         in: path
         name: ip
@@ -875,7 +878,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api.SuccessfulOption'
+            $ref: '#/definitions/api.HelmRelease'
         "400":
           description: Bad Request
           schema:
@@ -1090,6 +1093,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.ConnectionData'
+          type: object
       produces:
       - application/json
       responses:
@@ -1138,6 +1142,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.SSHCertificate'
+          type: object
       produces:
       - application/json
       responses:

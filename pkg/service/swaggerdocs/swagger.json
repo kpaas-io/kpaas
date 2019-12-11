@@ -132,6 +132,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -319,6 +320,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -406,6 +408,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -593,7 +596,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.SuccessfulOption"
+                            "$ref": "#/definitions/api.HelmRelease"
                         }
                     },
                     "400": {
@@ -907,6 +910,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -979,6 +983,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }

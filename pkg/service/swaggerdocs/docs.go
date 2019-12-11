@@ -146,6 +146,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -333,6 +334,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -420,6 +422,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -607,7 +610,7 @@ var doc = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.SuccessfulOption"
+                            "$ref": "#/definitions/api.HelmRelease"
                         }
                     },
                     "400": {
@@ -921,6 +924,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -993,6 +997,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
