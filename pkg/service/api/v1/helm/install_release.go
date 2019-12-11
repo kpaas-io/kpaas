@@ -35,7 +35,7 @@ import (
 // installRelease inner function of calling helm actions to install a release
 func installRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error) {
 	logEntry := log.ReqEntry(c)
-	logEntry = logEntry.WithField("function", "installRelease")
+
 	// fetch kubeconfig for cluster
 	logEntry.Debug("getting kubeconfig...")
 	kubeConfigPath, err := kubeutils.KubeConfigPathForCluster(r.Cluster)

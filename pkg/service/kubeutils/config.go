@@ -31,21 +31,23 @@ import (
 
 const (
 	// DefaultKubeConfigDirectory directory for storing kubeconfig file for each cluster
-	DefaultKubeConfigDirectory = ".kube/configs/"
+	DefaultKubeConfigDirectory = ".kpaas/kubeconfigs/"
 )
 
 // KubeConfigPathForCluster returns the local path of kubeconfig file
 // for accessing kubernetes API server in specified cluster
 func KubeConfigPathForCluster(clusterName string) (string, error) {
-	logEntry := logrus.WithField("function", "KubeConfigPathForCluster").
-		WithField("cluster", clusterName)
+	logEntry := logrus.WithField("cluster", clusterName)
 
-	// TODO: use a configurable directory
+	// TODO: use a configurable directory/filename, maybe add an argument for it?
 	homeDir, _ := os.UserHomeDir()
-	filename := homeDir + "/" + DefaultKubeConfigDirectory + "cluster-" + clusterName + ".conf"
+	kubeConfigDirectory := homeDir + "/" + DefaultKubeConfigDirectory
+	filename := kubeConfigDirectory + "cluster-" + clusterName + ".conf"
 	// returns if the file is already exist
 	// TODO: add expiration for local kubeconfig file?
 	if _, err := os.Stat(filename); err == nil {
+		logEntry.WithField("filename", filename).
+			Debug("kubeconfig file already found locally")
 		return filename, nil
 	}
 	logEntry.WithField("filename", filename).
