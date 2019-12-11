@@ -33,23 +33,23 @@ const (
 
 // NodeInitActionConfig represents the config for a node init action
 type NodeInitActionConfig struct {
-	NodeInitConfig  *pb.NodeDeployConfig
+	Node            *pb.Node
 	LogFileBasePath string
 }
 
 type nodeInitAction struct {
 	base
-	nodeInitConfig *pb.NodeDeployConfig
-	initItems      []*nodeInitItem
+	node      *pb.Node
+	initItems []*nodeInitItem
 	sync.RWMutex
 }
 
-type NodeInitItemStatus string
+type nodeInitItemStatus string
 
 type nodeInitItem struct {
 	name        string
 	description string
-	status      NodeInitItemStatus
+	status      nodeInitItemStatus
 	err         *pb.Error
 }
 
@@ -59,10 +59,8 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 	var err error
 	if cfg == nil {
 		err = fmt.Errorf("action config is nil")
-	} else if cfg.NodeInitConfig == nil {
-		err = fmt.Errorf("invalid config: node init config is nil")
-	} else if cfg.NodeInitConfig.Node == nil {
-		err = fmt.Errorf("invalid node init config: node is nil")
+	} else if cfg.Node == nil {
+		err = fmt.Errorf("invalid config: node is nil")
 	}
 
 	if err != nil {
@@ -79,11 +77,11 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 			logFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
 			creationTimestamp: time.Now(),
 		},
-		nodeInitConfig: cfg.NodeInitConfig,
+		node: cfg.Node,
 	}, nil
 }
 
 // return node name as the action name, temporarily
 func getNodeInitActionName(cfg *NodeInitActionConfig) string {
-	return cfg.NodeInitConfig.Node.GetName()
+	return cfg.Node.GetName()
 }

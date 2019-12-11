@@ -23,8 +23,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
+// nodeInitProcessor implements the specific logic to init nodes
 type nodeInitProcessor struct{}
 
+// Spilt the task into one or more node init actions
 func (p *nodeInitProcessor) SplitTask(t Task) error {
 	if err := p.verifyTask(t); err != nil {
 		logrus.Errorf("invalid task: %s", err)
@@ -41,10 +43,10 @@ func (p *nodeInitProcessor) SplitTask(t Task) error {
 
 	// split task into actions: will create a action for every node, the action type
 	// is NodeInitAction
-	actions := make([]action.Action, 0, len(initTask.nodeConfigs))
-	for _, subConfig := range initTask.nodeConfigs {
+	actions := make([]action.Action, 0, len(initTask.nodes))
+	for _, node := range initTask.nodes {
 		actionCfg := &action.NodeInitActionConfig{
-			NodeInitConfig:  subConfig,
+			Node:            node,
 			LogFileBasePath: initTask.logFilePath,
 		}
 		act, err := action.NewNodeInitAction(actionCfg)
@@ -70,8 +72,8 @@ func (p *nodeInitProcessor) verifyTask(t Task) error {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if len(nodeInitTask.nodeConfigs) == 0 {
-		return fmt.Errorf("nodeConfig is empty")
+	if len(nodeInitTask.nodes) == 0 {
+		return fmt.Errorf("nodes is empty")
 	}
 
 	return nil

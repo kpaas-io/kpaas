@@ -35,7 +35,7 @@ func newNodeInitItem() *nodeInitItem {
 }
 
 // due to items, ItemInitScripts exec remote scripts and return std, report, error
-func ExecuteInitScript(item it.ItemEnum, config *pb.NodeDeployConfig, initItemReport *nodeInitItem) (string, *nodeInitItem, error) {
+func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *nodeInitItem) (string, *nodeInitItem, error) {
 
 	initItemReport = &nodeInitItem{
 		name:        fmt.Sprintf("init %v", item),
@@ -50,7 +50,7 @@ func ExecuteInitScript(item it.ItemEnum, config *pb.NodeDeployConfig, initItemRe
 		initItemReport.err.FixMethods = ItemHelperEmpty
 	}
 
-	op, err := initItem.GetOperations(config)
+	op, err := initItem.GetOperations(node)
 	if err != nil {
 		initItemReport.status = ItemActionFailed
 		initItemReport.err.Reason = ItemErrOperation
@@ -86,7 +86,7 @@ func (a *nodeInitExecutor) Execute(act Action) error {
 	// close firewall
 	initItemReport := newNodeInitItem()
 	initItemReport.status = ItemActionDoing
-	fireWallStdOut, initItemReport, err := ExecuteInitScript(it.FireWall, nodeInitAction.nodeInitConfig, initItemReport)
+	fireWallStdOut, initItemReport, err := ExecuteInitScript(it.FireWall, nodeInitAction.node, initItemReport)
 	UpdateInitItems(nodeInitAction, initItemReport)
 	if err != nil {
 		initItemReport.status = ItemActionFailed

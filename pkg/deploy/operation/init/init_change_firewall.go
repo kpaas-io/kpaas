@@ -42,9 +42,9 @@ func (itOps *InitFireWallOperation) getScriptPath() string {
 	return itOps.ScriptPath
 }
 
-func (itOps *InitFireWallOperation) GetOperations(config *pb.NodeDeployConfig) (operation.Operation, error) {
+func (itOps *InitFireWallOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
 	ops := &InitFireWallOperation{}
-	m, err := machine.NewMachine(config.Node)
+	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, err
 	}

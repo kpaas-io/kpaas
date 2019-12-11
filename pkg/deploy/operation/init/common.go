@@ -29,7 +29,7 @@ type InitOperations struct {
 }
 
 type InitAction interface {
-	GetOperations(config *pb.NodeDeployConfig) (operation.Operation, error)
+	GetOperations(config *pb.Node) (operation.Operation, error)
 	getScript() string
 	getScriptPath() string
 }

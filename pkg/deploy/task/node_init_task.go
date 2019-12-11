@@ -24,16 +24,16 @@ import (
 )
 
 // NodeInitTaskConfig represents the config for a node init task
-
 type NodeInitTaskConfig struct {
-	NodeConfigs     []*pb.NodeDeployConfig
+	Nodes           []*pb.Node
 	LogFileBasePath string
 	Priority        int
+	Parent          string
 }
 
 type nodeInitTask struct {
 	base
-	nodeConfigs []*pb.NodeDeployConfig
+	nodes []*pb.Node
 }
 
 // NewNodeInitTask returns a node init task based on the config.
@@ -42,8 +42,8 @@ func NewNodeInitTask(taskName string, taskConfig *NodeInitTaskConfig) (Task, err
 	var err error
 	if taskConfig == nil {
 		err = fmt.Errorf("invalid task config: nil")
-	} else if len(taskConfig.NodeConfigs) == 0 {
-		err = fmt.Errorf("invalid task config: node configs is empty")
+	} else if len(taskConfig.Nodes) == 0 {
+		err = fmt.Errorf("invalid task config: nodes is empty")
 	}
 
 	if err != nil {
@@ -59,8 +59,9 @@ func NewNodeInitTask(taskName string, taskConfig *NodeInitTaskConfig) (Task, err
 			logFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
 			creationTimestamp: time.Now(),
 			priority:          taskConfig.Priority,
+			parent:            taskConfig.Parent,
 		},
-		nodeConfigs: taskConfig.NodeConfigs,
+		nodes: taskConfig.Nodes,
 	}
 
 	return task, nil
