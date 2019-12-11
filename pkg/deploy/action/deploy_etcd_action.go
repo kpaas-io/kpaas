@@ -40,7 +40,6 @@ type deployEtcdAction struct {
 	base
 	caCrt        *x509.Certificate
 	caKey        crypto.Signer
-	node         *pb.Node
 	clusterNodes []*pb.Node
 }
 
@@ -67,10 +66,10 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 			status:            ActionPending,
 			logFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
 			creationTimestamp: time.Now(),
+			node:              cfg.Node,
 		},
 		caCrt:        cfg.CaCrt,
 		caKey:        cfg.CaKey,
-		node:         cfg.Node,
 		clusterNodes: cfg.ClusterNodes,
 	}, nil
 }

@@ -143,3 +143,17 @@ func GenTaskLogFilePath(basePath, taskName string) string {
 	}
 	return filepath.Join(basePath, taskName)
 }
+
+// GetAllActions returns all actions of a task, including its direct actions and
+// its subtasks' actions recursively.
+func GetAllActions(aTask Task) []action.Action {
+	var actions []action.Action
+	// Collect actions from sub tasks.
+	for _, subTask := range aTask.GetSubTasks() {
+		actions = append(actions, GetAllActions(subTask)...)
+	}
+
+	// Collect direct actions
+	actions = append(actions, aTask.GetActions()...)
+	return actions
+}
