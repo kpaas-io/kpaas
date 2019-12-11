@@ -46,7 +46,6 @@ require (
 	gopkg.in/yaml.v2 v2.2.5 // indirect
 	k8s.io/client-go v0.0.0
 	k8s.io/kubernetes v1.16.3
-	gotest.tools v2.2.0+incompatible // indirect
 )
 
 replace (
