@@ -29,7 +29,7 @@ else
 	EXTLDFLAGS =
 endif
 
-all: test build
+all: build test
 
 build: build_service_cross_without_doc build_deploy_cross_without_protos
 
