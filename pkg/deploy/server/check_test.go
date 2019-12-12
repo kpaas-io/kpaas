@@ -20,7 +20,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/action"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/deploy/task"
 )
 
 func TestCheckItemToItemCheckResult(t *testing.T) {
@@ -136,4 +138,144 @@ func TestCheckActionToNodeCheckResult(t *testing.T) {
 		result := checkActionToNodeCheckResult(tt.input)
 		assert.Equal(t, tt.want, result)
 	}
+}
+
+func TestConnectivityCheckToNodeCheckResult(t *testing.T) {
+	tests := []struct {
+		input *action.ConnectivityCheckAction
+		want  *pb.NodeCheckResult
+	}{
+		{
+			input: nil,
+			want:  nil,
+		},
+		{
+			input: &action.ConnectivityCheckAction{
+				Base: action.Base{
+					Node: nil,
+				},
+			},
+			want: nil,
+		},
+		{
+			input: &action.ConnectivityCheckAction{
+				Base: action.Base{
+					Node: &pb.Node{
+						Name: "node1",
+					},
+					Status: action.ActionDone,
+				},
+				CheckItems: []action.ConnectivityCheckItem{
+					action.ConnectivityCheckItem{
+						Protocol: consts.ProtocolTCP,
+						Port:     uint16(1234),
+						CheckResult: &pb.ItemCheckResult{
+							Item:   &pb.CheckItem{Name: "tcp-1234", Description: "check TCP port 1234"},
+							Status: action.ItemActionDone,
+							Err:    nil,
+						},
+					},
+				},
+			},
+			want: &pb.NodeCheckResult{
+				NodeName: "node1",
+				Status:   "Done",
+				Err:      nil,
+				Items: []*pb.ItemCheckResult{
+					&pb.ItemCheckResult{
+						Item:   &pb.CheckItem{Name: "tcp-1234", Description: "check TCP port 1234"},
+						Status: "done",
+						Err:    nil,
+					},
+				},
+			},
+		},
+	}
+
+	for _, testCase := range tests {
+		assert.Equal(t, testCase.want, connectivityCheckToNodeCheckResult(testCase.input))
+	}
+}
+
+func TestGetNodeCheckResult(t *testing.T) {
+	memCheckItemError := &pb.Error{
+		Reason:     "test reason",
+		Detail:     "test detail",
+		FixMethods: "test fixmethod",
+	}
+
+	nodeCheckAction := &action.NodeCheckAction{
+		Base: action.Base{
+			Node: &pb.Node{
+				Name: "node1",
+			},
+			Status: action.ActionDone,
+		},
+		CheckItems: []*action.NodeCheckItem{
+			&action.NodeCheckItem{
+				Name:        "check cpucore",
+				Description: "check cpucore description",
+				Status:      action.ItemActionDone,
+			},
+			&action.NodeCheckItem{
+				Name:        "check memroy",
+				Description: "check memroy description",
+				Status:      action.ItemActionFailed,
+				Err:         memCheckItemError,
+			},
+		},
+	}
+
+	tests := []struct {
+		input     task.Task
+		wantReply *pb.GetCheckNodesResultReply
+		wantError error
+	}{
+		{
+			input: &task.NodeCheckTask{
+				Base: task.Base{
+					Actions: []action.Action{nodeCheckAction},
+					Status:  task.TaskDone,
+					Err:     nil,
+				},
+			},
+			wantReply: &pb.GetCheckNodesResultReply{
+				Status: string(task.TaskDone),
+				Err:    nil,
+				Nodes: []*pb.NodeCheckResult{
+					&pb.NodeCheckResult{
+						NodeName: "node1",
+						Status:   string(action.ActionDone),
+						Err:      nil,
+						Items: []*pb.ItemCheckResult{
+							&pb.ItemCheckResult{
+								Item: &pb.CheckItem{
+									Name:        "check cpucore",
+									Description: "check cpucore description",
+								},
+								Status: action.ItemActionDone,
+								Err:    nil,
+							},
+							&pb.ItemCheckResult{
+								Item: &pb.CheckItem{
+									Name:        "check memroy",
+									Description: "check memroy description",
+								},
+								Status: action.ItemActionFailed,
+								Err:    memCheckItemError,
+							},
+						},
+					},
+				},
+			},
+			wantError: nil,
+		},
+	}
+	c := &controller{}
+	for _, testCase := range tests {
+		reply, err := c.getCheckNodeResult(testCase.input, false)
+		assert.Equal(t, testCase.wantReply, reply)
+		assert.Equal(t, testCase.wantError, err)
+	}
+
 }
