@@ -16,6 +16,8 @@ package task
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -56,8 +58,34 @@ func (p *nodeCheckProcessor) SplitTask(t Task) error {
 		}
 		actions = append(actions, act)
 	}
-	checkTask.Actions = actions
 
+	if checkTask.NetworkOptions == nil {
+		logger.Debugf("skip checking network requirements since networkOptions is empty")
+	} else if len(checkTask.NodeConfigs) > 1 {
+		// split into connectivity check actions
+		numNodes := len(checkTask.NodeConfigs)
+		for i, subConfig := range checkTask.NodeConfigs {
+			randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
+			// choose the index of peer. If index of itself is chosen, use the last node instead.
+			peerIndex := randGen.Intn(numNodes - 1)
+			if peerIndex == i {
+				peerIndex = numNodes - 1
+			}
+			// make a connectivity check action for the pair.
+			act, err := makeConnectivityCheckActionCalico(
+				subConfig.Node, checkTask.NodeConfigs[peerIndex].Node,
+				checkTask.NetworkOptions.CalicoOptions)
+			if err != nil {
+				logger.WithField("node", subConfig.Node.Name).
+					WithField("peer-node", checkTask.NodeConfigs[peerIndex].Node.Name).
+					WithField("error", err.Error()).Warningf("failed to make connectivity check action")
+			} else {
+				actions = append(actions, act)
+			}
+		}
+	}
+
+	checkTask.Actions = actions
 	logrus.Debugf("Finish to split node check task: %d actions", len(actions))
 	return nil
 }
