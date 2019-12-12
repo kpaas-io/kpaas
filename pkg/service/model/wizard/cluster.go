@@ -174,7 +174,10 @@ func (cluster *Cluster) UpdateNode(node *Node) error {
 
 	targetNode.Name = node.Name
 	targetNode.Description = node.Description
-	targetNode.DockerRootDirectory = node.DockerRootDirectory
+	if node.DockerRootDirectory != "" {
+		targetNode.DockerRootDirectory = node.DockerRootDirectory
+	}
+
 	targetNode.MachineRoles = node.MachineRoles
 	targetNode.Labels = node.Labels
 	targetNode.Taints = node.Taints
