@@ -36,6 +36,9 @@ func newNodeInitItem() *NodeInitItem {
 
 // due to items, ItemInitScripts exec remote scripts and return std, report, error
 func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInitItem) (string, *NodeInitItem, error) {
+	logger := logrus.WithFields(logrus.Fields{
+		"error_reason": fmt.Sprintf("failed to run script on node: %v", node.Name),
+	})
 
 	initItemReport = &NodeInitItem{
 		Name:        fmt.Sprintf("init %v", item),
@@ -48,6 +51,8 @@ func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInit
 		initItemReport.Err.Reason = ItemErrEmpty
 		initItemReport.Err.Detail = ItemErrEmpty
 		initItemReport.Err.FixMethods = ItemHelperEmpty
+		logger.Errorf("can not create %v operation", item)
+		return "", initItemReport, fmt.Errorf("can not create %v's operation for node: %v", item, node.Name)
 	}
 
 	op, err := initItem.GetOperations(node)
@@ -56,6 +61,8 @@ func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInit
 		initItemReport.Err.Reason = ItemErrOperation
 		initItemReport.Err.Detail = err.Error()
 		initItemReport.Err.FixMethods = ItemHelperOperation
+		logger.Errorf("can not create operation command for %v", item)
+		return "", initItemReport, fmt.Errorf("can not create operation command %v for node: %v", item, node.Name)
 	}
 
 	stdErr, stdOut, err := op.Do()
@@ -64,6 +71,8 @@ func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInit
 		initItemReport.Err.Reason = ItemErrScript
 		initItemReport.Err.Detail = string(stdErr)
 		initItemReport.Err.FixMethods = ItemHelperScript
+		logger.Errorf("can not execute %v operation", item)
+		return "", initItemReport, fmt.Errorf("can not execute %v operation command on node: %v", item, node.Name)
 	}
 
 	initItemStdOut := string(stdOut)
@@ -87,13 +96,12 @@ func (a *nodeInitExecutor) Execute(act Action) error {
 	initItemReport := newNodeInitItem()
 	initItemReport.Status = ItemActionDoing
 	fireWallStdOut, initItemReport, err := ExecuteInitScript(it.FireWall, nodeInitAction.Node, initItemReport)
-	UpdateInitItems(nodeInitAction, initItemReport)
 	if err != nil {
 		initItemReport.Status = ItemActionFailed
 	}
-
-	logger.Debugf("firewall std out: %v", fireWallStdOut)
 	UpdateInitItems(nodeInitAction, initItemReport)
+
+	logger.Debugf("firewall stdout: %v", fireWallStdOut)
 
 	// TODO Other Init Items
 	// 1. Hostalias
@@ -124,6 +132,7 @@ func UpdateInitItems(initAction *NodeInitAction, report *NodeInitItem) {
 			item.Err = report.Err
 			item.Status = report.Status
 			item.Description = report.Description
+			break
 		}
 	}
 

@@ -35,15 +35,15 @@ type InitAction interface {
 }
 
 const (
-	FireWall   ItemEnum = 0
-	HostAlias  ItemEnum = 1
-	HostName   ItemEnum = 2
-	Network    ItemEnum = 3
-	Route      ItemEnum = 4
-	Swap       ItemEnum = 5
-	TimeZone   ItemEnum = 6
-	Haproxy    ItemEnum = 7
-	Keepalived ItemEnum = 8
+	FireWall ItemEnum = iota
+	HostAlias
+	HostName
+	Network
+	Route
+	Swap
+	TimeZone
+	Haproxy
+	Keepalived
 )
 
 func NewInitOperations() *OperationsGenerator {
