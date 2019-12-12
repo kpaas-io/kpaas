@@ -42,5 +42,5 @@ func TestNewFetchKubeConfigAction(t *testing.T) {
 	assert.IsType(t, &FetchKubeConfigAction{}, act)
 	assert.Equal(t, ActionTypeFetchKubeConfig, act.GetType())
 	assert.Equal(t, ActionPending, act.GetStatus())
-	assert.Equal(t, cfg.Node, act.(*FetchKubeConfigAction).node)
+	assert.Equal(t, cfg.Node, act.(*FetchKubeConfigAction).Node)
 }

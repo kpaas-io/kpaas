@@ -30,8 +30,8 @@ type FetchKubeConfigActionConfig struct {
 }
 
 type FetchKubeConfigAction struct {
-	base
-	node       *pb.Node
+	Base
+
 	KubeConfig []byte
 }
 
@@ -57,13 +57,13 @@ func NewFetchKubeConfigAction(cfg *FetchKubeConfigActionConfig) (Action, error) 
 	}
 
 	return &FetchKubeConfigAction{
-		base: base{
-			name:              actionName,
-			actionType:        ActionTypeFetchKubeConfig,
-			status:            ActionPending,
-			logFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
-			creationTimestamp: time.Now(),
+		Base: Base{
+			Name:              actionName,
+			ActionType:        ActionTypeFetchKubeConfig,
+			Status:            ActionPending,
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			CreationTimestamp: time.Now(),
+			Node:              cfg.Node,
 		},
-		node: cfg.Node,
 	}, nil
 }

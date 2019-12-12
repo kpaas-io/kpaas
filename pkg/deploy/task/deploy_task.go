@@ -31,10 +31,11 @@ type DeployTaskConfig struct {
 	Priority        int
 }
 
-type deployTask struct {
-	base
-	nodeConfigs   []*pb.NodeDeployConfig
-	clusterConfig *pb.ClusterConfig
+type DeployTask struct {
+	Base
+
+	NodeConfigs   []*pb.NodeDeployConfig
+	ClusterConfig *pb.ClusterConfig
 }
 
 // NewDeployTask returns a deploy task based on the config.
@@ -53,17 +54,17 @@ func NewDeployTask(taskName string, taskConfig *DeployTaskConfig) (Task, error) 
 		return nil, err
 	}
 
-	task := &deployTask{
-		base: base{
-			name:              taskName,
-			taskType:          TaskTypeDeploy,
-			status:            TaskPending,
-			logFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
-			creationTimestamp: time.Now(),
-			priority:          taskConfig.Priority,
+	task := &DeployTask{
+		Base: Base{
+			Name:              taskName,
+			TaskType:          TaskTypeDeploy,
+			Status:            TaskPending,
+			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			CreationTimestamp: time.Now(),
+			Priority:          taskConfig.Priority,
 		},
-		nodeConfigs:   taskConfig.NodeConfigs,
-		clusterConfig: taskConfig.ClusterConfig,
+		NodeConfigs:   taskConfig.NodeConfigs,
+		ClusterConfig: taskConfig.ClusterConfig,
 	}
 
 	return task, nil

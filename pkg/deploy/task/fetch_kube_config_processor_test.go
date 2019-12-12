@@ -33,12 +33,12 @@ func TestVerifyTask(t *testing.T) {
 			want: false,
 		},
 		{
-			task: new(nodeCheckTask),
+			task: new(NodeCheckTask),
 			want: false,
 		},
 		{
 			task: &FetchKubeConfigTask{
-				node: new(pb.Node),
+				Node: new(pb.Node),
 			},
 			want: true,
 		},
@@ -86,7 +86,7 @@ func TestProcessExtraResult(t *testing.T) {
 	assert.NoError(t, err)
 	kubeConfigContent := []byte("test content")
 	kubeconfigAct.(*action.FetchKubeConfigAction).KubeConfig = kubeConfigContent
-	kubeConfigTask.(*FetchKubeConfigTask).actions = []action.Action{kubeconfigAct}
+	kubeConfigTask.(*FetchKubeConfigTask).Actions = []action.Action{kubeconfigAct}
 
 	processor := new(fetchKubeConfigProcessor)
 	err = processor.ProcessExtraResult(kubeConfigTask)

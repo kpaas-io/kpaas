@@ -31,10 +31,11 @@ type CheckNetworkRequirementsTaskConfig struct {
 	LogFileBasePath string
 }
 
-type checkNetworkRequirementsTask struct {
-	base
-	nodes          []*pb.Node
-	networkOptions *pb.NetworkOptions
+type CheckNetworkRequirementsTask struct {
+	Base
+
+	Nodes          []*pb.Node
+	NetworkOptions *pb.NetworkOptions
 }
 
 // NewCheckNetworkRequirementsTask create a CheckNetworkRequirements task to check prerequisites of deploying network.
@@ -46,65 +47,65 @@ func NewCheckNetworkRequirementsTask(
 	if len(config.Nodes) == 0 {
 		return nil, fmt.Errorf("Invalid task config: node list empty")
 	}
-	return &checkNetworkRequirementsTask{
-		base: base{
-			name:              name,
-			taskType:          TaskTypeCheckNetworkRequirements,
-			status:            TaskPending,
-			logFilePath:       GenTaskLogFilePath(config.LogFileBasePath, name),
-			creationTimestamp: time.Now(),
+	return &CheckNetworkRequirementsTask{
+		Base: Base{
+			Name:              name,
+			TaskType:          TaskTypeCheckNetworkRequirements,
+			Status:            TaskPending,
+			LogFilePath:       GenTaskLogFilePath(config.LogFileBasePath, name),
+			CreationTimestamp: time.Now(),
 		},
-		nodes:          config.Nodes,
-		networkOptions: config.NetworkOptions,
+		Nodes:          config.Nodes,
+		NetworkOptions: config.NetworkOptions,
 	}, nil
 }
 
 type checkNetworkRequirementsProcessor struct{}
 
 func (p *checkNetworkRequirementsProcessor) SplitTask(task Task) error {
-	checkNetworkRequirementsTask, ok := task.(*checkNetworkRequirementsTask)
+	checkNetworkRequirementsTask, ok := task.(*CheckNetworkRequirementsTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, task)
 	}
 	// set a default network option if not specified.
-	if checkNetworkRequirementsTask.networkOptions == nil {
-		checkNetworkRequirementsTask.networkOptions = &pb.NetworkOptions{
+	if checkNetworkRequirementsTask.NetworkOptions == nil {
+		checkNetworkRequirementsTask.NetworkOptions = &pb.NetworkOptions{
 			NetworkType: string(consts.NetworkTypeCalico),
 		}
 	}
 	var actions []action.Action
-	switch checkNetworkRequirementsTask.networkOptions.NetworkType {
+	switch checkNetworkRequirementsTask.NetworkOptions.NetworkType {
 	case string(consts.NetworkTypeCalico):
 		var err error
-		if checkNetworkRequirementsTask.networkOptions.CalicoOptions == nil {
-			checkNetworkRequirementsTask.networkOptions.CalicoOptions = &pb.CalicoOptions{
+		if checkNetworkRequirementsTask.NetworkOptions.CalicoOptions == nil {
+			checkNetworkRequirementsTask.NetworkOptions.CalicoOptions = &pb.CalicoOptions{
 				CheckConnectivityAll: false,
 				EncapsulationMode:    "vxlan",
 				VxlanPort:            4789,
 			}
 		}
 		actions, err = p.splitActionsCalico(checkNetworkRequirementsTask)
-		checkNetworkRequirementsTask.actions = actions
+		checkNetworkRequirementsTask.Actions = actions
 		if err != nil {
 			return fmt.Errorf("failed to split actions, error %v", err)
 		}
 	default:
 		return fmt.Errorf("unsupported network type: %s",
-			checkNetworkRequirementsTask.networkOptions.NetworkType)
+			checkNetworkRequirementsTask.NetworkOptions.NetworkType)
 	}
 
 	return nil
 }
 
 func (p *checkNetworkRequirementsProcessor) splitActionsCalico(
-	task *checkNetworkRequirementsTask) ([]action.Action, error) {
+	task *CheckNetworkRequirementsTask) ([]action.Action, error) {
 	// randomly choose a "peer" for each node.
-	numNodes := len(task.nodes)
+	numNodes := len(task.Nodes)
 	if numNodes == 1 {
 		return []action.Action{}, nil
 	}
 	actions := []action.Action{}
-	for i, node := range task.nodes {
+	for i, node := range task.Nodes {
 		randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
 		// choose the index of peer. If index of itself is chosen, use the last node instead.
 		peerIndex := randGen.Intn(numNodes - 1)
@@ -113,7 +114,7 @@ func (p *checkNetworkRequirementsProcessor) splitActionsCalico(
 		}
 		cfg := &action.ConnectivityCheckActionConfig{
 			SourceNode:      node,
-			DestinationNode: task.nodes[peerIndex],
+			DestinationNode: task.Nodes[peerIndex],
 			ConnectivityCheckItems: []action.ConnectivityCheckItem{
 				action.ConnectivityCheckItem{
 					Protocol: consts.ProtocolTCP,
@@ -125,7 +126,7 @@ func (p *checkNetworkRequirementsProcessor) splitActionsCalico(
 				},
 				action.ConnectivityCheckItem{
 					Protocol: consts.ProtocolUDP,
-					Port:     uint16(task.networkOptions.CalicoOptions.VxlanPort),
+					Port:     uint16(task.NetworkOptions.CalicoOptions.VxlanPort),
 				},
 			},
 		}
