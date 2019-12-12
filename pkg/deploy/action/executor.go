@@ -25,7 +25,7 @@ import (
 // Executor represents the interface of an action executor.
 // Concrete executors implements the logic of actions.
 type Executor interface {
-	Execute(act Action) error
+	Execute(act Action) error // TODO Lucky Change the error type to protos.Error, this error cannot make nice message to user
 }
 
 // NewExecutor is a simple factory method to return an action executor based on action type.
@@ -38,6 +38,8 @@ func NewExecutor(actionType Type) (Executor, error) {
 		executor = &nodeInitExecutor{}
 	case ActionTypeDeployEtcd:
 		executor = &deployEtcdExecutor{}
+	case ActionTypeDeployWorker:
+		executor = &DeployWorkerExecutor{}
 	case ActionTypeConnectivityCheck:
 		executor = &connectivityCheckExecutor{}
 	default:

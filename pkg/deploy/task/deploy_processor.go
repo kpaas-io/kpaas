@@ -58,7 +58,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy etcd sub tasks with priority = 20
 	if nodes, ok := roles[consts.NodeRoleEtcd]; ok {
-		etcdTask, err := p.createDeploySubTask(consts.NodeRoleEtcd, deployTask.Name, nodes, deployTask.LogFilePath, 20)
+		etcdTask, err := p.createDeploySubTask(consts.NodeRoleEtcd, deployTask, nodes, deployTask.LogFilePath, 20)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy etcd sub tasks: %s", err)
 			logger.Error(err)
@@ -69,7 +69,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy master sub tasks with priority = 30
 	if nodes, ok := roles[consts.NodeRoleMaster]; ok {
-		masterTask, err := p.createDeploySubTask(consts.NodeRoleMaster, deployTask.Name, nodes, deployTask.LogFilePath, 30)
+		masterTask, err := p.createDeploySubTask(consts.NodeRoleMaster, deployTask, nodes, deployTask.LogFilePath, 30)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy master sub tasks: %s", err)
 			logger.Error(err)
@@ -80,7 +80,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy worker sub tasks with priority = 40
 	if nodes, ok := roles[consts.NodeRoleWorker]; ok {
-		workerTask, err := p.createDeploySubTask(consts.NodeRoleWorker, deployTask.Name, nodes, deployTask.LogFilePath, 40)
+		workerTask, err := p.createDeploySubTask(consts.NodeRoleWorker, deployTask, nodes, deployTask.LogFilePath, 40)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy worker sub tasks: %s", err)
 			logger.Error(err)
@@ -91,7 +91,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy ingress sub tasks with priority = 50
 	if nodes, ok := roles[consts.NodeRoleIngress]; ok {
-		ingressTask, err := p.createDeploySubTask(consts.NodeRoleIngress, deployTask.Name, nodes, deployTask.LogFilePath, 50)
+		ingressTask, err := p.createDeploySubTask(consts.NodeRoleIngress, deployTask, nodes, deployTask.LogFilePath, 50)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy ingress sub tasks: %s", err)
 			logger.Error(err)
@@ -124,14 +124,13 @@ func (p *deployProcessor) verifyTask(t Task) (*DeployTask, error) {
 	return deployTask, nil
 }
 
-func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.NodeRole][]*pb.Node {
-	roles := make(map[consts.NodeRole][]*pb.Node)
+func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.NodeRole][]*pb.NodeDeployConfig {
+	roles := make(map[consts.NodeRole][]*pb.NodeDeployConfig)
 	for _, nodeCfg := range cfgs {
 		nodeRoles := nodeCfg.GetRoles()
-		node := nodeCfg.GetNode()
 		for _, role := range nodeRoles {
 			roleName := consts.NodeRole(role)
-			roles[roleName] = append(roles[roleName], node)
+			roles[roleName] = append(roles[roleName], nodeCfg)
 		}
 	}
 	return roles
@@ -142,18 +141,45 @@ func (p *deployProcessor) createInitSubTask(t *DeployTask, logFileBasePath strin
 	return nil, nil
 }
 
-func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, parent string, nodes []*pb.Node, logFileBasePath string, priority int) (Task, error) {
+func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, task *DeployTask, nodes []*pb.NodeDeployConfig, logFileBasePath string, priority int) (Task, error) {
 	switch role {
 	case consts.NodeRoleEtcd:
+
 		config := &DeployEtcdTaskConfig{
-			Nodes:           nodes,
+			Nodes:           p.unwrapNodes(nodes),
 			LogFileBasePath: logFileBasePath,
 			Priority:        priority,
-			Parent:          parent,
+			Parent:          task.Name,
 		}
 		// Use the role name as the task name for now.
 		taskName := string(role)
 		return NewDeployEtcdTask(taskName, config)
+	case consts.NodeRoleWorker:
+
+		config := &DeployWorkerTaskConfig{
+			Nodes:           nodes,
+			ClusterConfig:   task.ClusterConfig,
+			LogFileBasePath: logFileBasePath,
+			Priority:        priority,
+			Parent:          task.Name,
+		}
+
+		// Use the role name as the task name for now.
+		taskName := string(role)
+		return NewDeployWorkerTask(taskName, config)
 	}
 	return nil, nil
+}
+
+func (p deployProcessor) unwrapNode(config *pb.NodeDeployConfig) *pb.Node {
+	return config.GetNode()
+}
+
+func (p deployProcessor) unwrapNodes(nodeConfigs []*pb.NodeDeployConfig) []*pb.Node {
+
+	nodes := make([]*pb.Node, 0, len(nodeConfigs))
+	for _, nodeConfig := range nodeConfigs {
+		nodes = append(nodes, p.unwrapNode(nodeConfig))
+	}
+	return nodes
 }

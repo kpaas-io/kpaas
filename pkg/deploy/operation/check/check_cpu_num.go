@@ -58,7 +58,7 @@ func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (opera
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript()))
 	return ops, nil
 }
 

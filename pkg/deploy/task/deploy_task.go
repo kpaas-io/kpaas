@@ -23,20 +23,22 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-// DeployTaskConfig represents the config for a deploy task.
-type DeployTaskConfig struct {
-	NodeConfigs     []*pb.NodeDeployConfig
-	ClusterConfig   *pb.ClusterConfig
-	LogFileBasePath string
-	Priority        int
-}
+type (
+	// DeployTaskConfig represents the config for a deploy task.
+	DeployTaskConfig struct {
+		NodeConfigs     []*pb.NodeDeployConfig
+		ClusterConfig   *pb.ClusterConfig
+		LogFileBasePath string
+		Priority        int
+	}
 
-type DeployTask struct {
-	Base
+	DeployTask struct {
+		Base
 
-	NodeConfigs   []*pb.NodeDeployConfig
-	ClusterConfig *pb.ClusterConfig
-}
+		NodeConfigs   []*pb.NodeDeployConfig
+		ClusterConfig *pb.ClusterConfig
+	}
+)
 
 // NewDeployTask returns a deploy task based on the config.
 // User should use this function to create a deploy task.

@@ -53,6 +53,8 @@ func NewProcessor(taskType Type) (Processor, error) {
 		processor = &fetchKubeConfigProcessor{}
 	case TaskTypeDeployEtcd:
 		processor = &deployEtcdProcessor{}
+	case TaskTypeDeployWorker:
+		processor = &DeployWorkerProcessor{}
 	case TaskTypeCheckNetworkRequirements:
 		processor = &checkNetworkRequirementsProcessor{}
 	default:
