@@ -22,22 +22,20 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type (
-	AppendTaintConfig struct {
-		Machine *deployMachine.Machine
-		Logger  *logrus.Entry
-		Node    *pb.NodeDeployConfig
-		Cluster *pb.ClusterConfig
-	}
+type AppendTaintConfig struct {
+	Machine *deployMachine.Machine
+	Logger  *logrus.Entry
+	Node    *pb.NodeDeployConfig
+	Cluster *pb.ClusterConfig
+}
 
-	AppendTaint struct {
-		operation.BaseOperation
-		logger  *logrus.Entry
-		node    *pb.NodeDeployConfig
-		cluster *pb.ClusterConfig
-		machine *deployMachine.Machine
-	}
-)
+type AppendTaint struct {
+	operation.BaseOperation
+	logger  *logrus.Entry
+	node    *pb.NodeDeployConfig
+	cluster *pb.ClusterConfig
+	machine *deployMachine.Machine
+}
 
 func NewAppendTaint(config *AppendTaintConfig) *AppendTaint {
 	return &AppendTaint{

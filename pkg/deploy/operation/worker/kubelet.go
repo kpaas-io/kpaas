@@ -27,22 +27,21 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type (
-	InstallKubeletConfig struct {
-		Machine *deployMachine.Machine
-		Logger  *logrus.Entry
-		Node    *pb.NodeDeployConfig
-		Cluster *pb.ClusterConfig
-	}
-	InstallKubelet struct {
-		operation.BaseOperation
-		logger      *logrus.Entry
-		node        *pb.NodeDeployConfig
-		cluster     *pb.ClusterConfig
-		machine     *deployMachine.Machine
-		isInstalled bool
-	}
-)
+type InstallKubeletConfig struct {
+	Machine *deployMachine.Machine
+	Logger  *logrus.Entry
+	Node    *pb.NodeDeployConfig
+	Cluster *pb.ClusterConfig
+}
+
+type InstallKubelet struct {
+	operation.BaseOperation
+	logger      *logrus.Entry
+	node        *pb.NodeDeployConfig
+	cluster     *pb.ClusterConfig
+	machine     *deployMachine.Machine
+	isInstalled bool
+}
 
 func NewInstallKubelet(config *InstallKubeletConfig) *InstallKubelet {
 	return &InstallKubelet{

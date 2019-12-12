@@ -21,18 +21,16 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type (
-	DeployWorkerActionConfig struct {
-		Node            *pb.NodeDeployConfig
-		ClusterConfig   *pb.ClusterConfig
-		LogFileBasePath string
-	}
+type DeployWorkerActionConfig struct {
+	Node            *pb.NodeDeployConfig
+	ClusterConfig   *pb.ClusterConfig
+	LogFileBasePath string
+}
 
-	DeployWorkerAction struct {
-		Base
-		config *DeployWorkerActionConfig
-	}
-)
+type DeployWorkerAction struct {
+	Base
+	config *DeployWorkerActionConfig
+}
 
 func NewDeployWorkerAction(config *DeployWorkerActionConfig) (Action, error) {
 

@@ -22,23 +22,21 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type (
-	AppendLabelConfig struct {
-		Machine *deployMachine.Machine
-		Logger  *logrus.Entry
-		Node    *pb.NodeDeployConfig
-		Cluster *pb.ClusterConfig
-	}
+type AppendLabelConfig struct {
+	Machine *deployMachine.Machine
+	Logger  *logrus.Entry
+	Node    *pb.NodeDeployConfig
+	Cluster *pb.ClusterConfig
+}
 
-	AppendLabel struct {
-		operation.BaseOperation
-		logger  *logrus.Entry
-		node    *pb.NodeDeployConfig
-		cluster *pb.ClusterConfig
-		machine *deployMachine.Machine
-		labels  map[string]string
-	}
-)
+type AppendLabel struct {
+	operation.BaseOperation
+	logger  *logrus.Entry
+	node    *pb.NodeDeployConfig
+	cluster *pb.ClusterConfig
+	machine *deployMachine.Machine
+	labels  map[string]string
+}
 
 func NewAppendLabel(config *AppendLabelConfig) *AppendLabel {
 	return &AppendLabel{

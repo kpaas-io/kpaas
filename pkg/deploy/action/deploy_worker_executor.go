@@ -25,13 +25,11 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type (
-	DeployWorkerExecutor struct {
-		logger  *logrus.Entry
-		machine *deployMachine.Machine
-		action  *DeployWorkerAction
-	}
-)
+type DeployWorkerExecutor struct {
+	logger  *logrus.Entry
+	machine *deployMachine.Machine
+	action  *DeployWorkerAction
+}
 
 func (executor *DeployWorkerExecutor) Execute(act Action) error {
 

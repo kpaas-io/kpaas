@@ -20,14 +20,12 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 )
 
-type (
-	// ShellCommand is a command execute by shell
-	ShellCommand struct {
-		machine *machine.Machine
-		cmd     string
-		args    []string
-	}
-)
+// ShellCommand is a command execute by shell
+type ShellCommand struct {
+	machine *machine.Machine
+	cmd     string
+	args    []string
+}
 
 func NewShellCommand(machine *machine.Machine, cmd string, args ...string) *ShellCommand {
 	return &ShellCommand{

@@ -22,22 +22,20 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type (
-	AppendAnnotationConfig struct {
-		Machine *deployMachine.Machine
-		Logger  *logrus.Entry
-		Node    *pb.NodeDeployConfig
-		Cluster *pb.ClusterConfig
-	}
+type AppendAnnotationConfig struct {
+	Machine *deployMachine.Machine
+	Logger  *logrus.Entry
+	Node    *pb.NodeDeployConfig
+	Cluster *pb.ClusterConfig
+}
 
-	AppendAnnotation struct {
-		operation.BaseOperation
-		logger  *logrus.Entry
-		node    *pb.NodeDeployConfig
-		cluster *pb.ClusterConfig
-		machine *deployMachine.Machine
-	}
-)
+type AppendAnnotation struct {
+	operation.BaseOperation
+	logger  *logrus.Entry
+	node    *pb.NodeDeployConfig
+	cluster *pb.ClusterConfig
+	machine *deployMachine.Machine
+}
 
 func NewAppendAnnotation(config *AppendAnnotationConfig) *AppendAnnotation {
 	return &AppendAnnotation{

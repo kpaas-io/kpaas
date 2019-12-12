@@ -22,22 +22,20 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type (
-	JoinClusterConfig struct {
-		Machine *deployMachine.Machine
-		Logger  *logrus.Entry
-		Node    *pb.NodeDeployConfig
-		Cluster *pb.ClusterConfig
-	}
+type JoinClusterConfig struct {
+	Machine *deployMachine.Machine
+	Logger  *logrus.Entry
+	Node    *pb.NodeDeployConfig
+	Cluster *pb.ClusterConfig
+}
 
-	JoinCluster struct {
-		operation.BaseOperation
-		logger  *logrus.Entry
-		node    *pb.NodeDeployConfig
-		cluster *pb.ClusterConfig
-		machine *deployMachine.Machine
-	}
-)
+type JoinCluster struct {
+	operation.BaseOperation
+	logger  *logrus.Entry
+	node    *pb.NodeDeployConfig
+	cluster *pb.ClusterConfig
+	machine *deployMachine.Machine
+}
 
 func NewJoinCluster(config *JoinClusterConfig) *JoinCluster {
 	return &JoinCluster{
