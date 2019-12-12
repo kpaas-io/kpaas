@@ -26,44 +26,44 @@ import (
 
 type nodeInitExecutor struct{}
 
-func newNodeInitItem() *nodeInitItem {
+func newNodeInitItem() *NodeInitItem {
 
-	return &nodeInitItem{
-		status: ItemActionPending,
-		err:    &pb.Error{},
+	return &NodeInitItem{
+		Status: ItemActionPending,
+		Err:    &pb.Error{},
 	}
 }
 
 // due to items, ItemInitScripts exec remote scripts and return std, report, error
-func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *nodeInitItem) (string, *nodeInitItem, error) {
+func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInitItem) (string, *NodeInitItem, error) {
 
-	initItemReport = &nodeInitItem{
-		name:        fmt.Sprintf("init %v", item),
-		description: fmt.Sprintf("init %v", item),
+	initItemReport = &NodeInitItem{
+		Name:        fmt.Sprintf("init %v", item),
+		Description: fmt.Sprintf("init %v", item),
 	}
 
 	initItem := it.NewInitOperations().CreateOperations(item)
 	if initItem == nil {
-		initItemReport.status = ItemActionFailed
-		initItemReport.err.Reason = ItemErrEmpty
-		initItemReport.err.Detail = ItemErrEmpty
-		initItemReport.err.FixMethods = ItemHelperEmpty
+		initItemReport.Status = ItemActionFailed
+		initItemReport.Err.Reason = ItemErrEmpty
+		initItemReport.Err.Detail = ItemErrEmpty
+		initItemReport.Err.FixMethods = ItemHelperEmpty
 	}
 
 	op, err := initItem.GetOperations(node)
 	if err != nil {
-		initItemReport.status = ItemActionFailed
-		initItemReport.err.Reason = ItemErrOperation
-		initItemReport.err.Detail = err.Error()
-		initItemReport.err.FixMethods = ItemHelperOperation
+		initItemReport.Status = ItemActionFailed
+		initItemReport.Err.Reason = ItemErrOperation
+		initItemReport.Err.Detail = err.Error()
+		initItemReport.Err.FixMethods = ItemHelperOperation
 	}
 
 	stdErr, stdOut, err := op.Do()
 	if err != nil {
-		initItemReport.status = ItemActionFailed
-		initItemReport.err.Reason = ItemErrScript
-		initItemReport.err.Detail = string(stdErr)
-		initItemReport.err.FixMethods = ItemHelperScript
+		initItemReport.Status = ItemActionFailed
+		initItemReport.Err.Reason = ItemErrScript
+		initItemReport.Err.Detail = string(stdErr)
+		initItemReport.Err.FixMethods = ItemHelperScript
 	}
 
 	initItemStdOut := string(stdOut)
@@ -71,7 +71,7 @@ func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *nodeInit
 }
 
 func (a *nodeInitExecutor) Execute(act Action) error {
-	nodeInitAction, ok := act.(*nodeInitAction)
+	nodeInitAction, ok := act.(*NodeInitAction)
 	if !ok {
 		return fmt.Errorf("the action type is not match: should be node init action, but is %T", act)
 	}
@@ -85,11 +85,11 @@ func (a *nodeInitExecutor) Execute(act Action) error {
 	// init sample
 	// close firewall
 	initItemReport := newNodeInitItem()
-	initItemReport.status = ItemActionDoing
-	fireWallStdOut, initItemReport, err := ExecuteInitScript(it.FireWall, nodeInitAction.node, initItemReport)
+	initItemReport.Status = ItemActionDoing
+	fireWallStdOut, initItemReport, err := ExecuteInitScript(it.FireWall, nodeInitAction.Node, initItemReport)
 	UpdateInitItems(nodeInitAction, initItemReport)
 	if err != nil {
-		initItemReport.status = ItemActionFailed
+		initItemReport.Status = ItemActionFailed
 	}
 
 	logger.Debugf("firewall std out: %v", fireWallStdOut)
@@ -105,29 +105,29 @@ func (a *nodeInitExecutor) Execute(act Action) error {
 	// 7. Haproxy
 	// 8. Keepalived
 
-	nodeInitAction.status = ActionDone
+	nodeInitAction.Status = ActionDone
 	logger.Debug("Finish to execute node init action")
 	return nil
 }
 
 // update init items with matching name
-func UpdateInitItems(initAction *nodeInitAction, report *nodeInitItem) {
+func UpdateInitItems(initAction *NodeInitAction, report *NodeInitItem) {
 
 	initAction.Lock()
 	defer initAction.Unlock()
 
 	updatedFlag := false
 
-	for _, item := range initAction.initItems {
-		if item.name == report.name {
+	for _, item := range initAction.InitItems {
+		if item.Name == report.Name {
 			updatedFlag = true
-			item.err = report.err
-			item.status = report.status
-			item.description = report.description
+			item.Err = report.Err
+			item.Status = report.Status
+			item.Description = report.Description
 		}
 	}
 
 	if updatedFlag == false {
-		initAction.initItems = append(initAction.initItems, report)
+		initAction.InitItems = append(initAction.InitItems, report)
 	}
 }

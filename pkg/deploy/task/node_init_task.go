@@ -31,9 +31,9 @@ type NodeInitTaskConfig struct {
 	Parent          string
 }
 
-type nodeInitTask struct {
-	base
-	nodes []*pb.Node
+type NodeInitTask struct {
+	Base
+	Nodes []*pb.Node
 }
 
 // NewNodeInitTask returns a node init task based on the config.
@@ -51,17 +51,17 @@ func NewNodeInitTask(taskName string, taskConfig *NodeInitTaskConfig) (Task, err
 		return nil, err
 	}
 
-	task := &nodeInitTask{
-		base: base{
-			name:              taskName,
-			taskType:          TaskTypeNodeInit,
-			status:            TaskPending,
-			logFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
-			creationTimestamp: time.Now(),
-			priority:          taskConfig.Priority,
-			parent:            taskConfig.Parent,
+	task := &NodeInitTask{
+		Base: Base{
+			Name:              taskName,
+			TaskType:          TaskTypeNodeInit,
+			Status:            TaskPending,
+			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			CreationTimestamp: time.Now(),
+			Priority:          taskConfig.Priority,
+			Parent:            taskConfig.Parent,
 		},
-		nodes: taskConfig.Nodes,
+		Nodes: taskConfig.Nodes,
 	}
 
 	return task, nil

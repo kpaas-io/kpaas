@@ -24,10 +24,10 @@ import (
 )
 
 // nodeInitProcessor implements the specific logic to init nodes
-type nodeInitProcessor struct{}
+type NodeInitProcessor struct{}
 
 // Spilt the task into one or more node init actions
-func (p *nodeInitProcessor) SplitTask(t Task) error {
+func (p *NodeInitProcessor) SplitTask(t Task) error {
 	if err := p.verifyTask(t); err != nil {
 		logrus.Errorf("invalid task: %s", err)
 		return err
@@ -39,15 +39,15 @@ func (p *nodeInitProcessor) SplitTask(t Task) error {
 
 	logger.Debug("Start to split node init task")
 
-	initTask := t.(*nodeInitTask)
+	initTask := t.(*NodeInitTask)
 
 	// split task into actions: will create a action for every node, the action type
 	// is NodeInitAction
-	actions := make([]action.Action, 0, len(initTask.nodes))
-	for _, node := range initTask.nodes {
+	actions := make([]action.Action, 0, len(initTask.Nodes))
+	for _, node := range initTask.Nodes {
 		actionCfg := &action.NodeInitActionConfig{
 			Node:            node,
-			LogFileBasePath: initTask.logFilePath,
+			LogFileBasePath: initTask.LogFilePath,
 		}
 		act, err := action.NewNodeInitAction(actionCfg)
 		if err != nil {
@@ -55,24 +55,24 @@ func (p *nodeInitProcessor) SplitTask(t Task) error {
 		}
 		actions = append(actions, act)
 	}
-	initTask.actions = actions
+	initTask.Actions = actions
 
 	logrus.Debugf("Finish to split node init task: %d actions", len(actions))
 	return nil
 }
 
 // Verify if the task is valid
-func (p *nodeInitProcessor) verifyTask(t Task) error {
+func (p *NodeInitProcessor) verifyTask(t Task) error {
 	if t == nil {
 		return consts.ErrEmptyTask
 	}
 
-	nodeInitTask, ok := t.(*nodeInitTask)
+	nodeInitTask, ok := t.(*NodeInitTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if len(nodeInitTask.nodes) == 0 {
+	if len(nodeInitTask.Nodes) == 0 {
 		return fmt.Errorf("nodes is empty")
 	}
 

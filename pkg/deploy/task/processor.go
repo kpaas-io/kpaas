@@ -62,7 +62,7 @@ func NewProcessor(taskType Type) (Processor, error) {
 	return processor, nil
 }
 
-// StartTask does a basic verifyication on the task,
+// StartTask does a basic verification on the task,
 // then starts the task's execution and return immediately
 func StartTask(t Task) error {
 	if err := verifyTask(t); err != nil {

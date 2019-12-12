@@ -37,20 +37,21 @@ type NodeInitActionConfig struct {
 	LogFileBasePath string
 }
 
-type nodeInitAction struct {
-	base
-	node      *pb.Node
-	initItems []*nodeInitItem
+type NodeInitAction struct {
+	Base
 	sync.RWMutex
+
+	Node      *pb.Node
+	InitItems []*NodeInitItem
 }
 
-type nodeInitItemStatus string
+type NodeInitItemStatus string
 
-type nodeInitItem struct {
-	name        string
-	description string
-	status      nodeInitItemStatus
-	err         *pb.Error
+type NodeInitItem struct {
+	Name        string
+	Description string
+	Status      NodeInitItemStatus
+	Err         *pb.Error
 }
 
 // NewNodeInitAction returns a node init action based on the config.
@@ -69,15 +70,15 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 	}
 
 	actionName := getNodeInitActionName(cfg)
-	return &nodeInitAction{
-		base: base{
-			name:              actionName,
-			actionType:        ActionTypeNodeInit,
-			status:            ActionPending,
-			logFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
-			creationTimestamp: time.Now(),
+	return &NodeInitAction{
+		Base: Base{
+			Name:              actionName,
+			ActionType:        ActionTypeNodeInit,
+			Status:            ActionPending,
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			CreationTimestamp: time.Now(),
 		},
-		node: cfg.Node,
+		Node: cfg.Node,
 	}, nil
 }
 
