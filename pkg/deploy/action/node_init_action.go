@@ -24,39 +24,44 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-// NodeCheckActionConfig represents the config for a node check action
-type NodeCheckActionConfig struct {
-	NodeCheckConfig *pb.NodeCheckConfig
+const (
+	nodeInitItemPending = "pending"
+	nodeInitItemDoing   = "doing"
+	nodeInitItemDone    = "done"
+	nodeInitItemFailed  = "failed"
+)
+
+// NodeInitActionConfig represents the config for a node init action
+type NodeInitActionConfig struct {
+	Node            *pb.Node
 	LogFileBasePath string
 }
 
-type NodeCheckAction struct {
+type NodeInitAction struct {
 	Base
 	sync.RWMutex
 
-	NodeCheckConfig *pb.NodeCheckConfig
-	CheckItems      []*NodeCheckItem
+	Node      *pb.Node
+	InitItems []*NodeInitItem
 }
 
-type NodeCheckItemStatus string
+type NodeInitItemStatus string
 
-type NodeCheckItem struct {
+type NodeInitItem struct {
 	Name        string
 	Description string
-	Status      NodeCheckItemStatus
+	Status      NodeInitItemStatus
 	Err         *pb.Error
 }
 
-// NewNodeCheckAction returns a node check action based on the config.
-// User should use this function to create a node check action.
-func NewNodeCheckAction(cfg *NodeCheckActionConfig) (Action, error) {
+// NewNodeInitAction returns a node init action based on the config.
+// User should use this function to create a node init action.
+func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 	var err error
 	if cfg == nil {
 		err = fmt.Errorf("action config is nil")
-	} else if cfg.NodeCheckConfig == nil {
-		err = fmt.Errorf("Invalid config: node check config is nil")
-	} else if cfg.NodeCheckConfig.Node == nil {
-		err = fmt.Errorf("Invalid node check config: node is nil")
+	} else if cfg.Node == nil {
+		err = fmt.Errorf("invalid config: node is nil")
 	}
 
 	if err != nil {
@@ -64,20 +69,20 @@ func NewNodeCheckAction(cfg *NodeCheckActionConfig) (Action, error) {
 		return nil, err
 	}
 
-	actionName := getNodeCheckActionName(cfg)
-	return &NodeCheckAction{
+	actionName := getNodeInitActionName(cfg)
+	return &NodeInitAction{
 		Base: Base{
 			Name:              actionName,
-			ActionType:        ActionTypeNodeCheck,
+			ActionType:        ActionTypeNodeInit,
 			Status:            ActionPending,
 			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
 			CreationTimestamp: time.Now(),
 		},
-		NodeCheckConfig: cfg.NodeCheckConfig,
+		Node: cfg.Node,
 	}, nil
 }
 
-func getNodeCheckActionName(cfg *NodeCheckActionConfig) string {
-	// now we used the node name as the the action name, this may be changed in the future.
-	return cfg.NodeCheckConfig.Node.GetName()
+// return node name as the action name, temporarily
+func getNodeInitActionName(cfg *NodeInitActionConfig) string {
+	return cfg.Node.GetName()
 }

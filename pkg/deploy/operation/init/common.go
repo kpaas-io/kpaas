@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package check
+package init
 
 import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -23,47 +23,54 @@ type ItemEnum int
 
 type OperationsGenerator struct{}
 
-type CheckOperations struct {
+type InitOperations struct {
 	Script     string
 	ScriptPath string
 }
 
-type CheckAction interface {
-	GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error)
+type InitAction interface {
+	GetOperations(config *pb.Node) (operation.Operation, error)
 	getScript() string
 	getScriptPath() string
 }
 
 const (
-	Docker ItemEnum = iota
-	CPU
-	Kernel
-	Memory
-	Disk
-	Distribution
-	SystemPreference
+	FireWall ItemEnum = iota
+	HostAlias
+	HostName
+	Network
+	Route
+	Swap
+	TimeZone
+	Haproxy
+	Keepalived
 )
 
-func NewCheckOperations() *OperationsGenerator {
+func NewInitOperations() *OperationsGenerator {
 	return &OperationsGenerator{}
 }
 
-func (og *OperationsGenerator) CreateOperations(item ItemEnum) CheckAction {
+func (og *OperationsGenerator) CreateOperations(item ItemEnum) InitAction {
 	switch item {
-	case Docker:
-		return &CheckDockerOperation{}
-	case CPU:
-		return &CheckCPUOperation{}
-	case Kernel:
-		return &CheckKernelOperation{}
-	case Memory:
-		return &CheckMemoryOperation{}
-	case Disk:
-		return &CheckRootDiskOperation{}
-	case Distribution:
-		return &CheckDistributionOperation{}
-	case SystemPreference:
-		return &CheckSysPrefOperation{}
+	case FireWall:
+		return &InitFireWallOperation{}
+	//case HostAlias:
+	//	return &InitHostAliasOperation{}
+	//case HostName:
+	//	return &InitHostNameOperation{}
+	//case Network:
+	//	return &InitNetworkOperation{}
+	//case Route:
+	//	return &InitRoutOperation{}
+	//case Swap:
+	//	return &InitSwapOperation{}
+	//case TimeZone:
+	//	return &InitTimeZoneOperation{}
+	//case Haproxy:
+	//	return &InitHaproxyOperation{}
+	//case Keepalived:
+	//	return &InitKeepalivedOperation{}
+	// TODO setup.sh for init kubeadm kubectl kubelet @yangruiray
 	default:
 		return nil
 	}

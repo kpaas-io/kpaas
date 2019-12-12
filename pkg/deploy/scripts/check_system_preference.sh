@@ -37,7 +37,6 @@ function check_sysctl {
 	return 0
 }
 
-
 err=""
 newline=$'\n'
 
@@ -58,24 +57,6 @@ if [ ${all_forwarding_ok} -ne 0 ]; then
 	echo "net.ipv4.conf.all.forwarding not opened"
 	err="${err}${newline}net.ipv4.conf.all.forwarding not opened"
 fi
-
-# check proxy_arp and forwarding of cali* interfaces
-cali_interfaces=$(ifconfig | grep ^cali | awk '{print $1}')
-for interface in ${cali_interfaces}; do
-	echo "check configuration of interface ${interface}..."
-	check_sysctl "net.ipv4.conf.${interface}.proxy_arp" 1
-	proxy_arp_ok=$?
-	if [ ${proxy_arp_ok} -ne 0 ]; then
-		echo "error: proxy_arp of interface ${interface} is not opened"
-		err="${err}${newline}proxy_arp of interface ${interface} is not opened"
-	fi
-	check_sysctl "net.ipv4.conf.${interface}.forwarding" 1
-	forwarding_ok=$?
-	if [ ${forwarding_ok} -ne 0 ] ;then
-		echo "error: forwarding of interface ${interface} is not opened"
-		err="${err}${newline}forwarding of interface ${interface} is not opened"
-	fi
-done
 
 if [ "${err}" == "" ]; then
 	echo "sysctl check OK"

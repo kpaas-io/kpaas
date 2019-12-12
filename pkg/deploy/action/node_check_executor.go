@@ -55,189 +55,232 @@ type nodeCheckExecutor struct {
 }
 
 // due to items, ItemsCheckScripts exec remote scripts and return std, report, error
-func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkItemReport *nodeCheckItem) (string, *nodeCheckItem, error) {
+func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkItemReport *NodeCheckItem) (string, *NodeCheckItem, error) {
 
-	checkItemReport = &nodeCheckItem{
-		name:        fmt.Sprintf("%v check", item),
-		description: fmt.Sprintf("%v check", item),
+	checkItemReport = &NodeCheckItem{
+		Name:        fmt.Sprintf("%v check", item),
+		Description: fmt.Sprintf("%v check", item),
 	}
 
+	// create item operation
 	checkItems := check.NewCheckOperations().CreateOperations(item)
 	if checkItems == nil {
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.Reason = ItemErrEmpty
-		checkItemReport.err.Detail = ItemErrEmpty
-		checkItemReport.err.FixMethods = ItemHelperEmpty
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.Reason = ItemErrEmpty
+		checkItemReport.Err.Detail = ItemErrEmpty
+		checkItemReport.Err.FixMethods = ItemHelperEmpty
 	}
 
+	// create operation commands for specific item
 	op, err := checkItems.GetOperations(config)
 	if err != nil {
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.Reason = ItemErrOperation
-		checkItemReport.err.Detail = err.Error()
-		checkItemReport.err.FixMethods = ItemHelperOperation
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.Reason = ItemErrOperation
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Err.FixMethods = ItemHelperOperation
 	}
 
+	// exec operations commands
 	stdErr, stdOut, err := op.Do()
 	if err != nil {
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.Reason = ItemErrScript
-		checkItemReport.err.Detail = string(stdErr)
-		checkItemReport.err.FixMethods = ItemHelperScript
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.Reason = ItemErrScript
+		checkItemReport.Err.Detail = string(stdErr)
+		checkItemReport.Err.FixMethods = ItemHelperScript
 	}
 
 	checkItemStdOut := string(stdOut)
 	return checkItemStdOut, checkItemReport, nil
 }
 
+func newNodeCheckItem() *NodeCheckItem {
+
+	return &NodeCheckItem{
+		Status: ItemActionPending,
+		Err:    &pb.Error{},
+	}
+}
+
+// goroutine as executor for check docker
 func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
-	checkItemReport.status = ItemActionDoing
+	checkItemReport.Status = ItemActionDoing
 	comparedDockerVersion, checkItemReport, err := ExecuteCheckScript(check.Docker, ncAction.NodeCheckConfig, checkItemReport)
-	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
-		checkItemReport.status = ItemActionFailed
+		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
 	if err != nil {
-		checkItemReport.err.Reason = "docker version too low"
-		checkItemReport.err.Detail = err.Error()
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.FixMethods = fmt.Sprintf("please upgrade docker version to %v+", desiredDockerVersion)
+		checkItemReport.Err.Reason = "docker version too low"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please upgrade docker version to %v+", desiredDockerVersion)
 	} else {
-		checkItemReport.status = ItemActionDone
+		checkItemReport.Status = ItemActionDone
 	}
-	UpdateCheckItems(ncAction, checkItemReport)
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
 
 	wg.Done()
 }
 
-func newNodeCheckItem() *nodeCheckItem {
-
-	return &nodeCheckItem{
-		status: ItemActionPending,
-		err:    &pb.Error{},
-	}
-}
-
+// goroutine as executor for check CPU
 func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
-	checkItemReport.status = ItemActionDoing
+	checkItemReport.Status = ItemActionDoing
 	cpuCore, checkItemReport, err := ExecuteCheckScript(check.CPU, ncAction.NodeCheckConfig, checkItemReport)
-	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
-		checkItemReport.status = ItemActionFailed
+		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckCPUNums(cpuCore, desiredCPUCore)
 	if err != nil {
-		checkItemReport.err.Reason = "cpu cores not enough"
-		checkItemReport.err.Detail = err.Error()
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.FixMethods = fmt.Sprintf("please optimize cpu cores to %v", desiredCPUCore)
+		checkItemReport.Err.Reason = "cpu cores not enough"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize cpu cores to %v", desiredCPUCore)
 	} else {
-		checkItemReport.status = ItemActionDone
+		checkItemReport.Status = ItemActionDone
 	}
-	UpdateCheckItems(ncAction, checkItemReport)
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
 
 	wg.Done()
 }
 
+// goroutine as executor for check kernel
 func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
-	checkItemReport.status = ItemActionDoing
+	checkItemReport.Status = ItemActionDoing
 	kernelVersion, checkItemReport, err := ExecuteCheckScript(check.Kernel, ncAction.NodeCheckConfig, checkItemReport)
-	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
-		checkItemReport.status = ItemActionFailed
+		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
 	if err != nil {
-		checkItemReport.err.Reason = "kernel version too low"
-		checkItemReport.err.Detail = err.Error()
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.FixMethods = fmt.Sprintf("please optimize kernel version to %v", desiredKernelVersion)
+		checkItemReport.Err.Reason = "kernel version too low"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize kernel version to %v", desiredKernelVersion)
 	} else {
-		checkItemReport.status = ItemActionDone
+		checkItemReport.Status = ItemActionDone
 	}
-	UpdateCheckItems(ncAction, checkItemReport)
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
 
 	wg.Done()
 }
 
+// goroutine as executor for check memory
 func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
-	checkItemReport.status = ItemActionDoing
+	checkItemReport.Status = ItemActionDoing
 	memoryCap, checkItemReport, err := ExecuteCheckScript(check.Memory, ncAction.NodeCheckConfig, checkItemReport)
-	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
-		checkItemReport.status = ItemActionFailed
+		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckMemoryCapacity(memoryCap, desiredMemory)
 	if err != nil {
-		checkItemReport.err.Reason = "memory capacity not enough"
-		checkItemReport.err.Detail = err.Error()
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.FixMethods = fmt.Sprintf("please optimize memory capacity to %v", desiredMemory)
+		checkItemReport.Err.Reason = "memory capacity not enough"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize memory capacity to %v", desiredMemory)
 	} else {
-		checkItemReport.status = ItemActionDone
+		checkItemReport.Status = ItemActionDone
 	}
-	UpdateCheckItems(ncAction, checkItemReport)
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
 
 	wg.Done()
 }
 
+// goroutine as executor for check disk
 func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
-	checkItemReport.status = ItemActionDoing
+	checkItemReport.Status = ItemActionDoing
 	rootDiskVolume, checkItemReport, err := ExecuteCheckScript(check.Disk, ncAction.NodeCheckConfig, checkItemReport)
-	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
-		checkItemReport.status = ItemActionFailed
+		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
 	if err != nil {
-		checkItemReport.err.Reason = "root disk volume is not enough"
-		checkItemReport.err.Detail = err.Error()
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.FixMethods = fmt.Sprintf("please optimize root disk volume to %v", desiredRootDiskVolume)
+		checkItemReport.Err.Reason = "root disk volume is not enough"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize root disk volume to %v", desiredRootDiskVolume)
 	} else {
-		checkItemReport.status = ItemActionDone
+		checkItemReport.Status = ItemActionDone
 	}
-	UpdateCheckItems(ncAction, checkItemReport)
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
 
 	wg.Done()
 }
 
+// goroutine as executor for check distribution
 func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
-	checkItemReport.status = ItemActionDoing
+	checkItemReport.Status = ItemActionDoing
 	disName, checkItemReport, err := ExecuteCheckScript(check.Distribution, ncAction.NodeCheckConfig, checkItemReport)
-	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
-		checkItemReport.status = ItemActionFailed
+		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckSystemDistribution(disName)
 	if err != nil {
-		checkItemReport.err.Reason = "system distribution is not supported"
-		checkItemReport.err.Detail = err.Error()
-		checkItemReport.status = ItemActionFailed
-		checkItemReport.err.FixMethods = fmt.Sprintf("please change suitable distribution to %v", systemDistributions)
+		checkItemReport.Err.Reason = "system distribution is not supported"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please change suitable distribution to %v", systemDistributions)
 	} else {
-		checkItemReport.status = ItemActionDone
+		checkItemReport.Status = ItemActionDone
 	}
-	UpdateCheckItems(ncAction, checkItemReport)
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
+
+	wg.Done()
+}
+
+// goroutine as executor for check system preference
+func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.Status = ItemActionDoing
+	_, checkItemReport, err := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport)
+	if err != nil {
+		checkItemReport.Err.Reason = "system preference is not supported"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.FixMethods = fmt.Sprint("please modify system preference")
+	} else {
+		checkItemReport.Status = ItemActionDone
+	}
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
 
 	wg.Done()
 }
@@ -256,39 +299,18 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 
 	logger.Debug("Start to execute node check action")
 
-	// check docker, CPU, kernel, memory, disk, distribution
-	wg.Add(6)
+	// check docker, CPU, kernel, memory, disk, distribution, system preference
+	wg.Add(7)
 	go CheckDockerExecutor(nodeCheckAction, &wg)
 	go CheckCPUExecutor(nodeCheckAction, &wg)
 	go CheckKernelExecutor(nodeCheckAction, &wg)
 	go CheckMemoryExecutor(nodeCheckAction, &wg)
 	go CheckRootDiskExecutor(nodeCheckAction, &wg)
 	go CheckDistributionExecutor(nodeCheckAction, &wg)
+	go CheckSysPrefExecutor(nodeCheckAction, &wg)
 	wg.Wait()
 
 	nodeCheckAction.Status = ActionDone
 	logger.Debug("Finish to execute node check action")
 	return nil
-}
-
-// update check items with matching name
-func UpdateCheckItems(checkAction *NodeCheckAction, report *nodeCheckItem) {
-
-	checkAction.Lock()
-	defer checkAction.Unlock()
-
-	updatedFlag := false
-
-	for _, item := range checkAction.CheckItems {
-		if item.name == report.name {
-			updatedFlag = true
-			item.err = report.err
-			item.status = report.status
-			item.description = report.description
-		}
-	}
-
-	if updatedFlag == false {
-		checkAction.CheckItems = append(checkAction.CheckItems, report)
-	}
 }
