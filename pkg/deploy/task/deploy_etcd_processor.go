@@ -41,7 +41,7 @@ func (p *deployEtcdProcessor) SplitTask(t Task) error {
 
 	logger.Debug("Start to split deploy etcd task")
 
-	etcdTask := t.(*deployEtcdTask)
+	etcdTask := t.(*DeployEtcdTask)
 
 	// generate etcd ca cert and key and put it into every action
 	caCertConfig := etcd.GetCaCrtConfig()
@@ -52,14 +52,14 @@ func (p *deployEtcdProcessor) SplitTask(t Task) error {
 
 	// split task into actions: will create a action for every node, the action type
 	// is ActionTypeDeployEtcd
-	actions := make([]action.Action, 0, len(etcdTask.nodes))
-	for _, node := range etcdTask.nodes {
+	actions := make([]action.Action, 0, len(etcdTask.Nodes))
+	for _, node := range etcdTask.Nodes {
 		actionCfg := &action.DeployEtcdActionConfig{
 			CaCrt:           caCrt,
 			CaKey:           cakey,
 			Node:            node,
-			ClusterNodes:    etcdTask.nodes,
-			LogFileBasePath: etcdTask.logFilePath,
+			ClusterNodes:    etcdTask.Nodes,
+			LogFileBasePath: etcdTask.LogFilePath,
 		}
 		act, err := action.NewDeployEtcdAction(actionCfg)
 		if err != nil {
@@ -67,7 +67,7 @@ func (p *deployEtcdProcessor) SplitTask(t Task) error {
 		}
 		actions = append(actions, act)
 	}
-	etcdTask.actions = actions
+	etcdTask.Actions = actions
 
 	logger.Debugf("Finish to split deploy etcd task: %d actions", len(actions))
 
@@ -80,12 +80,12 @@ func (p *deployEtcdProcessor) verifyTask(t Task) error {
 		return consts.ErrEmptyTask
 	}
 
-	etcdTask, ok := t.(*deployEtcdTask)
+	etcdTask, ok := t.(*DeployEtcdTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if len(etcdTask.nodes) == 0 {
+	if len(etcdTask.Nodes) == 0 {
 		return fmt.Errorf("nodes is empty")
 	}
 

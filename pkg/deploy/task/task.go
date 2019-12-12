@@ -70,70 +70,70 @@ const (
 	TaskFailed    Status = "Failed"
 )
 
-type base struct {
-	name              string
-	taskType          Type
-	actions           []action.Action
-	status            Status
-	err               *pb.Error
-	logFileBasePath   string
-	logFilePath       string
-	creationTimestamp time.Time
-	subTasks          []Task
-	priority          int
-	parent            string
+type Base struct {
+	Name              string
+	TaskType          Type
+	Actions           []action.Action
+	Status            Status
+	Err               *pb.Error
+	LogFileBasePath   string
+	LogFilePath       string
+	CreationTimestamp time.Time
+	SubTasks          []Task
+	Priority          int
+	Parent            string
 }
 
-func (b *base) GetName() string {
-	return b.name
+func (b *Base) GetName() string {
+	return b.Name
 }
 
-func (b *base) GetType() Type {
-	return b.taskType
+func (b *Base) GetType() Type {
+	return b.TaskType
 }
 
-func (b *base) GetStatus() Status {
-	return b.status
+func (b *Base) GetStatus() Status {
+	return b.Status
 }
 
-func (b *base) SetStatus(status Status) {
-	b.status = status
+func (b *Base) SetStatus(status Status) {
+	b.Status = status
 }
 
-func (b *base) GetErr() *pb.Error {
-	return b.err
+func (b *Base) GetErr() *pb.Error {
+	return b.Err
 }
 
-func (b *base) SetErr(err *pb.Error) {
-	b.err = err
+func (b *Base) SetErr(err *pb.Error) {
+	b.Err = err
 }
 
-func (b *base) GetLogFilePath() string {
-	return b.logFilePath
+func (b *Base) GetLogFilePath() string {
+	return b.LogFilePath
 }
 
-func (b *base) SetLogFilePath(path string) {
-	b.logFilePath = path
+func (b *Base) SetLogFilePath(path string) {
+	b.LogFilePath = path
 }
 
-func (b *base) GetActions() []action.Action {
-	return b.actions
+func (b *Base) GetActions() []action.Action {
+	return b.Actions
 }
 
-func (b *base) GetCreationTimestamp() time.Time {
-	return b.creationTimestamp
+func (b *Base) GetCreationTimestamp() time.Time {
+	return b.CreationTimestamp
 }
 
-func (b *base) GetSubTasks() []Task {
-	return b.subTasks
+func (b *Base) GetSubTasks() []Task {
+	return b.SubTasks
 }
 
-func (b *base) GetPriority() int {
-	return b.priority
+func (b *Base) GetPriority() int {
+	return b.Priority
 }
 
-func (b *base) GetParent() string {
-	return b.parent
+func (b *Base) GetParent() string {
+	return b.Parent
 }
 
 // GenTaskLogFilePath is a helper to return the log file path based on base path and task name
