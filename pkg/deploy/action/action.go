@@ -58,6 +58,7 @@ type Action interface {
 	GetLogFilePath() string
 	SetLogFilePath(string)
 	GetCreationTimestamp() time.Time
+	GetNode() *pb.Node
 }
 
 // base is the basic metadata of an action
@@ -68,6 +69,7 @@ type base struct {
 	err               *pb.Error
 	logFilePath       string
 	creationTimestamp time.Time
+	node              *pb.Node
 }
 
 func (b *base) GetName() string {
@@ -104,6 +106,10 @@ func (b *base) SetLogFilePath(path string) {
 
 func (b *base) GetCreationTimestamp() time.Time {
 	return b.creationTimestamp
+}
+
+func (b *base) GetNode() *pb.Node {
+	return b.node
 }
 
 // GenActionLogFilePath is a helper to return a file path based on the base path and aciton name

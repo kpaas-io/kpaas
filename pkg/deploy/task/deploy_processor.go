@@ -29,7 +29,8 @@ type deployProcessor struct {
 
 // Spilt the task into one or more sub tasks
 func (p *deployProcessor) SplitTask(t Task) error {
-	if err := p.verifyTask(t); err != nil {
+	deployTask, err := p.verifyTask(t)
+	if err != nil {
 		logrus.Errorf("Invalid task: %s", err)
 		return err
 	}
@@ -39,8 +40,6 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	})
 
 	logger.Debug("Start to split deploy task")
-
-	deployTask := t.(*deployTask)
 
 	// split task into subtask: init, deploy etcd, deploy master, deploy worker, deploy ingress
 	var subTasks []Task
@@ -108,21 +107,21 @@ func (p *deployProcessor) SplitTask(t Task) error {
 }
 
 // Verify if the task is valid.
-func (p *deployProcessor) verifyTask(t Task) error {
+func (p *deployProcessor) verifyTask(t Task) (*deployTask, error) {
 	if t == nil {
-		return consts.ErrEmptyTask
+		return nil, consts.ErrEmptyTask
 	}
 
 	deployTask, ok := t.(*deployTask)
 	if !ok {
-		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
+		return nil, fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
 	if len(deployTask.nodeConfigs) == 0 {
-		return fmt.Errorf("nodeConfigs is empty")
+		return nil, fmt.Errorf("nodeConfigs is empty")
 	}
 
-	return nil
+	return deployTask, nil
 }
 
 func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.NodeRole][]*pb.Node {
