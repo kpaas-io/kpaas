@@ -59,52 +59,58 @@ type Action interface {
 	GetLogFilePath() string
 	SetLogFilePath(string)
 	GetCreationTimestamp() time.Time
+	GetNode() *pb.Node
 }
 
-// base is the basic metadata of an action
-type base struct {
-	name              string
-	actionType        Type
-	status            Status
-	err               *pb.Error
-	logFilePath       string
-	creationTimestamp time.Time
+// Base is the basic metadata of an action
+type Base struct {
+	Name              string
+	ActionType        Type
+	Status            Status
+	Err               *pb.Error
+	LogFilePath       string
+	CreationTimestamp time.Time
+	Node              *pb.Node
 }
 
-func (b *base) GetName() string {
-	return b.name
+func (b *Base) GetName() string {
+	return b.Name
 }
 
-func (b *base) GetStatus() Status {
-	return b.status
+func (b *Base) GetStatus() Status {
+	return b.Status
 }
 
-func (b *base) SetStatus(status Status) {
-	b.status = status
+func (b *Base) SetStatus(status Status) {
+	b.Status = status
 }
 
-func (b *base) GetType() Type {
-	return b.actionType
+func (b *Base) GetType() Type {
+	return b.ActionType
 }
 
-func (b *base) GetErr() *pb.Error {
-	return b.err
+func (b *Base) GetErr() *pb.Error {
+	return b.Err
 }
 
-func (b *base) SetErr(err *pb.Error) {
-	b.err = err
+func (b *Base) SetErr(err *pb.Error) {
+	b.Err = err
 }
 
-func (b *base) GetLogFilePath() string {
-	return b.logFilePath
+func (b *Base) GetLogFilePath() string {
+	return b.LogFilePath
 }
 
-func (b *base) SetLogFilePath(path string) {
-	b.logFilePath = path
+func (b *Base) SetLogFilePath(path string) {
+	b.LogFilePath = path
 }
 
-func (b *base) GetCreationTimestamp() time.Time {
-	return b.creationTimestamp
+func (b *Base) GetCreationTimestamp() time.Time {
+	return b.CreationTimestamp
+}
+
+func (b *Base) GetNode() *pb.Node {
+	return b.Node
 }
 
 // GenActionLogFilePath is a helper to return a file path based on the base path and aciton name

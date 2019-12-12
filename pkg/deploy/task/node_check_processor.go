@@ -40,15 +40,15 @@ func (p *nodeCheckProcessor) SplitTask(t Task) error {
 
 	logger.Debug("Start to split node check task")
 
-	checkTask := t.(*nodeCheckTask)
+	checkTask := t.(*NodeCheckTask)
 
 	// split task into actions: will create a action for every node, the action type
 	// is NodeCheckAction
-	actions := make([]action.Action, 0, len(checkTask.nodeConfigs))
-	for _, subConfig := range checkTask.nodeConfigs {
+	actions := make([]action.Action, 0, len(checkTask.NodeConfigs))
+	for _, subConfig := range checkTask.NodeConfigs {
 		actionCfg := &action.NodeCheckActionConfig{
 			NodeCheckConfig: subConfig,
-			LogFileBasePath: checkTask.logFilePath,
+			LogFileBasePath: checkTask.LogFilePath,
 		}
 		act, err := action.NewNodeCheckAction(actionCfg)
 		if err != nil {
@@ -56,7 +56,7 @@ func (p *nodeCheckProcessor) SplitTask(t Task) error {
 		}
 		actions = append(actions, act)
 	}
-	checkTask.actions = actions
+	checkTask.Actions = actions
 
 	logrus.Debugf("Finish to split node check task: %d actions", len(actions))
 	return nil
@@ -68,12 +68,12 @@ func (p *nodeCheckProcessor) verifyTask(t Task) error {
 		return consts.ErrEmptyTask
 	}
 
-	nodeCheckTask, ok := t.(*nodeCheckTask)
+	nodeCheckTask, ok := t.(*NodeCheckTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if len(nodeCheckTask.nodeConfigs) == 0 {
+	if len(nodeCheckTask.NodeConfigs) == 0 {
 		return fmt.Errorf("nodeConfigs is empty")
 	}
 

@@ -44,13 +44,13 @@ func (p *fetchKubeConfigProcessor) SplitTask(t Task) error {
 
 	// split task into an actions
 	act, err := action.NewFetchKubeConfigAction(&action.FetchKubeConfigActionConfig{
-		Node:            kubeCfgTask.node,
-		LogFileBasePath: kubeCfgTask.logFilePath,
+		Node:            kubeCfgTask.Node,
+		LogFileBasePath: kubeCfgTask.LogFilePath,
 	})
 	if err != nil {
 		return err
 	}
-	kubeCfgTask.actions = []action.Action{act}
+	kubeCfgTask.Actions = []action.Action{act}
 
 	logrus.Debugf("Finish to split task")
 	return nil
@@ -67,14 +67,14 @@ func (p *fetchKubeConfigProcessor) ProcessExtraResult(t Task) error {
 	})
 
 	kubeCfgTask := t.(*FetchKubeConfigTask)
-	if len(kubeCfgTask.actions) == 0 {
+	if len(kubeCfgTask.Actions) == 0 {
 		logger.Debug("Task has no action")
 		return nil
 	}
 
-	kubeCfgAction, ok := kubeCfgTask.actions[0].(*action.FetchKubeConfigAction)
+	kubeCfgAction, ok := kubeCfgTask.Actions[0].(*action.FetchKubeConfigAction)
 	if !ok {
-		return fmt.Errorf("%s: %T", consts.MsgActionTypeMismatched, kubeCfgTask.actions[0])
+		return fmt.Errorf("%s: %T", consts.MsgActionTypeMismatched, kubeCfgTask.Actions[0])
 	}
 
 	kubeCfgTask.KubeConfig = kubeCfgAction.KubeConfig
@@ -93,7 +93,7 @@ func (p *fetchKubeConfigProcessor) verifyTask(t Task) error {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if kubeCfgTask.node == nil {
+	if kubeCfgTask.Node == nil {
 		return fmt.Errorf("node field is nil")
 	}
 

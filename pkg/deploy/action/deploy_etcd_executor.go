@@ -28,7 +28,7 @@ type deployEtcdExecutor struct {
 }
 
 func (a *deployEtcdExecutor) Execute(act Action) error {
-	etcdAction, ok := act.(*deployEtcdAction)
+	etcdAction, ok := act.(*DeployEtcdAction)
 	if !ok {
 		return fmt.Errorf("the action type is not match: should be deploy etcd action, but is %T", act)
 	}
@@ -41,22 +41,22 @@ func (a *deployEtcdExecutor) Execute(act Action) error {
 
 	config := &etcd.DeployEtcdOperationConfig{
 		Logger:       logger,
-		Node:         etcdAction.node,
-		CACrt:        etcdAction.caCrt,
-		CAKey:        etcdAction.caKey,
-		ClusterNodes: etcdAction.clusterNodes,
+		Node:         etcdAction.Node,
+		CACrt:        etcdAction.CACrt,
+		CAKey:        etcdAction.CAKey,
+		ClusterNodes: etcdAction.ClusterNodes,
 	}
 	op, err := etcd.NewDeployEtcdOperation(config)
 	if err != nil {
 		return fmt.Errorf("failed to get etcd operation, error: %v", err)
 	}
 
-	logger.Debugf("Start to deploy etcd on nodes: %s", etcdAction.node.Name)
+	logger.Debugf("Start to deploy etcd on nodes: %s", etcdAction.Node.Name)
 
-	etcdAction.status = ActionDone
+	etcdAction.Status = ActionDone
 	if err := op.Do(); err != nil {
-		etcdAction.status = ActionFailed
-		etcdAction.err = &pb.Error{
+		etcdAction.Status = ActionFailed
+		etcdAction.Err = &pb.Error{
 			Reason:     err.Error(),
 			Detail:     err.Error(),
 			FixMethods: "",

@@ -30,24 +30,25 @@ type NodeCheckActionConfig struct {
 	LogFileBasePath string
 }
 
-type nodeCheckAction struct {
-	base
-	nodeCheckConfig *pb.NodeCheckConfig
-	checkItems      []*nodeCheckItem
+type NodeCheckAction struct {
+	Base
 	sync.RWMutex
+
+	NodeCheckConfig *pb.NodeCheckConfig
+	CheckItems      []*nodeCheckItem
 }
 
-type nodeCheckItemStatus string
+type NodeCheckItemStatus string
 
 const (
-	nodeCheckItemFailed    nodeCheckItemStatus = "failed"
-	nodeCheckItemSucessful nodeCheckItemStatus = "sucessful"
+	NodeCheckItemFailed    NodeCheckItemStatus = "failed"
+	NodeCheckItemSucessful NodeCheckItemStatus = "sucessful"
 )
 
 type nodeCheckItem struct {
 	name        string
 	description string
-	status      nodeCheckItemStatus
+	status      NodeCheckItemStatus
 	err         *pb.Error
 }
 
@@ -69,15 +70,15 @@ func NewNodeCheckAction(cfg *NodeCheckActionConfig) (Action, error) {
 	}
 
 	actionName := getNodeCheckActionName(cfg)
-	return &nodeCheckAction{
-		base: base{
-			name:              actionName,
-			actionType:        ActionTypeNodeCheck,
-			status:            ActionPending,
-			logFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
-			creationTimestamp: time.Now(),
+	return &NodeCheckAction{
+		Base: Base{
+			Name:              actionName,
+			ActionType:        ActionTypeNodeCheck,
+			Status:            ActionPending,
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			CreationTimestamp: time.Now(),
 		},
-		nodeCheckConfig: cfg.NodeCheckConfig,
+		NodeCheckConfig: cfg.NodeCheckConfig,
 	}, nil
 }
 

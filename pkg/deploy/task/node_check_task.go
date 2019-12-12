@@ -30,9 +30,10 @@ type NodeCheckTaskConfig struct {
 	Priority        int
 }
 
-type nodeCheckTask struct {
-	base
-	nodeConfigs []*pb.NodeCheckConfig
+type NodeCheckTask struct {
+	Base
+
+	NodeConfigs []*pb.NodeCheckConfig
 }
 
 // NewNodeCheckTask returns a node check task based on the config.
@@ -52,16 +53,16 @@ func NewNodeCheckTask(taskName string, taskConfig *NodeCheckTaskConfig) (Task, e
 		return nil, err
 	}
 
-	task := &nodeCheckTask{
-		base: base{
-			name:              taskName,
-			taskType:          TaskTypeNodeCheck,
-			status:            TaskPending,
-			logFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
-			creationTimestamp: time.Now(),
-			priority:          taskConfig.Priority,
+	task := &NodeCheckTask{
+		Base: Base{
+			Name:              taskName,
+			TaskType:          TaskTypeNodeCheck,
+			Status:            TaskPending,
+			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			CreationTimestamp: time.Now(),
+			Priority:          taskConfig.Priority,
 		},
-		nodeConfigs: taskConfig.NodeConfigs,
+		NodeConfigs: taskConfig.NodeConfigs,
 	}
 
 	return task, nil

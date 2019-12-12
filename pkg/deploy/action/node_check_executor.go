@@ -90,11 +90,11 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 	return checkItemStdOut, checkItemReport, nil
 }
 
-func CheckDockerExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.status = ItemActionDoing
-	comparedDockerVersion, checkItemReport, err := ExecuteCheckScript(check.Docker, ncAction.nodeCheckConfig, checkItemReport)
+	comparedDockerVersion, checkItemReport, err := ExecuteCheckScript(check.Docker, ncAction.NodeCheckConfig, checkItemReport)
 	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
 		checkItemReport.status = ItemActionFailed
@@ -122,11 +122,11 @@ func newNodeCheckItem() *nodeCheckItem {
 	}
 }
 
-func CheckCPUExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.status = ItemActionDoing
-	cpuCore, checkItemReport, err := ExecuteCheckScript(check.CPU, ncAction.nodeCheckConfig, checkItemReport)
+	cpuCore, checkItemReport, err := ExecuteCheckScript(check.CPU, ncAction.NodeCheckConfig, checkItemReport)
 	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
 		checkItemReport.status = ItemActionFailed
@@ -146,11 +146,11 @@ func CheckCPUExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func CheckKernelExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.status = ItemActionDoing
-	kernelVersion, checkItemReport, err := ExecuteCheckScript(check.Kernel, ncAction.nodeCheckConfig, checkItemReport)
+	kernelVersion, checkItemReport, err := ExecuteCheckScript(check.Kernel, ncAction.NodeCheckConfig, checkItemReport)
 	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
 		checkItemReport.status = ItemActionFailed
@@ -170,11 +170,11 @@ func CheckKernelExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func CheckMemoryExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.status = ItemActionDoing
-	memoryCap, checkItemReport, err := ExecuteCheckScript(check.Memory, ncAction.nodeCheckConfig, checkItemReport)
+	memoryCap, checkItemReport, err := ExecuteCheckScript(check.Memory, ncAction.NodeCheckConfig, checkItemReport)
 	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
 		checkItemReport.status = ItemActionFailed
@@ -194,11 +194,11 @@ func CheckMemoryExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func CheckRootDiskExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.status = ItemActionDoing
-	rootDiskVolume, checkItemReport, err := ExecuteCheckScript(check.Disk, ncAction.nodeCheckConfig, checkItemReport)
+	rootDiskVolume, checkItemReport, err := ExecuteCheckScript(check.Disk, ncAction.NodeCheckConfig, checkItemReport)
 	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
 		checkItemReport.status = ItemActionFailed
@@ -218,11 +218,11 @@ func CheckRootDiskExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func CheckDistributionExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
+func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.status = ItemActionDoing
-	disName, checkItemReport, err := ExecuteCheckScript(check.Distribution, ncAction.nodeCheckConfig, checkItemReport)
+	disName, checkItemReport, err := ExecuteCheckScript(check.Distribution, ncAction.NodeCheckConfig, checkItemReport)
 	UpdateCheckItems(ncAction, checkItemReport)
 	if err != nil {
 		checkItemReport.status = ItemActionFailed
@@ -243,7 +243,7 @@ func CheckDistributionExecutor(ncAction *nodeCheckAction, wg *sync.WaitGroup) {
 }
 
 func (a *nodeCheckExecutor) Execute(act Action) error {
-	nodeCheckAction, ok := act.(*nodeCheckAction)
+	nodeCheckAction, ok := act.(*NodeCheckAction)
 	if !ok {
 		return fmt.Errorf("the action type is not match: should be node check action, but is %T", act)
 	}
@@ -266,20 +266,20 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 	go CheckDistributionExecutor(nodeCheckAction, &wg)
 	wg.Wait()
 
-	nodeCheckAction.status = ActionDone
+	nodeCheckAction.Status = ActionDone
 	logger.Debug("Finish to execute node check action")
 	return nil
 }
 
 // update check items with matching name
-func UpdateCheckItems(checkAction *nodeCheckAction, report *nodeCheckItem) {
+func UpdateCheckItems(checkAction *NodeCheckAction, report *nodeCheckItem) {
 
 	checkAction.Lock()
 	defer checkAction.Unlock()
 
 	updatedFlag := false
 
-	for _, item := range checkAction.checkItems {
+	for _, item := range checkAction.CheckItems {
 		if item.name == report.name {
 			updatedFlag = true
 			item.err = report.err
@@ -289,6 +289,6 @@ func UpdateCheckItems(checkAction *nodeCheckAction, report *nodeCheckItem) {
 	}
 
 	if updatedFlag == false {
-		checkAction.checkItems = append(checkAction.checkItems, report)
+		checkAction.CheckItems = append(checkAction.CheckItems, report)
 	}
 }

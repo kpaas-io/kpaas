@@ -56,5 +56,5 @@ func TestNewFetchKubeConfigTask(t *testing.T) {
 	assert.IsType(t, &FetchKubeConfigTask{}, aTask)
 	assert.Equal(t, TaskTypeFetchKubeConfig, aTask.GetType())
 	assert.Equal(t, TaskPending, aTask.GetStatus())
-	assert.Equal(t, cfg.Node, aTask.(*FetchKubeConfigTask).node)
+	assert.Equal(t, cfg.Node, aTask.(*FetchKubeConfigTask).Node)
 }

@@ -29,9 +29,9 @@ type FetchKubeConfigTaskConfig struct {
 }
 
 type FetchKubeConfigTask struct {
-	base
-	node *pb.Node
+	Base
 
+	Node *pb.Node
 	// KubeConfig stores the task result: content of kube config file.
 	KubeConfig []byte
 }
@@ -51,15 +51,15 @@ func NewFetchKubeConfigTask(taskName string, taskConfig *FetchKubeConfigTaskConf
 	}
 
 	task := &FetchKubeConfigTask{
-		base: base{
-			name:              taskName,
-			taskType:          TaskTypeFetchKubeConfig,
-			status:            TaskPending,
-			logFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
-			creationTimestamp: time.Now(),
-			priority:          taskConfig.Priority,
+		Base: Base{
+			Name:              taskName,
+			TaskType:          TaskTypeFetchKubeConfig,
+			Status:            TaskPending,
+			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			CreationTimestamp: time.Now(),
+			Priority:          taskConfig.Priority,
 		},
-		node: taskConfig.Node,
+		Node: taskConfig.Node,
 	}
 
 	return task, nil

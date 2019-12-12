@@ -40,7 +40,7 @@ func (a *fetchKubeConfigExecutor) Execute(act Action) error {
 	// TODO: ssh to fetch kube config file from kubeCfgAction.node
 
 	// Update action
-	kubeCfgAction.status = ActionDone
+	kubeCfgAction.Status = ActionDone
 	kubeCfgAction.KubeConfig = []byte("todo: the content of kube config file")
 
 	logger.Debug("Finsih to execute action")

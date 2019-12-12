@@ -31,9 +31,10 @@ type DeployEtcdTaskConfig struct {
 	Parent          string
 }
 
-type deployEtcdTask struct {
-	base
-	nodes []*pb.Node
+type DeployEtcdTask struct {
+	Base
+
+	Nodes []*pb.Node
 }
 
 // NewDeployEtcdTask returns a deploy etcd task based on the config.
@@ -52,17 +53,17 @@ func NewDeployEtcdTask(taskName string, taskConfig *DeployEtcdTaskConfig) (Task,
 		return nil, err
 	}
 
-	task := &deployEtcdTask{
-		base: base{
-			name:              taskName,
-			taskType:          TaskTypeDeployEtcd,
-			status:            TaskPending,
-			logFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
-			creationTimestamp: time.Now(),
-			priority:          taskConfig.Priority,
-			parent:            taskConfig.Parent,
+	task := &DeployEtcdTask{
+		Base: Base{
+			Name:              taskName,
+			TaskType:          TaskTypeDeployEtcd,
+			Status:            TaskPending,
+			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			CreationTimestamp: time.Now(),
+			Priority:          taskConfig.Priority,
+			Parent:            taskConfig.Parent,
 		},
-		nodes: taskConfig.Nodes,
+		Nodes: taskConfig.Nodes,
 	}
 
 	return task, nil

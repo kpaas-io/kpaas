@@ -25,8 +25,6 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type deployEtcdStatus string
-
 // DeployEtcdActionConfig represents the config for a ectd deploy in a node
 type DeployEtcdActionConfig struct {
 	CaCrt           *x509.Certificate
@@ -36,12 +34,12 @@ type DeployEtcdActionConfig struct {
 	LogFileBasePath string
 }
 
-type deployEtcdAction struct {
-	base
-	caCrt        *x509.Certificate
-	caKey        crypto.Signer
-	node         *pb.Node
-	clusterNodes []*pb.Node
+type DeployEtcdAction struct {
+	Base
+
+	CACrt        *x509.Certificate
+	CAKey        crypto.Signer
+	ClusterNodes []*pb.Node
 }
 
 // NewDeployEtcdAction returns a deploy etcd action based on the config.
@@ -60,18 +58,18 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 	}
 
 	actionName := getDeployEtcdActionName(cfg)
-	return &deployEtcdAction{
-		base: base{
-			name:              actionName,
-			actionType:        ActionTypeDeployEtcd,
-			status:            ActionPending,
-			logFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
-			creationTimestamp: time.Now(),
+	return &DeployEtcdAction{
+		Base: Base{
+			Name:              actionName,
+			ActionType:        ActionTypeDeployEtcd,
+			Status:            ActionPending,
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			CreationTimestamp: time.Now(),
+			Node:              cfg.Node,
 		},
-		caCrt:        cfg.CaCrt,
-		caKey:        cfg.CaKey,
-		node:         cfg.Node,
-		clusterNodes: cfg.ClusterNodes,
+		CACrt:        cfg.CaCrt,
+		CAKey:        cfg.CaKey,
+		ClusterNodes: cfg.ClusterNodes,
 	}, nil
 }
 

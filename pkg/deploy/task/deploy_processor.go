@@ -29,7 +29,8 @@ type deployProcessor struct {
 
 // Spilt the task into one or more sub tasks
 func (p *deployProcessor) SplitTask(t Task) error {
-	if err := p.verifyTask(t); err != nil {
+	deployTask, err := p.verifyTask(t)
+	if err != nil {
 		logrus.Errorf("Invalid task: %s", err)
 		return err
 	}
@@ -40,16 +41,14 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	logger.Debug("Start to split deploy task")
 
-	deployTask := t.(*deployTask)
-
 	// split task into subtask: init, deploy etcd, deploy master, deploy worker, deploy ingress
 	var subTasks []Task
 
 	// first collect all roles and their related nodes
-	roles := p.groupByRole(deployTask.nodeConfigs)
+	roles := p.groupByRole(deployTask.NodeConfigs)
 
 	// create the init sub tasks with priority = 10
-	initTask, err := p.createInitSubTask(deployTask, deployTask.logFilePath, 10)
+	initTask, err := p.createInitSubTask(deployTask, deployTask.LogFilePath, 10)
 	if err != nil {
 		err = fmt.Errorf("failed to create init sub tasks: %s", err)
 		logger.Error(err)
@@ -59,7 +58,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy etcd sub tasks with priority = 20
 	if nodes, ok := roles[consts.NodeRoleEtcd]; ok {
-		etcdTask, err := p.createDeploySubTask(consts.NodeRoleEtcd, deployTask.name, nodes, deployTask.logFilePath, 20)
+		etcdTask, err := p.createDeploySubTask(consts.NodeRoleEtcd, deployTask.Name, nodes, deployTask.LogFilePath, 20)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy etcd sub tasks: %s", err)
 			logger.Error(err)
@@ -70,7 +69,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy master sub tasks with priority = 30
 	if nodes, ok := roles[consts.NodeRoleMaster]; ok {
-		masterTask, err := p.createDeploySubTask(consts.NodeRoleMaster, deployTask.name, nodes, deployTask.logFilePath, 30)
+		masterTask, err := p.createDeploySubTask(consts.NodeRoleMaster, deployTask.Name, nodes, deployTask.LogFilePath, 30)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy master sub tasks: %s", err)
 			logger.Error(err)
@@ -81,7 +80,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy worker sub tasks with priority = 40
 	if nodes, ok := roles[consts.NodeRoleWorker]; ok {
-		workerTask, err := p.createDeploySubTask(consts.NodeRoleWorker, deployTask.name, nodes, deployTask.logFilePath, 40)
+		workerTask, err := p.createDeploySubTask(consts.NodeRoleWorker, deployTask.Name, nodes, deployTask.LogFilePath, 40)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy worker sub tasks: %s", err)
 			logger.Error(err)
@@ -92,7 +91,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the deploy ingress sub tasks with priority = 50
 	if nodes, ok := roles[consts.NodeRoleIngress]; ok {
-		ingressTask, err := p.createDeploySubTask(consts.NodeRoleIngress, deployTask.name, nodes, deployTask.logFilePath, 50)
+		ingressTask, err := p.createDeploySubTask(consts.NodeRoleIngress, deployTask.Name, nodes, deployTask.LogFilePath, 50)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy ingress sub tasks: %s", err)
 			logger.Error(err)
@@ -101,28 +100,28 @@ func (p *deployProcessor) SplitTask(t Task) error {
 		subTasks = append(subTasks, ingressTask)
 	}
 
-	deployTask.subTasks = subTasks
+	deployTask.SubTasks = subTasks
 	logger.Debugf("Finish to split deploy task: %d sub tasks", len(subTasks))
 
 	return nil
 }
 
 // Verify if the task is valid.
-func (p *deployProcessor) verifyTask(t Task) error {
+func (p *deployProcessor) verifyTask(t Task) (*DeployTask, error) {
 	if t == nil {
-		return consts.ErrEmptyTask
+		return nil, consts.ErrEmptyTask
 	}
 
-	deployTask, ok := t.(*deployTask)
+	deployTask, ok := t.(*DeployTask)
 	if !ok {
-		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
+		return nil, fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if len(deployTask.nodeConfigs) == 0 {
-		return fmt.Errorf("nodeConfigs is empty")
+	if len(deployTask.NodeConfigs) == 0 {
+		return nil, fmt.Errorf("nodeConfigs is empty")
 	}
 
-	return nil
+	return deployTask, nil
 }
 
 func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.NodeRole][]*pb.Node {
@@ -138,7 +137,7 @@ func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.No
 	return roles
 }
 
-func (p *deployProcessor) createInitSubTask(t *deployTask, logFileBasePath string, priority int) (Task, error) {
+func (p *deployProcessor) createInitSubTask(t *DeployTask, logFileBasePath string, priority int) (Task, error) {
 	// TODO
 	return nil, nil
 }
