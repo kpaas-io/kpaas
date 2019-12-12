@@ -74,7 +74,7 @@ func (c *controller) GetCheckNodesResult(context.Context, *pb.GetCheckNodesResul
 func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.DeployReply, error) {
 	logrus.Info("Begins Deploy request")
 
-	taskName := getDeployTaskName(req)
+	taskName := getDeployTaskName()
 	taskConfig := &task.DeployTaskConfig{
 		NodeConfigs:     req.NodeConfigs,
 		ClusterConfig:   req.ClusterConfig,
@@ -104,9 +104,24 @@ func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.Dep
 	}, nil
 }
 
-func (c *controller) GetDeployResult(context.Context, *pb.GetDeployResultRequest) (*pb.GetDeployResultReply, error) {
-	// TODO
-	return nil, nil
+func (c *controller) GetDeployResult(ctx context.Context, req *pb.GetDeployResultRequest) (*pb.GetDeployResultReply, error) {
+	logrus.Info("Begins GetDeployResult request")
+
+	var err error
+	defer func() {
+		if err != nil {
+			logrus.Errorf("Failed to reply GetDeployResult request, error: %v", err)
+		} else {
+			logrus.Info("Succeeded to reply GetDeployResult request.")
+		}
+	}()
+
+	tsk, err := c.getTask(getDeployTaskName())
+	if err != nil {
+		return nil, err
+	}
+
+	return c.getDeployResult(tsk, req.GetWithLogs())
 }
 
 func (c *controller) FetchKubeConfig(ctx context.Context, req *pb.FetchKubeConfigRequest) (*pb.FetchKubeConfigReply, error) {
@@ -191,6 +206,18 @@ func (c *controller) storeTask(task task.Task) error {
 	return c.store.AddTask(task)
 }
 
+func (c *controller) getTask(name string) (task.Task, error) {
+	if c.store == nil {
+		return nil, fmt.Errorf("no task store")
+	}
+
+	tsk := c.store.GetTask(name)
+	if tsk == nil {
+		return nil, fmt.Errorf("could't find task: %s", name)
+	}
+	return tsk, nil
+}
+
 // Store the task and start the task, will not wait task to finish execution.
 func (c *controller) storeAndLanuchTask(aTask task.Task) error {
 	// store the task
@@ -218,7 +245,7 @@ func getCheckNodeTaskName(req *pb.CheckNodesRequest) string {
 	return "node-check"
 }
 
-func getDeployTaskName(req *pb.DeployRequest) string {
+func getDeployTaskName() string {
 	// use "<cluster name>-deploy" as the deploy task name
 	clusterName := "unknown"
 	// TODO: review this later

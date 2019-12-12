@@ -41,11 +41,12 @@ type ConnectivityCheckActionConfig struct {
 	LogFileBasePath        string
 }
 
-type connectivityCheckAction struct {
-	base
-	sourceNode      *pb.Node
-	destinationNode *pb.Node
-	checkItems      []ConnectivityCheckItem
+type ConnectivityCheckAction struct {
+	Base
+
+	SourceNode      *pb.Node
+	DestinationNode *pb.Node
+	CheckItems      []ConnectivityCheckItem
 }
 
 // NewConnectivityCheckAction creates an action to check connectivity from soruce to destination.
@@ -69,36 +70,36 @@ func NewConnectivityCheckAction(cfg *ConnectivityCheckActionConfig) (Action, err
 		return nil, err
 	}
 	actionName := "connectivity-" + cfg.SourceNode.Name + "-" + cfg.DestinationNode.Name
-	return &connectivityCheckAction{
-		base: base{
-			name:              actionName,
-			actionType:        ActionTypeConnectivityCheck,
-			status:            ActionPending,
-			logFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
-			creationTimestamp: time.Now(),
+	return &ConnectivityCheckAction{
+		Base: Base{
+			Name:              actionName,
+			ActionType:        ActionTypeConnectivityCheck,
+			Status:            ActionPending,
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			CreationTimestamp: time.Now(),
 		},
-		sourceNode:      cfg.SourceNode,
-		destinationNode: cfg.DestinationNode,
-		checkItems:      cfg.ConnectivityCheckItems,
+		SourceNode:      cfg.SourceNode,
+		DestinationNode: cfg.DestinationNode,
+		CheckItems:      cfg.ConnectivityCheckItems,
 	}, nil
 }
 
 type connectivityCheckExecutor struct{}
 
 func (e *connectivityCheckExecutor) Execute(act Action) error {
-	connectivityCheckAction, ok := act.(*connectivityCheckAction)
+	connectivityCheckAction, ok := act.(*ConnectivityCheckAction)
 	if !ok {
 		return fmt.Errorf("action type not match: should be connectivity check action, but is %T", act)
 	}
-	connectivityCheckAction.status = ActionDoing
+	connectivityCheckAction.Status = ActionDoing
 
-	dstNode := connectivityCheckAction.destinationNode
-	srcNode := connectivityCheckAction.sourceNode
+	dstNode := connectivityCheckAction.DestinationNode
+	srcNode := connectivityCheckAction.SourceNode
 	// start SSH connection to destination node to dump packets
 	sshClientDst, err := ssh.NewClient(dstNode.Ssh.Auth.Username, dstNode.Ip, dstNode.Ssh)
 	if err != nil {
-		connectivityCheckAction.status = ActionFailed
-		connectivityCheckAction.err = &pb.Error{
+		connectivityCheckAction.Status = ActionFailed
+		connectivityCheckAction.Err = &pb.Error{
 			Reason: "failed to start SSH client",
 			Detail: fmt.Sprintf("Failed to create SSH connetion to %s by connecting to %s:%d, error %v",
 				dstNode.Name, dstNode.Ip, dstNode.Ssh.Port, err),
@@ -110,8 +111,8 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 	// start SSH connection to source node to send packets
 	sshClientSrc, err := ssh.NewClient(srcNode.Ssh.Auth.Username, srcNode.Ip, srcNode.Ssh)
 	if err != nil {
-		connectivityCheckAction.status = ActionFailed
-		connectivityCheckAction.err = &pb.Error{
+		connectivityCheckAction.Status = ActionFailed
+		connectivityCheckAction.Err = &pb.Error{
 			Reason: "failed to start SSH client",
 			Detail: fmt.Sprintf("Failed to create SSH connetion to %s by connecting to %s:%d, error %v",
 				srcNode.Name, srcNode.Ip, srcNode.Ssh.Port, err),
@@ -120,7 +121,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 		return fmt.Errorf("SSH: failed to connect to %s, error %v", srcNode.Name, err)
 	}
 
-	for _, checkItem := range connectivityCheckAction.checkItems {
+	for _, checkItem := range connectivityCheckAction.CheckItems {
 		randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
 		srcPort := (randGen.Uint32() % 16384) + 45000
 		sshSessionDst, _ := sshClientDst.NewSession()
@@ -146,8 +147,8 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 			sendCommand = append(sendCommand, "-zuv",
 				dstNode.Ip, fmt.Sprintf("%d", checkItem.Port))
 		default:
-			connectivityCheckAction.status = ActionFailed
-			connectivityCheckAction.err = &pb.Error{
+			connectivityCheckAction.Status = ActionFailed
+			connectivityCheckAction.Err = &pb.Error{
 				Reason: "protocol not supported",
 				Detail: fmt.Sprintf("protocol %s is not supported. supported protocols are: TCP, UDP",
 					string(checkItem.Protocol)),
@@ -168,8 +169,8 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 		sshSessionSrc.Start(strings.Join(sendCommand, " "))
 		err := <-captureChan
 		if err != nil {
-			connectivityCheckAction.status = ActionFailed
-			connectivityCheckAction.err = &pb.Error{
+			connectivityCheckAction.Status = ActionFailed
+			connectivityCheckAction.Err = &pb.Error{
 				Reason: "check connectivity failed",
 				Detail: fmt.Sprintf("%s cannot connect to %s %s:%d",
 					srcNode.Name, string(checkItem.Protocol), dstNode.Name, checkItem.Port),
@@ -178,6 +179,6 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 			return nil
 		}
 	}
-	connectivityCheckAction.status = ActionDone
+	connectivityCheckAction.Status = ActionDone
 	return nil
 }
