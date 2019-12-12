@@ -48,7 +48,7 @@ type Type string
 
 const (
 	TaskTypeNodeCheck                Type = "NodeCheck"
-	TaskTypeInit                     Type = "init"
+	TaskTypeNodeInit                 Type = "NodeInit"
 	TaskTypeDeploy                   Type = "Deploy"
 	TaskTypeDeployEtcd               Type = "DeployEtcd"
 	TaskTypeDeployMaster             Type = "DeployMaster"
