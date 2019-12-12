@@ -24,10 +24,10 @@ import (
 )
 
 // nodeInitProcessor implements the specific logic to init nodes
-type NodeInitProcessor struct{}
+type nodeInitProcessor struct{}
 
 // Spilt the task into one or more node init actions
-func (p *NodeInitProcessor) SplitTask(t Task) error {
+func (p *nodeInitProcessor) SplitTask(t Task) error {
 	if err := p.verifyTask(t); err != nil {
 		logrus.Errorf("invalid task: %s", err)
 		return err
@@ -62,7 +62,7 @@ func (p *NodeInitProcessor) SplitTask(t Task) error {
 }
 
 // Verify if the task is valid
-func (p *NodeInitProcessor) verifyTask(t Task) error {
+func (p *nodeInitProcessor) verifyTask(t Task) error {
 	if t == nil {
 		return consts.ErrEmptyTask
 	}
