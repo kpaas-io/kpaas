@@ -45,10 +45,10 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	var subTasks []Task
 
 	// first collect all roles and their related nodes
-	roles := p.groupByRole(deployTask.NodeConfigs)
+	roles := groupByRole(deployTask.NodeConfigs)
 
 	// create the init sub tasks with priority = 10
-	initTask, err := p.createInitSubTask(deployTask, deployTask.LogFilePath, 10)
+	initTask, err := p.createDeploySubTask(initOperation, "", deployTask, roles)
 	if err != nil {
 		err = fmt.Errorf("failed to create init sub tasks: %s", err)
 		logger.Error(err)
@@ -57,8 +57,9 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	subTasks = append(subTasks, initTask)
 
 	// create the deploy etcd sub tasks with priority = 20
-	if nodes, ok := roles[consts.NodeRoleEtcd]; ok {
-		etcdTask, err := p.createDeploySubTask(consts.NodeRoleEtcd, deployTask.Name, nodes, deployTask.LogFilePath, 20)
+	if _, ok := roles[consts.NodeRoleEtcd]; ok {
+		//etcdTask, err := p.createDeploySubTask(consts.NodeRoleEtcd, deployTask.name, nodes, deployTask.logFilePath, 20)
+		etcdTask, err := p.createDeploySubTask(deployOperation, consts.NodeRoleEtcd, deployTask, roles)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy etcd sub tasks: %s", err)
 			logger.Error(err)
@@ -68,8 +69,8 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	}
 
 	// create the deploy master sub tasks with priority = 30
-	if nodes, ok := roles[consts.NodeRoleMaster]; ok {
-		masterTask, err := p.createDeploySubTask(consts.NodeRoleMaster, deployTask.Name, nodes, deployTask.LogFilePath, 30)
+	if _, ok := roles[consts.NodeRoleMaster]; ok {
+		masterTask, err := p.createDeploySubTask(deployOperation, consts.NodeRoleMaster, deployTask, roles)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy master sub tasks: %s", err)
 			logger.Error(err)
@@ -79,8 +80,8 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	}
 
 	// create the deploy worker sub tasks with priority = 40
-	if nodes, ok := roles[consts.NodeRoleWorker]; ok {
-		workerTask, err := p.createDeploySubTask(consts.NodeRoleWorker, deployTask.Name, nodes, deployTask.LogFilePath, 40)
+	if _, ok := roles[consts.NodeRoleWorker]; ok {
+		workerTask, err := p.createDeploySubTask(deployOperation, consts.NodeRoleWorker, deployTask, roles)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy worker sub tasks: %s", err)
 			logger.Error(err)
@@ -90,8 +91,8 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	}
 
 	// create the deploy ingress sub tasks with priority = 50
-	if nodes, ok := roles[consts.NodeRoleIngress]; ok {
-		ingressTask, err := p.createDeploySubTask(consts.NodeRoleIngress, deployTask.Name, nodes, deployTask.LogFilePath, 50)
+	if _, ok := roles[consts.NodeRoleIngress]; ok {
+		ingressTask, err := p.createDeploySubTask(deployOperation, consts.NodeRoleIngress, deployTask, roles)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy ingress sub tasks: %s", err)
 			logger.Error(err)
@@ -124,7 +125,7 @@ func (p *deployProcessor) verifyTask(t Task) (*DeployTask, error) {
 	return deployTask, nil
 }
 
-func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.NodeRole][]*pb.Node {
+func groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.NodeRole][]*pb.Node {
 	roles := make(map[consts.NodeRole][]*pb.Node)
 	for _, nodeCfg := range cfgs {
 		nodeRoles := nodeCfg.GetRoles()
@@ -137,23 +138,48 @@ func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.No
 	return roles
 }
 
-func (p *deployProcessor) createInitSubTask(t *DeployTask, logFileBasePath string, priority int) (Task, error) {
-	// TODO
-	return nil, nil
-}
+//
+//func (p *deployProcessor) createInitSubTask(t *deployTask, logFileBasePath string, priority int) (Task, error) {
+//	// TODO
+//	return nil, nil
+//}
 
-func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, parent string, nodes []*pb.Node, logFileBasePath string, priority int) (Task, error) {
-	switch role {
-	case consts.NodeRoleEtcd:
-		config := &DeployEtcdTaskConfig{
-			Nodes:           nodes,
-			LogFileBasePath: logFileBasePath,
-			Priority:        priority,
-			Parent:          parent,
+//func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, parent Task, roleNodes map[consts.NodeRole][]*pb.Node) (Task, error) {
+func (p *deployProcessor) createDeploySubTask(operation Operation, role consts.NodeRole, parent *DeployTask, rn map[consts.NodeRole][]*pb.Node) (task Task, err error) {
+	switch operation {
+	case initOperation:
+		// TODO
+		return
+	case deployOperation:
+		switch role {
+		case consts.NodeRoleEtcd:
+			config := &DeployEtcdTaskConfig{
+				Nodes:           rn[role],
+				LogFileBasePath: parent.GetLogFilePath(),
+				Priority:        int(Priorities[role]),
+				Parent:          parent.GetName(),
+			}
+			// Use the role name as the task name for now.
+			taskName := string(role)
+			task, err = NewDeployEtcdTask(taskName, config)
+		case consts.NodeRoleMaster:
+			config := &DeployMasterTaskConfig{
+				etcdNodes:       rn[consts.NodeRoleEtcd],
+				Nodes:           rn[role],
+				ClusterConfig:   parent.ClusterConfig,
+				LogFileBasePath: parent.GetLogFilePath(),
+				Priority:        int(Priorities[role]),
+				Parent:          parent.GetName(),
+			}
+			// Use the role name as the task name for now.
+			taskName := string(role)
+			task, err = NewDeployMasterTask(taskName, config)
+		default:
+			err = fmt.Errorf("unrecognized role:%v", role)
 		}
-		// Use the role name as the task name for now.
-		taskName := string(role)
-		return NewDeployEtcdTask(taskName, config)
+	default:
+		err = fmt.Errorf("unrecognized operation:%v", operation)
 	}
-	return nil, nil
+
+	return
 }

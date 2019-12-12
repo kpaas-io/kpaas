@@ -31,6 +31,8 @@ const (
 	ActionTypeNodeInit          Type = "NodeInit"
 	ActionTypeDeployEtcd        Type = "DeployEtcd"
 	ActionTypeDeployMaster      Type = "DeployMaster"
+	ActionTypeInitMaster        Type = "InitMaster"
+	ActionTypeJoinMaster        Type = "JoinMaster"
 	ActionTypeDeployWorker      Type = "DeployWorker"
 	ActionTypeDeployIngress     Type = "DeployIngress"
 	ActionTypeFetchKubeConfig   Type = "FetchKubeConfig"

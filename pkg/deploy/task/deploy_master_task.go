@@ -16,7 +16,6 @@ package task
 
 import (
 	"fmt"
-	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -24,52 +23,35 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type Operation string
-type Priority int
-
-const (
-	initOperation   Operation = "initialization"
-	deployOperation Operation = "deployment"
-
-	initPriority          Priority = 10
-	DeployEtcdPriority    Priority = 20
-	DeployMasterPriority  Priority = 30
-	DeployWorkerPriority  Priority = 40
-	DeployIngressPriority Priority = 50
-)
-
-var (
-	Priorities = map[consts.NodeRole]Priority{
-		consts.NodeRoleEtcd:    DeployEtcdPriority,
-		consts.NodeRoleMaster:  DeployMasterPriority,
-		consts.NodeRoleWorker:  DeployWorkerPriority,
-		consts.NodeRoleIngress: DeployIngressPriority,
-	}
-)
-
-// DeployTaskConfig represents the config for a deploy task.
-type DeployTaskConfig struct {
-	NodeConfigs     []*pb.NodeDeployConfig
+// DeploymasterTaskConfig represents the config for a deploy master task.
+type DeployMasterTaskConfig struct {
+	etcdNodes       []*pb.Node
+	Nodes           []*pb.Node
 	ClusterConfig   *pb.ClusterConfig
 	LogFileBasePath string
 	Priority        int
+	Parent          string
 }
 
-type DeployTask struct {
+type deployMasterTask struct {
 	Base
-	NodeConfigs   []*pb.NodeDeployConfig
+	Nodes         []*pb.Node
+	EtcdNodes     []*pb.Node
 	ClusterConfig *pb.ClusterConfig
 }
 
-// NewDeployTask returns a deploy task based on the config.
-// User should use this function to create a deploy task.
-func NewDeployTask(taskName string, taskConfig *DeployTaskConfig) (Task, error) {
+// NewDeploymasterTask returns a deploy master task based on the config.
+// User should use this function to create a deploy master task.
+func NewDeployMasterTask(taskName string, taskConfig *DeployMasterTaskConfig) (Task, error) {
 	var err error
 	if taskConfig == nil {
 		err = fmt.Errorf("invalid task config: nil")
-
-	} else if len(taskConfig.NodeConfigs) == 0 {
-		err = fmt.Errorf("invalid task config: node deploy configs is empty")
+	} else if len(taskConfig.Nodes) == 0 {
+		err = fmt.Errorf("invalid task config: nodes is empty")
+	} else if len(taskConfig.etcdNodes) == 0 {
+		err = fmt.Errorf("invalid task config: etcd nodes is empty")
+	} else if taskConfig.ClusterConfig == nil {
+		err = fmt.Errorf("nil cluster config")
 	}
 
 	if err != nil {
@@ -77,16 +59,18 @@ func NewDeployTask(taskName string, taskConfig *DeployTaskConfig) (Task, error) 
 		return nil, err
 	}
 
-	task := &DeployTask{
+	task := &deployMasterTask{
 		Base: Base{
 			Name:              taskName,
-			TaskType:          TaskTypeDeploy,
+			TaskType:          TaskTypeDeployMaster,
 			Status:            TaskPending,
 			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
 			CreationTimestamp: time.Now(),
 			Priority:          taskConfig.Priority,
+			Parent:            taskConfig.Parent,
 		},
-		NodeConfigs:   taskConfig.NodeConfigs,
+		Nodes:         taskConfig.Nodes,
+		EtcdNodes:     taskConfig.etcdNodes,
 		ClusterConfig: taskConfig.ClusterConfig,
 	}
 

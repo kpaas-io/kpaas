@@ -52,6 +52,8 @@ const (
 	TaskTypeDeploy                   Type = "Deploy"
 	TaskTypeDeployEtcd               Type = "DeployEtcd"
 	TaskTypeDeployMaster             Type = "DeployMaster"
+	TaskTypeInitMaster               Type = "InitMaster"
+	TaskTypeJoinMaster               Type = "JoinMaster"
 	TaskTypeDeployWorker             Type = "DeployWorker"
 	TaskTypeDeployIngress            Type = "DeployIngess"
 	TaskTypeFetchKubeConfig          Type = "FetchKubeConfig"

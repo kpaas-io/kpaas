@@ -42,6 +42,7 @@ require (
 	k8s.io/cli-runtime v0.0.0
 	k8s.io/client-go v1.16.0
 	k8s.io/kubernetes v1.16.3
+	sigs.k8s.io/yaml v1.1.0
 )
 
 replace (
