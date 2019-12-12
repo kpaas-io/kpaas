@@ -22,17 +22,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	it "github.com/kpaas-io/kpaas/pkg/deploy/operation/init"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"sync"
 )
 
 type nodeInitExecutor struct{}
-
-func newNodeInitItem() *NodeInitItem {
-
-	return &NodeInitItem{
-		Status: ItemActionPending,
-		Err:    &pb.Error{},
-	}
-}
 
 // due to items, ItemInitScripts exec remote scripts and return std, report, error
 func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInitItem) (string, *NodeInitItem, error) {
@@ -79,6 +72,29 @@ func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInit
 	return initItemStdOut, initItemReport, nil
 }
 
+func newNodeInitItem() *NodeInitItem {
+
+	return &NodeInitItem{
+		Status: ItemActionPending,
+		Err:    &pb.Error{},
+	}
+}
+
+// goroutine exec item init event
+func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.WaitGroup) {
+
+	initItemReport := newNodeInitItem()
+	initItemReport.Status = ItemActionDoing
+	_, initItemReport, err := ExecuteInitScript(item, ncAction.Node, initItemReport)
+	if err != nil {
+		initItemReport.Status = ItemActionFailed
+	}
+
+	UpdateInitItems(ncAction, initItemReport)
+
+	wg.Done()
+}
+
 func (a *nodeInitExecutor) Execute(act Action) error {
 	nodeInitAction, ok := act.(*NodeInitAction)
 	if !ok {
@@ -89,29 +105,28 @@ func (a *nodeInitExecutor) Execute(act Action) error {
 		consts.LogFieldAction: act.GetName(),
 	})
 
+	var wg sync.WaitGroup
+
 	logger.Debug("Start to execute node init action")
 
-	// init sample
-	// close firewall
-	initItemReport := newNodeInitItem()
-	initItemReport.Status = ItemActionDoing
-	fireWallStdOut, initItemReport, err := ExecuteInitScript(it.FireWall, nodeInitAction.Node, initItemReport)
-	if err != nil {
-		initItemReport.Status = ItemActionFailed
-	}
-	UpdateInitItems(nodeInitAction, initItemReport)
+	// init events include firewall, hostalias, hostname, network
+	// route, swap, timezone, haproxy, keepalived
+	wg.Add(7)
 
-	logger.Debugf("firewall stdout: %v", fireWallStdOut)
+	go InitAsyncExecutor(it.Swap, nodeInitAction, &wg)
+	go InitAsyncExecutor(it.Route, nodeInitAction, &wg)
+	go InitAsyncExecutor(it.Network, nodeInitAction, &wg)
+	go InitAsyncExecutor(it.FireWall, nodeInitAction, &wg)
+	go InitAsyncExecutor(it.TimeZone, nodeInitAction, &wg)
+	go InitAsyncExecutor(it.HostName, nodeInitAction, &wg)
+	go InitAsyncExecutor(it.HostAlias, nodeInitAction, &wg)
 
 	// TODO Other Init Items
-	// 1. Hostalias
-	// 2. Hostname
-	// 3. Network
-	// 4. Route
-	// 5. Swap
-	// 6. TimeZone
 	// 7. Haproxy
 	// 8. Keepalived
+	// 9. Install kubeadm kubectl kubelet
+
+	wg.Wait()
 
 	nodeInitAction.Status = ActionDone
 	logger.Debug("Finish to execute node init action")
@@ -124,19 +139,5 @@ func UpdateInitItems(initAction *NodeInitAction, report *NodeInitItem) {
 	initAction.Lock()
 	defer initAction.Unlock()
 
-	updatedFlag := false
-
-	for _, item := range initAction.InitItems {
-		if item.Name == report.Name {
-			updatedFlag = true
-			item.Err = report.Err
-			item.Status = report.Status
-			item.Description = report.Description
-			break
-		}
-	}
-
-	if updatedFlag == false {
-		initAction.InitItems = append(initAction.InitItems, report)
-	}
+	initAction.InitItems = append(initAction.InitItems, report)
 }
