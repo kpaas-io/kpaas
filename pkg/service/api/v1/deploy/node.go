@@ -257,7 +257,14 @@ func getNodeRequestData(c *gin.Context) (*api.NodeData, bool) {
 		}
 	}
 
-	logger.WithField("data", requestData)
+	logger = logger.WithField("data", requestData)
+	logger.Debug("Request data")
+
+	if requestData.DockerRootDirectory == "" {
+		requestData.DockerRootDirectory = wizard.DefaultDockerRootDirectory
+		logger.Debug("Use default docker root directory")
+	}
+
 	return requestData, false
 }
 
