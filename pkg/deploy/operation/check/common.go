@@ -35,12 +35,13 @@ type CheckAction interface {
 }
 
 const (
-	Docker       ItemEnum = 0
-	CPU          ItemEnum = 1
-	Kernel       ItemEnum = 2
-	Memory       ItemEnum = 3
-	Disk         ItemEnum = 4
-	Distribution ItemEnum = 5
+	Docker ItemEnum = iota
+	CPU
+	Kernel
+	Memory
+	Disk
+	Distribution
+	SystemPreference
 )
 
 func NewCheckOperations() *OperationsGenerator {
@@ -61,6 +62,8 @@ func (og *OperationsGenerator) CreateOperations(item ItemEnum) CheckAction {
 		return &CheckRootDiskOperation{}
 	case Distribution:
 		return &CheckDistributionOperation{}
+	case SystemPreference:
+		return &CheckSysPrefOperation{}
 	default:
 		return nil
 	}
