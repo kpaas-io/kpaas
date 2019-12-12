@@ -41,7 +41,7 @@ func (c *controller) getCheckNodeResult(aTask task.Task, withLogs bool) (*pb.Get
 			logrus.Warnf("Unexpected aciton type: %v", act.GetType())
 			continue
 		}
-		nodeResult := checkAction2NodeCheckResult(nodeCheckAct)
+		nodeResult := checkActionToNodeCheckResult(nodeCheckAct)
 		if nodeResult != nil {
 			nodeResults = append(nodeResults, nodeResult)
 		}
@@ -58,7 +58,7 @@ func (c *controller) getCheckNodeResult(aTask task.Task, withLogs bool) (*pb.Get
 	return result, nil
 }
 
-func checkItem2ItemCheckResult(actionItem *action.NodeCheckItem) *pb.ItemCheckResult {
+func checkItemToItemCheckResult(actionItem *action.NodeCheckItem) *pb.ItemCheckResult {
 	if actionItem == nil {
 		return nil
 	}
@@ -73,7 +73,7 @@ func checkItem2ItemCheckResult(actionItem *action.NodeCheckItem) *pb.ItemCheckRe
 	}
 }
 
-func checkAction2NodeCheckResult(checkAction *action.NodeCheckAction) *pb.NodeCheckResult {
+func checkActionToNodeCheckResult(checkAction *action.NodeCheckAction) *pb.NodeCheckResult {
 	if checkAction == nil {
 		return nil
 	}
@@ -85,7 +85,7 @@ func checkAction2NodeCheckResult(checkAction *action.NodeCheckAction) *pb.NodeCh
 
 	var nodeItems []*pb.ItemCheckResult
 	for _, actionItem := range checkAction.CheckItems {
-		nodeItem := checkItem2ItemCheckResult(actionItem)
+		nodeItem := checkItemToItemCheckResult(actionItem)
 		if nodeItem != nil {
 			nodeItems = append(nodeItems, nodeItem)
 		}

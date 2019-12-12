@@ -23,7 +23,7 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-func TestCheckItem2ItemCheckResult(t *testing.T) {
+func TestCheckItemToItemCheckResult(t *testing.T) {
 	tests := []struct {
 		input *action.NodeCheckItem
 		want  *pb.ItemCheckResult
@@ -57,12 +57,12 @@ func TestCheckItem2ItemCheckResult(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := checkItem2ItemCheckResult(tt.input)
+		result := checkItemToItemCheckResult(tt.input)
 		assert.Equal(t, tt.want, result)
 	}
 }
 
-func TestCheckAction2NodeCheckResult(t *testing.T) {
+func TestCheckActionToNodeCheckResult(t *testing.T) {
 	memCheckItemError := &pb.Error{
 		Reason:     "test reason",
 		Detail:     "test detail",
@@ -133,7 +133,7 @@ func TestCheckAction2NodeCheckResult(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		result := checkAction2NodeCheckResult(tt.input)
+		result := checkActionToNodeCheckResult(tt.input)
 		assert.Equal(t, tt.want, result)
 	}
 }
