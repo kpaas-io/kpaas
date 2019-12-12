@@ -48,6 +48,7 @@ func NewDeployWorkerAction(config *DeployWorkerActionConfig) (Action, error) {
 			Status:            ActionPending,
 			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName),
 			CreationTimestamp: time.Now(),
+			Node:              config.Node.GetNode(),
 		},
 		config: config,
 	}, nil
