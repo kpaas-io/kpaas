@@ -26,7 +26,7 @@ import (
 type DeployWorkerProcessor struct {
 }
 
-// Spilt the task into one or more node check actions
+// Spilt the task into one or more node deploy worker actions
 func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 	if err := processor.verifyTask(task); err != nil {
 		logrus.Errorf("Invalid task: %s", err)
