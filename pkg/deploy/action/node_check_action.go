@@ -35,21 +35,16 @@ type NodeCheckAction struct {
 	sync.RWMutex
 
 	NodeCheckConfig *pb.NodeCheckConfig
-	CheckItems      []*nodeCheckItem
+	CheckItems      []*NodeCheckItem
 }
 
 type NodeCheckItemStatus string
 
-const (
-	NodeCheckItemFailed    NodeCheckItemStatus = "failed"
-	NodeCheckItemSucessful NodeCheckItemStatus = "sucessful"
-)
-
-type nodeCheckItem struct {
-	name        string
-	description string
-	status      NodeCheckItemStatus
-	err         *pb.Error
+type NodeCheckItem struct {
+	Name        string
+	Description string
+	Status      NodeCheckItemStatus
+	Err         *pb.Error
 }
 
 // NewNodeCheckAction returns a node check action based on the config.
