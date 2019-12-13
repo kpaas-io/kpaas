@@ -50,7 +50,7 @@ service_doc:
 .PHONY: test
 test:
 	mkdir -p .test-result
-	go test -v -cover -coverprofile cover.out -outputdir .test-result ./...
+	go test -cover -coverprofile cover.out -outputdir .test-result ./...
 	go tool cover -html=.test-result/cover.out -o .test-result/coverage.html
 
 .PHONY: build_service_local

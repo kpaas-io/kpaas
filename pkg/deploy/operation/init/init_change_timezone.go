@@ -13,3 +13,51 @@
 // limitations under the License.
 
 package init
+
+import (
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	timeZoneScript     = "/scripts/init_change_timezone.sh"
+	timeZoneScriptPath = "/tmp"
+)
+
+type InitTimeZoneOperation struct {
+	operation.BaseOperation
+	InitOperations
+}
+
+func (itOps *InitTimeZoneOperation) getScript() string {
+	itOps.Script = timeZoneScript
+	return itOps.Script
+}
+
+func (itOps *InitTimeZoneOperation) getScriptPath() string {
+	itOps.ScriptPath = timeZoneScriptPath
+	return itOps.ScriptPath
+}
+
+func (itOps *InitTimeZoneOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+	ops := &InitTimeZoneOperation{}
+	m, err := machine.NewMachine(node)
+	if err != nil {
+		return nil, err
+	}
+
+	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript(), nil))
+	return ops, nil
+}

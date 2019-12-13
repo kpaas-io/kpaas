@@ -23,30 +23,35 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-// NodeCheckTaskConfig represents the config for a node check task.
-type NodeCheckTaskConfig struct {
-	NodeConfigs     []*pb.NodeCheckConfig
-	NetworkOptions  *pb.NetworkOptions
-	LogFileBasePath string
-	Priority        int
+const (
+	JointMasterOperation Operation = "join"
+	JoinMasterPriority   Priority  = 20
+)
+
+type JoinMasterTaskConfig struct {
+	operation       Operation
+	node            *pb.Node
+	masterNodes     []*pb.Node
+	clusterConfig   *pb.ClusterConfig
+	logFileBasePath string
+	priority        int
+	parent          string
 }
 
-type NodeCheckTask struct {
+type JoinMasterTask struct {
 	Base
-	NodeConfigs    []*pb.NodeCheckConfig
-	NetworkOptions *pb.NetworkOptions
+	Operation     Operation
+	Node          *pb.Node
+	MasterNodes   []*pb.Node
+	clusterConfig *pb.ClusterConfig
 }
 
-// NewNodeCheckTask returns a node check task based on the config.
-// User should use this function to create a node check task.
-func NewNodeCheckTask(taskName string, taskConfig *NodeCheckTaskConfig) (Task, error) {
+func NewJoinMasterTask(taskName string, taskConfig *JoinMasterTaskConfig) (Task, error) {
 	var err error
 	if taskConfig == nil {
 		err = fmt.Errorf("invalid task config: nil")
-
-	} else if len(taskConfig.NodeConfigs) == 0 {
-		err = fmt.Errorf("invalid task config: node configs is empty")
-
+	} else if taskConfig.node == nil {
+		err = fmt.Errorf("invalid task config: node is empty")
 	}
 
 	if err != nil {
@@ -54,16 +59,20 @@ func NewNodeCheckTask(taskName string, taskConfig *NodeCheckTaskConfig) (Task, e
 		return nil, err
 	}
 
-	task := &NodeCheckTask{
+	task := &JoinMasterTask{
 		Base: Base{
 			Name:              taskName,
-			TaskType:          TaskTypeNodeCheck,
+			TaskType:          TaskTypeJoinMaster,
 			Status:            TaskPending,
-			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			LogFilePath:       GenTaskLogFilePath(taskConfig.logFileBasePath, taskName),
 			CreationTimestamp: time.Now(),
-			Priority:          taskConfig.Priority,
+			Priority:          taskConfig.priority,
+			Parent:            taskConfig.parent,
 		},
-		NodeConfigs: taskConfig.NodeConfigs,
+		Node:          taskConfig.node,
+		MasterNodes:   taskConfig.masterNodes,
+		clusterConfig: taskConfig.clusterConfig,
+		Operation:     JointMasterOperation,
 	}
 
 	return task, nil
