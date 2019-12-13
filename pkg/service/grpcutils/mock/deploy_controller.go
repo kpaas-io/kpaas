@@ -42,7 +42,7 @@ func (mock *DeployController) CheckNodes(ctx context.Context, in *protos.CheckNo
 
 	return &protos.CheckNodesReply{
 		Accepted: true,
-		Err:     nil,
+		Err:      nil,
 	}, nil
 }
 
@@ -85,7 +85,7 @@ func (mock *DeployController) Deploy(ctx context.Context, in *protos.DeployReque
 
 	return &protos.DeployReply{
 		Accepted: true,
-		Err:     nil,
+		Err:      nil,
 	}, nil
 }
 func (mock *DeployController) GetDeployResult(ctx context.Context, in *protos.GetDeployResultRequest, opts ...grpc.CallOption) (*protos.GetDeployResultReply, error) {

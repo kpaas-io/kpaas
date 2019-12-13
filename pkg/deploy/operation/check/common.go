@@ -15,21 +15,26 @@
 package check
 
 import (
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type ItemEnum int
 
-type OperationsGenerator struct{}
+type OperationsGenerator struct {
+	Node *pb.Node
+}
 
 type CheckOperations struct {
 	Script     string
 	ScriptPath string
+	Machine    *machine.Machine
 }
 
 type CheckAction interface {
 	GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error)
+	CloseSSH()
 	getScript() string
 	getScriptPath() string
 }

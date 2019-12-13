@@ -37,6 +37,7 @@ const (
 type CheckDistributionOperation struct {
 	operation.BaseOperation
 	CheckOperations
+	Node *machine.Machine
 }
 
 func (ckops *CheckDistributionOperation) getScript() string {
@@ -55,6 +56,7 @@ func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfi
 	if err != nil {
 		return nil, err
 	}
+	ckops.Machine = m
 
 	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
@@ -67,6 +69,11 @@ func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfi
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
+}
+
+// close ssh client
+func (ckops *CheckDistributionOperation) CloseSSH() {
+	ckops.Node.Close()
 }
 
 // check if system distribution can be supported

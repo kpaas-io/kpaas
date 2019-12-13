@@ -68,6 +68,9 @@ func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInit
 		return "", initItemReport, fmt.Errorf("can not execute %v operation command on node: %v", item, node.Name)
 	}
 
+	// close ssh client
+	initItem.CloseSSH()
+
 	initItemStdOut := string(stdOut)
 	return initItemStdOut, initItemReport, nil
 }
@@ -111,15 +114,12 @@ func (a *nodeInitExecutor) Execute(act Action) error {
 
 	// init events include firewall, hostalias, hostname, network
 	// route, swap, timezone, haproxy, keepalived
-	wg.Add(7)
 
-	go InitAsyncExecutor(it.Swap, nodeInitAction, &wg)
-	go InitAsyncExecutor(it.Route, nodeInitAction, &wg)
-	go InitAsyncExecutor(it.Network, nodeInitAction, &wg)
-	go InitAsyncExecutor(it.FireWall, nodeInitAction, &wg)
-	go InitAsyncExecutor(it.TimeZone, nodeInitAction, &wg)
-	go InitAsyncExecutor(it.HostName, nodeInitAction, &wg)
-	go InitAsyncExecutor(it.HostAlias, nodeInitAction, &wg)
+	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias}
+	for _, item := range itemEnums {
+		wg.Add(1)
+		go InitAsyncExecutor(item, nodeInitAction, &wg)
+	}
 
 	// TODO Other Init Items
 	// 7. Haproxy
