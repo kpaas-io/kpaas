@@ -24,6 +24,7 @@ import (
 type DeployWorkerActionConfig struct {
 	Node            *pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig
+	MasterNodes     []*pb.Node
 	LogFileBasePath string
 }
 

@@ -131,10 +131,11 @@ func (executor *deployWorkerExecutor) joinCluster() *protos.Error {
 
 	operation := worker.NewJoinCluster(
 		&worker.JoinClusterConfig{
-			Machine: executor.machine,
-			Logger:  executor.logger,
-			Node:    executor.action.config.Node,
-			Cluster: executor.action.config.ClusterConfig,
+			Machine:     executor.machine,
+			Logger:      executor.logger,
+			Node:        executor.action.config.Node,
+			Cluster:     executor.action.config.ClusterConfig,
+			MasterNodes: executor.action.config.MasterNodes,
 		},
 	)
 

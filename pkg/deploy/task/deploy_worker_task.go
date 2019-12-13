@@ -22,6 +22,7 @@ import (
 )
 
 type DeployWorkerTaskConfig struct {
+	MasterNodes     []*protos.Node
 	Nodes           []*protos.NodeDeployConfig
 	ClusterConfig   *protos.ClusterConfig
 	LogFileBasePath string
@@ -31,8 +32,9 @@ type DeployWorkerTaskConfig struct {
 
 type deployWorkerTask struct {
 	Base
-	Nodes   []*protos.NodeDeployConfig
-	Cluster *protos.ClusterConfig
+	MasterNodes []*protos.Node
+	Nodes       []*protos.NodeDeployConfig
+	Cluster     *protos.ClusterConfig
 }
 
 // NewDeployWorkerTask returns a deploy k8s worker task based on the config.
@@ -59,8 +61,9 @@ func NewDeployWorkerTask(taskName string, taskConfig *DeployWorkerTaskConfig) (T
 			Priority:          taskConfig.Priority,
 			Parent:            taskConfig.Parent,
 		},
-		Nodes:   taskConfig.Nodes,
-		Cluster: taskConfig.ClusterConfig,
+		Nodes:       taskConfig.Nodes,
+		Cluster:     taskConfig.ClusterConfig,
+		MasterNodes: taskConfig.MasterNodes,
 	}
 
 	return task, nil
