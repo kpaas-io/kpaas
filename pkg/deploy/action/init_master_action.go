@@ -21,6 +21,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const ActionTypeInitMaster Type = "InitMaster"
+
 type InitMasterActionConfig struct {
 	Node            *pb.Node
 	MasterNodes     []*pb.Node
