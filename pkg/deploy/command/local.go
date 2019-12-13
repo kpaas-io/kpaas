@@ -60,33 +60,12 @@ func (c *LocalShellCommand) Execute() (stderr, stdout []byte, err error) {
 func (c *LocalShellCommand) Exists() (isExist bool, err error) {
 
 	cmd := exec.Command(getCommandExistShell(c.cmd))
-	errReader, err := cmd.StderrPipe()
-	if err != nil {
+	if err = cmd.Run(); err != nil {
 		return
 	}
 
-	outReader, err := cmd.StdoutPipe()
-	if err != nil {
-		return
-	}
-
-	err = cmd.Start()
-
-	var stderr, stdout []byte
-	if stderr, err = ioutil.ReadAll(errReader); err != nil {
-		return
-	}
-
-	if len(stderr) > 0 {
-		return false, nil
-	}
-
-	if stdout, err = ioutil.ReadAll(outReader); err != nil {
-		return
-	}
-
-	if len(stdout) > 0 {
-		return true, nil
+	if cmd.ProcessState.ExitCode() == 0 {
+		isExist = true
 	}
 
 	return
