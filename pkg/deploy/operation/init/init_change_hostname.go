@@ -64,7 +64,7 @@ func (itOps *InitHostNameOperation) GetOperations(node *pb.Node) (operation.Oper
 
 	currentName := node.Name
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", itOps.getScriptPath()+itOps.getScript(), currentName), nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", itOps.getScriptPath()+itOps.getScript(), currentName)))
 	return ops, nil
 }
 

@@ -60,7 +60,7 @@ func (itOps *InitNetworkOperation) GetOperations(node *pb.Node) (operation.Opera
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript(), nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
 	return ops, nil
 }
 

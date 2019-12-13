@@ -59,6 +59,8 @@ func NewProcessor(taskType Type) (Processor, error) {
 		processor = &initMasterProcessor{}
 	case TaskTypeJoinMaster:
 		processor = &joinMasterProcessor{}
+	case TaskTypeDeployWorker:
+		processor = &DeployWorkerProcessor{}
 	case TaskTypeCheckNetworkRequirements:
 		processor = &checkNetworkRequirementsProcessor{}
 	default:

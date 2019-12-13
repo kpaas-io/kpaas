@@ -38,6 +38,8 @@ func NewExecutor(actionType Type) (Executor, error) {
 		executor = &nodeInitExecutor{}
 	case ActionTypeDeployEtcd:
 		executor = &deployEtcdExecutor{}
+	case ActionTypeDeployWorker:
+		executor = &deployWorkerExecutor{}
 	case ActionTypeConnectivityCheck:
 		executor = &connectivityCheckExecutor{}
 	case ActionTypeInitMaster:

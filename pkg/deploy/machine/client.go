@@ -16,6 +16,9 @@ package machine
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
@@ -52,4 +55,57 @@ func NewExecClient(node *pb.Node) (*ExecClient, error) {
 // no need to close sftp client since it's based on ssh client
 func (m *ExecClient) Close() {
 	m.SSHClient.Close()
+}
+
+// WriteFile writes data to a file named by filename.
+// If the file does not exist, WriteFile creates it with permissions perm;
+// otherwise WriteFile truncates it before writing.
+// Like ioutil.WriteFile
+func (m *ExecClient) WriteFile(filename string, data []byte, perm os.FileMode) (err error) {
+
+	var file *sftp.File
+
+	file, err = m.SFTPClient.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC)
+	if err != nil {
+		return
+	}
+	defer func() {
+		closeError := file.Close()
+		if closeError != nil {
+			err = closeError
+		}
+	}()
+
+	var n int
+	n, err = file.Write(data)
+	if err == nil && n < len(data) {
+		err = io.ErrShortWrite
+		return
+	}
+
+	err = file.Chmod(perm)
+	return
+}
+
+// ReadFile reads the file named by filename and returns the contents.
+// A successful call returns err == nil, not err == EOF. Because ReadFile
+// reads the whole file, it does not treat an EOF from Read as an error
+// to be reported.
+// Like ioutil.ReadFile
+func (m *ExecClient) ReadFile(filename string) (content []byte, err error) {
+
+	var file *sftp.File
+
+	file, err = m.SFTPClient.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		closeError := file.Close()
+		if closeError != nil {
+			err = closeError
+		}
+	}()
+
+	return ioutil.ReadAll(file)
 }
