@@ -112,29 +112,65 @@ func (p *checkNetworkRequirementsProcessor) splitActionsCalico(
 		if peerIndex == i {
 			peerIndex = numNodes - 1
 		}
-		cfg := &action.ConnectivityCheckActionConfig{
-			SourceNode:      node,
-			DestinationNode: task.Nodes[peerIndex],
-			ConnectivityCheckItems: []action.ConnectivityCheckItem{
-				action.ConnectivityCheckItem{
-					Protocol: consts.ProtocolTCP,
-					Port:     uint16(179),
-				},
-				action.ConnectivityCheckItem{
-					Protocol: consts.ProtocolTCP,
-					Port:     uint16(6443),
-				},
-				action.ConnectivityCheckItem{
-					Protocol: consts.ProtocolUDP,
-					Port:     uint16(task.NetworkOptions.CalicoOptions.VxlanPort),
-				},
-			},
-		}
-		connectivityCheckAction, err := action.NewConnectivityCheckAction(cfg)
+		connectivityCheckAction, err := makeConnectivityCheckActionCalico(
+			node, task.Nodes[peerIndex], task.NetworkOptions.CalicoOptions)
 		if err != nil {
 			return []action.Action{}, fmt.Errorf("failed to split task into actions, error %v", err)
 		}
 		actions = append(actions, connectivityCheckAction)
 	}
 	return actions, nil
+}
+
+func makeConnectivityCheckActionCalico(
+	src *pb.Node, dst *pb.Node, calicoOptions *pb.CalicoOptions) (action.Action, error) {
+	if src != nil {
+		return nil, fmt.Errorf("source node empty")
+	}
+	if dst == nil {
+		return nil, fmt.Errorf("destination node empty")
+	}
+	if calicoOptions == nil {
+		return nil, fmt.Errorf("calico options empty")
+	}
+	cfg := &action.ConnectivityCheckActionConfig{
+		SourceNode:      src,
+		DestinationNode: dst,
+		ConnectivityCheckItems: []action.ConnectivityCheckItem{
+			action.ConnectivityCheckItem{
+				Protocol: consts.ProtocolTCP,
+				Port:     uint16(179),
+				CheckResult: &pb.ItemCheckResult{
+					Item: &pb.CheckItem{
+						Name:        fmt.Sprintf("connectivity-check-BGP"),
+						Description: "check connectivity to BGP port",
+					},
+					Status: action.ItemActionPending,
+				},
+			},
+			action.ConnectivityCheckItem{
+				Protocol: consts.ProtocolTCP,
+				Port:     uint16(6443),
+				CheckResult: &pb.ItemCheckResult{
+					Item: &pb.CheckItem{
+						Name:        fmt.Sprintf("connectivity-check-kube-API"),
+						Description: "check connectivity to kubernetes API port",
+					},
+					Status: action.ItemActionPending,
+				},
+			},
+			action.ConnectivityCheckItem{
+				Protocol: consts.ProtocolUDP,
+				Port:     uint16(calicoOptions.VxlanPort),
+				CheckResult: &pb.ItemCheckResult{
+					Item: &pb.CheckItem{
+						Name:        fmt.Sprintf("connectivity-check-vxlan"),
+						Description: "check connectivity for vxlan packets",
+					},
+					Status: action.ItemActionPending,
+				},
+			},
+		},
+	}
+	return action.NewConnectivityCheckAction(cfg)
 }

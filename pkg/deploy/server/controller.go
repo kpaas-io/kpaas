@@ -40,6 +40,7 @@ func (c *controller) CheckNodes(ctx context.Context, req *pb.CheckNodesRequest) 
 	taskName := getCheckNodeTaskName()
 	taskConfig := &task.NodeCheckTaskConfig{
 		NodeConfigs:     req.GetConfigs(),
+		NetworkOptions:  req.GetNetworkOptions(),
 		LogFileBasePath: c.logFileLoc,
 	}
 

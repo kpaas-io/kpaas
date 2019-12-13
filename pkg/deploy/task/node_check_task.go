@@ -26,14 +26,15 @@ import (
 // NodeCheckTaskConfig represents the config for a node check task.
 type NodeCheckTaskConfig struct {
 	NodeConfigs     []*pb.NodeCheckConfig
+	NetworkOptions  *pb.NetworkOptions
 	LogFileBasePath string
 	Priority        int
 }
 
 type NodeCheckTask struct {
 	Base
-
-	NodeConfigs []*pb.NodeCheckConfig
+	NodeConfigs    []*pb.NodeCheckConfig
+	NetworkOptions *pb.NetworkOptions
 }
 
 // NewNodeCheckTask returns a node check task based on the config.

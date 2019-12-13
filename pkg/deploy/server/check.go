@@ -36,12 +36,17 @@ func (c *controller) getCheckNodeResult(aTask task.Task, withLogs bool) (*pb.Get
 	// Create a pb.NodeCheckResult for each action
 	var nodeResults []*pb.NodeCheckResult
 	for _, act := range actions {
-		nodeCheckAct, ok := act.(*action.NodeCheckAction)
-		if !ok {
+		var nodeResult *pb.NodeCheckResult
+		switch act.(type) {
+		case *action.NodeCheckAction:
+			nodeCheckAct, _ := act.(*action.NodeCheckAction)
+			nodeResult = checkActionToNodeCheckResult(nodeCheckAct)
+		case *action.ConnectivityCheckAction:
+			connectivityCheckAct, _ := act.(*action.ConnectivityCheckAction)
+			nodeResult = connectivityCheckToNodeCheckResult(connectivityCheckAct)
+		default:
 			logrus.Warnf("Unexpected aciton type: %v", act.GetType())
-			continue
 		}
-		nodeResult := checkActionToNodeCheckResult(nodeCheckAct)
 		if nodeResult != nil {
 			nodeResults = append(nodeResults, nodeResult)
 		}
@@ -97,4 +102,28 @@ func checkActionToNodeCheckResult(checkAction *action.NodeCheckAction) *pb.NodeC
 		Err:      checkAction.GetErr(),
 		Items:    nodeItems,
 	}
+}
+
+func connectivityCheckToNodeCheckResult(
+	checkAction *action.ConnectivityCheckAction) *pb.NodeCheckResult {
+	if checkAction == nil {
+		return nil
+	}
+	node := checkAction.GetNode()
+	if node == nil {
+		return nil
+	}
+	result := &pb.NodeCheckResult{
+		NodeName: checkAction.GetNode().Name,
+		Status:   string(checkAction.GetStatus()),
+		Err:      checkAction.GetErr(),
+	}
+	itemCheckResults := []*pb.ItemCheckResult{}
+	for _, item := range checkAction.CheckItems {
+		if item.CheckResult != nil {
+			itemCheckResults = append(itemCheckResults, item.CheckResult)
+		}
+	}
+	result.Items = itemCheckResults
+	return result
 }
