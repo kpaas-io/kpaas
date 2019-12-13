@@ -40,7 +40,12 @@ const (
 	defaultEtcdPeerPort   = 2380
 	defaultEtcdDataDir    = "/var/lib/etcd"
 	// TODO: registry should be obtained from cluster config
-	etcdImage        = "reg.kpaas.io/kpaas/etcd:3.3.15-0"
+	defaultRegistry      = "reg.kpaas.io"
+	defaultEtcdImageRepo = "kpaas"
+	defaultEtcdImageTag  = "3.3.15-0"
+	defaultEtcdImageName = "etcd"
+	defaultEtcdImageUrl  = defaultRegistry + "/" + defaultEtcdImageRepo + "/" + defaultEtcdImageName + ":" + defaultEtcdImageTag
+
 	DefaultPKIDir    = "/etc/kubernetes/pki/"
 	defautEtcdPKIDir = DefaultPKIDir + "etcd"
 
@@ -226,7 +231,7 @@ func (d *deployEtcdOperation) Do() error {
 
 	config := &container.Config{
 		Cmd:   composeEtcdDockerCmd(d),
-		Image: etcdImage,
+		Image: defaultEtcdImageUrl,
 	}
 
 	hostConfig := &container.HostConfig{
