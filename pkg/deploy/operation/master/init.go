@@ -162,11 +162,11 @@ func (op *initMasterOperation) PostDo() error {
 		if err == nil {
 			return nil
 		}
-		op.Logger.Warnf("etd cluster not ready, error: %v, will retry", err)
+		op.Logger.Warnf("controlplane not ready, error: %v, will retry", err)
 		time.Sleep(time.Second << uint(retries))
 	}
 
-	return fmt.Errorf("wait for etcd cluster ready timeout after:%v", defaultControlPlaneReadyTimeout)
+	return fmt.Errorf("wait for controlplane to be ready timeout after:%v", defaultControlPlaneReadyTimeout)
 }
 
 func masterUpAndRunning(op *initMasterOperation) error {
