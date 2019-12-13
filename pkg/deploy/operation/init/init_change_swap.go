@@ -13,3 +13,51 @@
 // limitations under the License.
 
 package init
+
+import (
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	swapScript     = "/scripts/init_change_swap.sh"
+	swapScriptPath = "/tmp"
+)
+
+type InitSwapOperation struct {
+	operation.BaseOperation
+	InitOperations
+}
+
+func (itOps *InitSwapOperation) getScript() string {
+	itOps.Script = swapScript
+	return itOps.Script
+}
+
+func (itOps *InitSwapOperation) getScriptPath() string {
+	itOps.ScriptPath = swapScriptPath
+	return itOps.ScriptPath
+}
+
+func (itOps *InitSwapOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+	ops := &InitSwapOperation{}
+	m, err := machine.NewMachine(node)
+	if err != nil {
+		return nil, err
+	}
+
+	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript(), nil))
+	return ops, nil
+}

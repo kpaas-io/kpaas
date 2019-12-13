@@ -13,3 +13,51 @@
 // limitations under the License.
 
 package init
+
+import (
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	networkScript     = "/scripts/init_change_network.sh"
+	networkScriptPath = "/tmp"
+)
+
+type InitNetworkOperation struct {
+	operation.BaseOperation
+	InitOperations
+}
+
+func (itOps *InitNetworkOperation) getScript() string {
+	itOps.Script = networkScript
+	return itOps.Script
+}
+
+func (itOps *InitNetworkOperation) getScriptPath() string {
+	itOps.ScriptPath = networkScriptPath
+	return itOps.ScriptPath
+}
+
+func (itOps *InitNetworkOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+	ops := &InitNetworkOperation{}
+	m, err := machine.NewMachine(node)
+	if err != nil {
+		return nil, err
+	}
+
+	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript(), nil))
+	return ops, nil
+}
