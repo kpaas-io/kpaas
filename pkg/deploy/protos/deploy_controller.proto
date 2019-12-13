@@ -81,7 +81,7 @@ message CheckNodesRequest {
 
 // CheckNodesReply contains the result of node pre-checking.
 message CheckNodesReply {
-  bool acceptd = 1;
+  bool accepted = 1;
   Error err = 2;
 }
 
@@ -178,7 +178,7 @@ message DeployRequest {
 
 // DeployReply contains the response of a deploy request.
 message DeployReply {
-  bool acceptd = 1;
+  bool accepted = 1;
   Error err = 2;
 }
 

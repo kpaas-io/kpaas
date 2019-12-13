@@ -79,7 +79,7 @@ func CheckNodeList(c *gin.Context) {
 
 	go listenCheckNodesData()
 
-	h.R(c, api.SuccessfulOption{Success: resp.GetAcceptd()})
+	h.R(c, api.SuccessfulOption{Success: resp.GetAccepted()})
 }
 
 // @ID GetCheckNodeListResult
