@@ -1168,7 +1168,6 @@ k8s.io/kubernetes/staging/src/k8s.io/sample-apiserver v0.0.0-20191207073709-d9a2
 k8s.io/repo-infra v0.0.0-20181204233714-00fe14e3d1a3/go.mod h1:+G1xBfZDfVFsm1Tj/HNCvg4QqWx8rJ2Fxpqr1rqp/gQ=
 k8s.io/utils v0.0.0-20190801114015-581e00157fb1 h1:+ySTxfHnfzZb9ys375PXNlLhkJPLKgHajBU0N62BDvE=
 k8s.io/utils v0.0.0-20190801114015-581e00157fb1/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
-k8s.io/utils v0.0.0-20190801114015-581e00157fb1/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 k8s.io/utils v0.0.0-20191010214722-8d271d903fe4 h1:Gi+/O1saihwDqnlmC8Vhv1M5Sp4+rbOmK9TbsLn8ZEA=
 k8s.io/utils v0.0.0-20191010214722-8d271d903fe4/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
 modernc.org/cc v1.0.0/go.mod h1:1Sk4//wdnYJiUIxnW8ddKpaOJCF37yAdqYnkxUpaYxw=
