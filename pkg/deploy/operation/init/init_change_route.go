@@ -58,6 +58,6 @@ func (itOps *InitRouteOperation) GetOperations(node *pb.Node) (operation.Operati
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript(), nil))
+	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
 	return ops, nil
 }
