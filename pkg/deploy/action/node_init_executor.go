@@ -95,10 +95,10 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 	wg.Done()
 }
 
-func (a *nodeInitExecutor) Execute(act Action) error {
+func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	nodeInitAction, ok := act.(*NodeInitAction)
 	if !ok {
-		return fmt.Errorf("the action type is not match: should be node init action, but is %T", act)
+		return errOfTypeMismatched(new(NodeInitAction), act)
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
@@ -128,7 +128,15 @@ func (a *nodeInitExecutor) Execute(act Action) error {
 
 	wg.Wait()
 
-	nodeInitAction.Status = ActionDone
+	// If any of them was failed, we should return an error
+	failedItems := getFailedInitItems(nodeInitAction)
+	if len(failedItems) > 0 {
+		return &pb.Error{
+			Reason: fmt.Sprintf("%d init item(s) failed", len(failedItems)),
+			Detail: fmt.Sprintf("failed init item list: %v", failedItems),
+		}
+	}
+
 	logger.Debug("Finish to execute node init action")
 	return nil
 }
@@ -140,4 +148,14 @@ func UpdateInitItems(initAction *NodeInitAction, report *NodeInitItem) {
 	defer initAction.Unlock()
 
 	initAction.InitItems = append(initAction.InitItems, report)
+}
+
+func getFailedInitItems(initAction *NodeInitAction) []string {
+	var failedItemName []string
+	for _, item := range initAction.InitItems {
+		if item.Status != nodeInitItemDone {
+			failedItemName = append(failedItemName, item.Name)
+		}
+	}
+	return failedItemName
 }
