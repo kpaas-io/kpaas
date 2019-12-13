@@ -15,10 +15,27 @@
 package master
 
 import (
+	"bytes"
+	"fmt"
+	"github.com/kpaas-io/kpaas/pkg/deploy"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
 	"github.com/sirupsen/logrus"
+	"strings"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	kubeadmConfigFileName              = "kubeadm_config.yaml"
+	kubeadmConfigPath                  = consts.DefaultK8sConfigDir + kubeadmConfigFileName
+	defaultApiServerEtcdClientCertName = "apiserver-etcd-client.crt"
+	defaultApiServerEtcdClientKeyName  = "apiserver-etcd-client.key"
+	defaultApiServerEtcdClientCertPath = etcd.DefaultPKIDir + defaultApiServerEtcdClientCertName
+	defaultApiServerEtcdClientKeyPath  = etcd.DefaultPKIDir + defaultApiServerEtcdClientKeyName
 )
 
 type InitMasterOperationConfig struct {
@@ -30,6 +47,7 @@ type InitMasterOperationConfig struct {
 }
 
 type initMasterOperation struct {
+	operation.BaseOperation
 	Logger        *logrus.Entry
 	EtcdNodes     []*pb.Node
 	MasterNodes   []*pb.Node
@@ -57,15 +75,67 @@ func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOpera
 
 func (op *initMasterOperation) PreDo() error {
 	// TODO
-	// put apiserver etcd client cert and key to first master node
-	_, err := newInitConfig(op)
+	// put etcd ca cert, apiserver etcd client cert and key to first master node
+	etcdCACrt := etcd.EtcdCAcrt
+	if len(etcdCACrt) == 0 {
+		return fmt.Errorf("failed go obtain etcd ca cert, it's empty")
+	}
+	apiServerEtcdClientCert := etcd.ApiServerClientCrt
+	if len(apiServerEtcdClientCert) == 0 {
+		return fmt.Errorf("failed go obtain apiserver client etcd cert, it's empty")
+	}
+	apiServerEtcdClientKey := etcd.ApiServerClientKey
+	if len(apiServerEtcdClientKey) == 0 {
+		return fmt.Errorf("failed go obtain apiserver client cert key, it's empty")
+	}
 
-	return err
+	if err := op.machine.PutFile(bytes.NewReader(etcdCACrt), etcd.DefaultEtcdCACertPath); err != nil {
+		return fmt.Errorf("failed to put etcd ca cert to %v:%v, error: %c", op.machine.Name, etcd.DefaultEtcdCACertPath)
+	}
+	if err := op.machine.PutFile(bytes.NewReader(apiServerEtcdClientCert), defaultApiServerEtcdClientCertPath); err != nil {
+		return fmt.Errorf("failed to put apiserver etcd client cert to %v:%v, error: %c", op.machine.Name, defaultApiServerEtcdClientCertPath)
+	}
+	if err := op.machine.PutFile(bytes.NewReader(apiServerEtcdClientKey), defaultApiServerEtcdClientKeyPath); err != nil {
+		return fmt.Errorf("failed to put apiserver etcd client key to %v:%v, error: %c", op.machine.Name, defaultApiServerEtcdClientKeyPath)
+	}
+
+	kubeadmConfig, err := newInitConfig(op)
+	if err != nil {
+		return fmt.Errorf("failed to generate %v, error: %v", kubeadmConfigPath, err)
+	}
+
+	if err := op.machine.PutFile(strings.NewReader(kubeadmConfig), defaultApiServerEtcdClientKeyPath); err != nil {
+		return fmt.Errorf("failed to put kubeadm init config file to %v:%v, error: %v", op.machine.Name, defaultApiServerEtcdClientKeyPath, err)
+	}
+
+	// prepare commands to this operation
+	endpoint, err := deploy.GetControlPlaneEndpoint(op.ClusterConfig, op.MasterNodes)
+	if err != nil {
+		return fmt.Errorf("failed to get control plane endpoint, error:%v", err)
+	}
+
+	initOptions := map[string]string{
+		"--config":                 kubeadmConfigPath,
+		"--upload-certs":           "",
+		"--control-plane-endpoint": endpoint,
+	}
+
+	op.AddCommands(
+		command.NewShellCommand(op.machine, "systemctl", "start kubelet", nil),
+		command.NewShellCommand(op.machine, "kubeadm", "init", initOptions),
+	)
+	return nil
 }
 
 func (op *initMasterOperation) Do() error {
-	// TODO
+	defer op.machine.Close()
+
 	// init first master
+	stdErr, _, err := op.BaseOperation.Do()
+	if err != nil {
+		return fmt.Errorf("failed to initilize first master, error:%s", stdErr)
+	}
+
 	return nil
 }
 

@@ -4,19 +4,31 @@ go 1.13
 
 require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
+	github.com/agl/ed25519 v0.0.0-20170116200512-5312a6153412 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/containerd/containerd v1.3.1 // indirect
+	github.com/containerd/fifo v0.0.0-20190816180239-bda0ff6ed73c // indirect
+	github.com/containerd/ttrpc v0.0.0-20191028202541-4f1b8fe65a5c // indirect
 	github.com/coreos/etcd v3.3.17+incompatible
 	github.com/coreos/go-semver v0.3.0
-	github.com/docker/docker v1.4.2-0.20191127222017-3152f9436292
+	github.com/docker/compose-on-kubernetes v0.4.24 // indirect
+	github.com/docker/docker v1.14.0-0.20190319215453-e7b5f7dbe98c
+	github.com/docker/go v1.5.1-1 // indirect
+	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
+	github.com/docker/licensing v0.0.0-20190702165012-5f0f1276fe42 // indirect
+	github.com/docker/swarmkit v1.12.0 // indirect
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/gogo/googleapis v1.3.1 // indirect
 	github.com/golang/protobuf v1.3.2
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/gorilla/mux v1.7.3 // indirect
+	github.com/hashicorp/go-version v1.2.0 // indirect
 	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.10 // indirect
+	github.com/moby/buildkit v0.6.3 // indirect
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/pkg/sftp v1.10.1
 	github.com/shurcooL/httpfs v0.0.0-20190707220628-8d4bc4ba7749
@@ -29,6 +41,8 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.3
+	github.com/theupdateframework/notary v0.6.1 // indirect
+	github.com/tonistiigi/fsutil v0.0.0-20191018213012-0f039a052ca1 // indirect
 	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
 	golang.org/x/net v0.0.0-20191116160921-f9c825593386
 	golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e // indirect

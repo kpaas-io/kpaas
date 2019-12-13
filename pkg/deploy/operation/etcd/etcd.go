@@ -39,9 +39,10 @@ const (
 	defaultEtcdServerPort = 2379
 	defaultEtcdPeerPort   = 2380
 	defaultEtcdDataDir    = "/var/lib/etcd"
-	etcdImage             = "reg.kpaas.io/kpaas/etcd:3.3.15-0"
-	defaultPKIDir         = "/etc/kubernetes/pki/"
-	defautEtcdPKIDir      = defaultPKIDir + "etcd"
+	// TODO: registry should be obtained from cluster config
+	etcdImage        = "reg.kpaas.io/kpaas/etcd:3.3.15-0"
+	DefaultPKIDir    = "/etc/kubernetes/pki/"
+	defautEtcdPKIDir = DefaultPKIDir + "etcd"
 
 	defaultEtcdCACertName     = "ca.crt"
 	defaultEtcdCAKeyName      = "ca.key"
@@ -50,7 +51,7 @@ const (
 	defaultEtcdPeerCertName   = "peer.crt"
 	defaultEtcdPeerKeyName    = "peer.key"
 
-	defaultEtcdCACertPath     = defautEtcdPKIDir + "/" + defaultEtcdCACertName
+	DefaultEtcdCACertPath     = defautEtcdPKIDir + "/" + defaultEtcdCACertName
 	defaultEtcdCAKeyPath      = defautEtcdPKIDir + "/" + defaultEtcdCAKeyName
 	defaultEtcdServerCertPath = defautEtcdPKIDir + "/" + defaultEtcdServerCertName
 	defaultEtcdServerKeyPath  = defautEtcdPKIDir + "/" + defaultEtcdServerKeyName
@@ -118,7 +119,7 @@ func (d *deployEtcdOperation) PreDo() error {
 	// save for later use
 	EtcdCAcrt = encodedCert
 
-	if err := d.machine.PutFile(bytes.NewReader(encodedCert), defaultEtcdCACertPath); err != nil {
+	if err := d.machine.PutFile(bytes.NewReader(encodedCert), DefaultEtcdCACertPath); err != nil {
 		return fmt.Errorf("failed to put ca cert to:%v, error: %v", d.machine.Name, err)
 	}
 	if err := d.machine.PutFile(bytes.NewReader(encodedKey), defaultEtcdCAKeyPath); err != nil {
@@ -202,8 +203,8 @@ func composeEtcdDockerCmd(d *deployEtcdOperation) []string {
 	cmd = append(cmd, fmt.Sprintf("--cert-file=%v", defaultEtcdServerCertPath))
 	cmd = append(cmd, fmt.Sprintf("--peer-cert-file=%v", defaultEtcdPeerCertPath))
 	cmd = append(cmd, fmt.Sprintf("--peer-key-file=%v)", defaultEtcdPeerKeyPath))
-	cmd = append(cmd, fmt.Sprintf("--trusted-ca-file=%v)", defaultEtcdCACertPath))
-	cmd = append(cmd, fmt.Sprintf("--peer-trusted-ca-file=%v)", defaultEtcdCACertPath))
+	cmd = append(cmd, fmt.Sprintf("--trusted-ca-file=%v)", DefaultEtcdCACertPath))
+	cmd = append(cmd, fmt.Sprintf("--peer-trusted-ca-file=%v)", DefaultEtcdCACertPath))
 
 	cmd = append(cmd, fmt.Sprintf("--advertise-client-urls=https://%v:%v", d.machine.Ip, defaultEtcdServerPort))
 	cmd = append(cmd, fmt.Sprintf("--initial-advertise-peer-urls=https://%v:%v", d.machine.Ip, defaultEtcdPeerPort))

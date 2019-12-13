@@ -73,10 +73,7 @@ func newInitConfig(op *initMasterOperation) (string, error) {
 		PodSubnet:     op.ClusterConfig.PodSubnet,
 	}
 
-	clusterConfig.Etcd.External, err = getExternalEtcd(op.EtcdNodes)
-	if err != nil {
-		return "", err
-	}
+	clusterConfig.Etcd.External = getExternalEtcd(op.EtcdNodes)
 
 	initConfigData, err := yaml.Marshal(initConfig)
 	if err != nil {
@@ -95,12 +92,12 @@ func newInitConfig(op *initMasterOperation) (string, error) {
 	return initYaml.String(), nil
 }
 
-func getExternalEtcd(etcdNodes []*pb.Node) (etcd *v1beta2.ExternalEtcd, err error) {
+func getExternalEtcd(etcdNodes []*pb.Node) (etcd *v1beta2.ExternalEtcd) {
 	for i := range etcdNodes {
 		// TODO: replace to use etcd const when pr merged
 		ep := fmt.Sprintf("https:%v:%v", etcdNodes[i].Ip, 2379)
 		etcd.Endpoints = append(etcd.Endpoints, ep)
 	}
 
-	return nil, nil
+	return
 }
