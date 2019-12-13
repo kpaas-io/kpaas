@@ -59,7 +59,13 @@ func (m *Machine) SetDockerClient() error {
 }
 
 func (m *Machine) Close() {
-	m.Close()
-	m.DockerClient.Close()
-	m.DockerTunnel.Close()
+	m.ExecClient.Close()
+
+	if m.DockerClient != nil {
+		m.DockerClient.Close()
+	}
+
+	if m.DockerTunnel != nil {
+		m.DockerTunnel.Close()
+	}
 }

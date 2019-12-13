@@ -217,7 +217,7 @@ func composeEtcdDockerCmd(d *deployEtcdOperation) []string {
 }
 
 func (d *deployEtcdOperation) Do() error {
-	defer d.machine.DockerTunnel.Close()
+	defer d.machine.Close()
 
 	if err := d.PreDo(); err != nil {
 		return err
