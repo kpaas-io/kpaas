@@ -25,6 +25,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+func init() {
+	RegisterExecutor(ActionTypeDeployWorker, new(deployWorkerExecutor))
+}
+
 type deployWorkerExecutor struct {
 	logger  *logrus.Entry
 	machine *deployMachine.Machine
