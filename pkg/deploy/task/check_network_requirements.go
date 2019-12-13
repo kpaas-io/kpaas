@@ -24,6 +24,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeCheckNetworkRequirements Type = "CheckNetworkRequirements"
+
 // CheckNetworkRequirementsTaskConfig configuration to create a CheckNetworkRequirements task.
 type CheckNetworkRequirementsTaskConfig struct {
 	Nodes           []*pb.Node
@@ -58,6 +60,10 @@ func NewCheckNetworkRequirementsTask(
 		Nodes:          config.Nodes,
 		NetworkOptions: config.NetworkOptions,
 	}, nil
+}
+
+func init() {
+	RegisterProcessor(TaskTypeCheckNetworkRequirements, new(checkNetworkRequirementsProcessor))
 }
 
 type checkNetworkRequirementsProcessor struct{}

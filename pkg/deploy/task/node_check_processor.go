@@ -25,6 +25,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
+func init() {
+	RegisterProcessor(TaskTypeNodeCheck, new(nodeCheckProcessor))
+}
+
 // nodeCheckProcessor implements the specific logic for the node check task.
 type nodeCheckProcessor struct {
 }

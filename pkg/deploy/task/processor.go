@@ -39,35 +39,35 @@ type ExtraResult interface {
 	ProcessExtraResult(task Task) error
 }
 
+var _processRegistry map[Type]Processor
+
+// RegisterProcessor is to register a Processor for a task type
+func RegisterProcessor(taskType Type, proc Processor) error {
+	if _processRegistry == nil {
+		_processRegistry = make(map[Type]Processor)
+	}
+	if proc == nil {
+		err := fmt.Errorf("the Processor to be registered is nil")
+		logrus.Error(err)
+		return err
+	}
+	if _, ok := _processRegistry[taskType]; ok {
+		err := fmt.Errorf("the Processor for type %v has already been registered", taskType)
+		logrus.Error(err)
+		return err
+	}
+	_processRegistry[taskType] = proc
+	return nil
+}
+
 // NewProcessor is a simple factory method to return a task processor based on task type.
 func NewProcessor(taskType Type) (Processor, error) {
-	var processor Processor
-	switch taskType {
-	case TaskTypeNodeCheck:
-		processor = &nodeCheckProcessor{}
-	case TaskTypeNodeInit:
-		processor = &nodeInitProcessor{}
-	case TaskTypeDeploy:
-		processor = &deployProcessor{}
-	case TaskTypeFetchKubeConfig:
-		processor = &fetchKubeConfigProcessor{}
-	case TaskTypeDeployEtcd:
-		processor = &deployEtcdProcessor{}
-	case TaskTypeDeployMaster:
-		processor = &deployMasterProcessor{}
-	case TaskTypeInitMaster:
-		processor = &initMasterProcessor{}
-	case TaskTypeJoinMaster:
-		processor = &joinMasterProcessor{}
-	case TaskTypeDeployWorker:
-		processor = &DeployWorkerProcessor{}
-	case TaskTypeCheckNetworkRequirements:
-		processor = &checkNetworkRequirementsProcessor{}
-	default:
+	proc, ok := _processRegistry[taskType]
+	if !ok {
 		return nil, fmt.Errorf("%s: %s", consts.MsgTaskTypeUnsupported, taskType)
 	}
 
-	return processor, nil
+	return proc, nil
 }
 
 // StartTask does a basic verification on the task,
@@ -141,7 +141,6 @@ func ExecuteTask(t Task) error {
 }
 
 func executeTaskWithWG(t Task, wg *sync.WaitGroup) error {
-	wg.Add(1)
 	defer wg.Done()
 
 	return ExecuteTask(t)
