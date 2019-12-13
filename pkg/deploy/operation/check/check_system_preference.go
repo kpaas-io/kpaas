@@ -30,7 +30,7 @@ const (
 type CheckSysPrefOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Node *machine.Machine
+	Machine *machine.Machine
 }
 
 func (ckops *CheckSysPrefOperation) getScript() string {
@@ -66,5 +66,5 @@ func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (o
 
 // close ssh client
 func (ckops *CheckSysPrefOperation) CloseSSH() {
-	ckops.Node.Close()
+	ckops.Machine.Close()
 }

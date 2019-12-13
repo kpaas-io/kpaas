@@ -37,7 +37,7 @@ const (
 type CheckDistributionOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Node *machine.Machine
+	Machine *machine.Machine
 }
 
 func (ckops *CheckDistributionOperation) getScript() string {
@@ -73,7 +73,7 @@ func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfi
 
 // close ssh client
 func (ckops *CheckDistributionOperation) CloseSSH() {
-	ckops.Node.Close()
+	ckops.Machine.Close()
 }
 
 // check if system distribution can be supported

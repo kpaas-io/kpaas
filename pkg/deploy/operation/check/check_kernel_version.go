@@ -30,7 +30,7 @@ const (
 type CheckKernelOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Node *machine.Machine
+	Machine *machine.Machine
 }
 
 func (ckops *CheckKernelOperation) getScript() string {
@@ -66,7 +66,7 @@ func (ckops *CheckKernelOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 // close ssh client
 func (ckops *CheckKernelOperation) CloseSSH() {
-	ckops.Node.Close()
+	ckops.Machine.Close()
 }
 
 // check if kernel version larger or equal than standard version

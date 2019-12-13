@@ -30,7 +30,7 @@ const (
 type CheckDockerOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Node *machine.Machine
+	Machine *machine.Machine
 }
 
 func (ckops *CheckDockerOperation) getScript() string {
@@ -66,7 +66,7 @@ func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 // close ssh client
 func (ckops *CheckDockerOperation) CloseSSH() {
-	ckops.Node.Close()
+	ckops.Machine.Close()
 }
 
 // check docker version if version larger or equal than standard version

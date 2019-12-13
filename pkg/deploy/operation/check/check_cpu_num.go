@@ -30,7 +30,7 @@ const (
 type CheckCPUOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Node *machine.Machine
+	Machine *machine.Machine
 }
 
 func (ckops *CheckCPUOperation) getScript() string {
@@ -66,7 +66,7 @@ func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (opera
 
 // close ssh client
 func (ckops *CheckCPUOperation) CloseSSH() {
-	ckops.Node.Close()
+	ckops.Machine.Close()
 }
 
 // check if CPU numbers larger or equal than desired cores

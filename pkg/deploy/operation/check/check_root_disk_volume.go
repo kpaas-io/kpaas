@@ -30,7 +30,7 @@ const (
 type CheckRootDiskOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Node *machine.Machine
+	Machine *machine.Machine
 }
 
 func (ckops *CheckRootDiskOperation) getScript() string {
@@ -66,7 +66,7 @@ func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (
 
 // close ssh client
 func (ckops *CheckRootDiskOperation) CloseSSH() {
-	ckops.Node.Close()
+	ckops.Machine.Close()
 }
 
 // check if root disk volume satisfied with desired disk volume
