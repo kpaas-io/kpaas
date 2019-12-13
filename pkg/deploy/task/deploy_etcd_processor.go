@@ -28,7 +28,7 @@ import (
 type deployEtcdProcessor struct {
 }
 
-// Spilt the task into one or more node check actions
+// Spilt the task into multiple etcd deployment actions
 func (p *deployEtcdProcessor) SplitTask(t Task) error {
 	if err := p.verifyTask(t); err != nil {
 		logrus.Errorf("Invalid task: %s", err)

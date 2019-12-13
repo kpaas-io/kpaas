@@ -40,6 +40,10 @@ func NewExecutor(actionType Type) (Executor, error) {
 		executor = &deployEtcdExecutor{}
 	case ActionTypeConnectivityCheck:
 		executor = &connectivityCheckExecutor{}
+	case ActionTypeInitMaster:
+		executor = &initMasterExecutor{}
+	case ActionTypeJoinMaster:
+		executor = &joinMasterExecutor{}
 	default:
 		return nil, fmt.Errorf("%s: %s", consts.MsgActionTypeUnsupported, actionType)
 	}
