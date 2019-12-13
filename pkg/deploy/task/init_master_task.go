@@ -23,6 +23,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeInitMaster Type = "InitMaster"
+
 const (
 	InitMasterOperation Operation = "init"
 	InitMasterPriority  Priority  = 10

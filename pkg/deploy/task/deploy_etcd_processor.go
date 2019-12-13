@@ -24,6 +24,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
+func init() {
+	RegisterProcessor(TaskTypeDeployEtcd, new(deployEtcdProcessor))
+}
+
 // deployEtcdProcessor implements the specific logic to deploy etcd
 type deployEtcdProcessor struct {
 }

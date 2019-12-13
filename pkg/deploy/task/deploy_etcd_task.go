@@ -23,6 +23,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeDeployEtcd Type = "DeployEtcd"
+
 // DeployEtcdTaskConfig represents the config for a deploy etcd task.
 type DeployEtcdTaskConfig struct {
 	Nodes           []*pb.Node
