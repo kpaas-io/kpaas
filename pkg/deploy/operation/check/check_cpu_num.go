@@ -30,6 +30,7 @@ const (
 type CheckCPUOperation struct {
 	operation.BaseOperation
 	CheckOperations
+	Machine *machine.Machine
 }
 
 func (ckops *CheckCPUOperation) getScript() string {
@@ -48,6 +49,7 @@ func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (opera
 	if err != nil {
 		return nil, err
 	}
+	ckops.Machine = m
 
 	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
@@ -60,6 +62,11 @@ func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (opera
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
+}
+
+// close ssh client
+func (ckops *CheckCPUOperation) CloseSSH() {
+	ckops.Machine.Close()
 }
 
 // check if CPU numbers larger or equal than desired cores

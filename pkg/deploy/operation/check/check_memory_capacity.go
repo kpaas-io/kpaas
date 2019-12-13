@@ -30,6 +30,7 @@ const (
 type CheckMemoryOperation struct {
 	operation.BaseOperation
 	CheckOperations
+	Machine *machine.Machine
 }
 
 func (ckops *CheckMemoryOperation) getScript() string {
@@ -48,6 +49,7 @@ func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (op
 	if err != nil {
 		return nil, err
 	}
+	ckops.Machine = m
 
 	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
@@ -60,6 +62,11 @@ func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
+}
+
+// close ssh client
+func (ckops *CheckMemoryOperation) CloseSSH() {
+	ckops.Machine.Close()
 }
 
 // check if memory capacity satisfied with minimal requirement

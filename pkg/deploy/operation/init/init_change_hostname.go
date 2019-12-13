@@ -32,6 +32,7 @@ const (
 type InitHostNameOperation struct {
 	operation.BaseOperation
 	InitOperations
+	Machine *machine.Machine
 }
 
 func (itOps *InitHostNameOperation) getScript() string {
@@ -50,6 +51,7 @@ func (itOps *InitHostNameOperation) GetOperations(node *pb.Node) (operation.Oper
 	if err != nil {
 		return nil, err
 	}
+	itOps.Machine = m
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {
@@ -64,4 +66,8 @@ func (itOps *InitHostNameOperation) GetOperations(node *pb.Node) (operation.Oper
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", itOps.getScriptPath()+itOps.getScript(), currentName), nil))
 	return ops, nil
+}
+
+func (itOps *InitHostNameOperation) CloseSSH() {
+	itOps.Machine.Close()
 }

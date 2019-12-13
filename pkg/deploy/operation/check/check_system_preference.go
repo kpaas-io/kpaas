@@ -30,6 +30,7 @@ const (
 type CheckSysPrefOperation struct {
 	operation.BaseOperation
 	CheckOperations
+	Machine *machine.Machine
 }
 
 func (ckops *CheckSysPrefOperation) getScript() string {
@@ -48,6 +49,7 @@ func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (o
 	if err != nil {
 		return nil, err
 	}
+	ckops.Machine = m
 
 	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
@@ -60,4 +62,9 @@ func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (o
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
+}
+
+// close ssh client
+func (ckops *CheckSysPrefOperation) CloseSSH() {
+	ckops.Machine.Close()
 }

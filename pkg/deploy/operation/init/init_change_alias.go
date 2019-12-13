@@ -30,6 +30,7 @@ const (
 type InitHostaliasOperation struct {
 	operation.BaseOperation
 	InitOperations
+	Machine *machine.Machine
 }
 
 func (itOps *InitHostaliasOperation) getScript() string {
@@ -48,6 +49,7 @@ func (itOps *InitHostaliasOperation) GetOperations(node *pb.Node) (operation.Ope
 	if err != nil {
 		return nil, err
 	}
+	itOps.Machine = m
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {
@@ -60,4 +62,8 @@ func (itOps *InitHostaliasOperation) GetOperations(node *pb.Node) (operation.Ope
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript(), nil))
 	return ops, nil
+}
+
+func (itOps *InitHostaliasOperation) CloseSSH() {
+	itOps.Machine.Close()
 }

@@ -89,6 +89,9 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.FixMethods = ItemHelperScript
 	}
 
+	// close ssh client
+	checkItems.CloseSSH()
+
 	checkItemStdOut := string(stdOut)
 	return checkItemStdOut, checkItemReport, nil
 }

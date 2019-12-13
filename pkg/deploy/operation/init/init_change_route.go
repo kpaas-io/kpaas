@@ -30,6 +30,7 @@ const (
 type InitRouteOperation struct {
 	operation.BaseOperation
 	InitOperations
+	Machine *machine.Machine
 }
 
 func (itOps *InitRouteOperation) getScript() string {
@@ -48,6 +49,7 @@ func (itOps *InitRouteOperation) GetOperations(node *pb.Node) (operation.Operati
 	if err != nil {
 		return nil, err
 	}
+	itOps.Machine = m
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {
@@ -60,4 +62,8 @@ func (itOps *InitRouteOperation) GetOperations(node *pb.Node) (operation.Operati
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript(), nil))
 	return ops, nil
+}
+
+func (itOps *InitRouteOperation) CloseSSH() {
+	itOps.Machine.Close()
 }

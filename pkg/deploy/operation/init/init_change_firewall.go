@@ -30,6 +30,7 @@ const (
 type InitFireWallOperation struct {
 	operation.BaseOperation
 	InitOperations
+	Machine *machine.Machine
 }
 
 func (itOps *InitFireWallOperation) getScript() string {
@@ -48,6 +49,7 @@ func (itOps *InitFireWallOperation) GetOperations(node *pb.Node) (operation.Oper
 	if err != nil {
 		return nil, err
 	}
+	itOps.Machine = m
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {
@@ -60,4 +62,8 @@ func (itOps *InitFireWallOperation) GetOperations(node *pb.Node) (operation.Oper
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript(), nil))
 	return ops, nil
+}
+
+func (itOps *InitFireWallOperation) CloseSSH() {
+	itOps.Machine.Close()
 }

@@ -30,6 +30,7 @@ const (
 type CheckDockerOperation struct {
 	operation.BaseOperation
 	CheckOperations
+	Machine *machine.Machine
 }
 
 func (ckops *CheckDockerOperation) getScript() string {
@@ -48,6 +49,7 @@ func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (op
 	if err != nil {
 		return nil, err
 	}
+	ckops.Machine = m
 
 	scriptFile, err := assets.Assets.Open(ckops.getScript())
 	if err != nil {
@@ -60,6 +62,11 @@ func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript(), nil))
 	return ops, nil
+}
+
+// close ssh client
+func (ckops *CheckDockerOperation) CloseSSH() {
+	ckops.Machine.Close()
 }
 
 // check docker version if version larger or equal than standard version

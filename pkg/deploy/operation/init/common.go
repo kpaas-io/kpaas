@@ -15,6 +15,7 @@
 package init
 
 import (
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
@@ -26,10 +27,12 @@ type OperationsGenerator struct{}
 type InitOperations struct {
 	Script     string
 	ScriptPath string
+	Machine    *machine.Machine
 }
 
 type InitAction interface {
 	GetOperations(config *pb.Node) (operation.Operation, error)
+	CloseSSH()
 	getScript() string
 	getScriptPath() string
 }
@@ -54,18 +57,18 @@ func (og *OperationsGenerator) CreateOperations(item ItemEnum) InitAction {
 	switch item {
 	case FireWall:
 		return &InitFireWallOperation{}
-	//case HostAlias:
-	//	return &InitHostAliasOperation{}
-	//case HostName:
-	//	return &InitHostNameOperation{}
-	//case Network:
-	//	return &InitNetworkOperation{}
-	//case Route:
-	//	return &InitRoutOperation{}
-	//case Swap:
-	//	return &InitSwapOperation{}
-	//case TimeZone:
-	//	return &InitTimeZoneOperation{}
+	case HostAlias:
+		return &InitHostaliasOperation{}
+	case HostName:
+		return &InitHostNameOperation{}
+	case Network:
+		return &InitNetworkOperation{}
+	case Route:
+		return &InitRouteOperation{}
+	case Swap:
+		return &InitSwapOperation{}
+	case TimeZone:
+		return &InitTimeZoneOperation{}
 	//case Haproxy:
 	//	return &InitHaproxyOperation{}
 	//case Keepalived:
