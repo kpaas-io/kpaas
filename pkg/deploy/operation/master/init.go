@@ -96,13 +96,13 @@ func (op *initMasterOperation) PreDo() error {
 	}
 
 	if err := op.machine.PutFile(bytes.NewReader(etcdCACrt), etcd.DefaultEtcdCACertPath); err != nil {
-		return fmt.Errorf("failed to put etcd ca cert to %v:%v, error: %c", op.machine.Name, etcd.DefaultEtcdCACertPath)
+		return fmt.Errorf("failed to put etcd ca cert to %v:%v, error: %v", op.machine.Name, etcd.DefaultEtcdCACertPath, err)
 	}
 	if err := op.machine.PutFile(bytes.NewReader(apiServerEtcdClientCert), defaultApiServerEtcdClientCertPath); err != nil {
-		return fmt.Errorf("failed to put apiserver etcd client cert to %v:%v, error: %c", op.machine.Name, defaultApiServerEtcdClientCertPath)
+		return fmt.Errorf("failed to put apiserver etcd client cert to %v:%v, error: %v", op.machine.Name, defaultApiServerEtcdClientCertPath, err)
 	}
 	if err := op.machine.PutFile(bytes.NewReader(apiServerEtcdClientKey), defaultApiServerEtcdClientKeyPath); err != nil {
-		return fmt.Errorf("failed to put apiserver etcd client key to %v:%v, error: %c", op.machine.Name, defaultApiServerEtcdClientKeyPath)
+		return fmt.Errorf("failed to put apiserver etcd client key to %v:%v, error: %v", op.machine.Name, defaultApiServerEtcdClientKeyPath, err)
 	}
 
 	kubeadmConfig, err := newInitConfig(op)
