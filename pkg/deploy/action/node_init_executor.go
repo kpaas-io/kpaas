@@ -128,7 +128,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	wg.Wait()
 
-	// If any of them was failed, we should return an error
+	// If any of init item was failed, we should return an error
 	failedItems := getFailedInitItems(nodeInitAction)
 	if len(failedItems) > 0 {
 		return &pb.Error{

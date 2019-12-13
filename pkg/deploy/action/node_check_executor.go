@@ -310,7 +310,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	go CheckSysPrefExecutor(nodeCheckAction, &wg)
 	wg.Wait()
 
-	// If any of them was failed, we should return an error
+	// If any of check item was failed, we should return an error
 	failedItems := getFailedCheckItems(nodeCheckAction)
 	if len(failedItems) > 0 {
 		return &pb.Error{
@@ -326,7 +326,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 func getFailedCheckItems(checkAction *NodeCheckAction) []string {
 	var failedItemName []string
 	for _, item := range checkAction.CheckItems {
-		if item.Status != nodeInitItemDone {
+		if item.Status != ItemActionDone {
 			failedItemName = append(failedItemName, item.Name)
 		}
 	}
