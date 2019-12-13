@@ -17,4 +17,5 @@ package constant
 const (
 	KubeletVersionMaximum = "1.16.4"
 	KubeletVersionMinimum = "1.16.3"
+	KubernetesVersion     = "1.16.3"
 )
