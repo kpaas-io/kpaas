@@ -88,7 +88,7 @@ func Deploy(c *gin.Context) {
 
 	go listenDeploymentData()
 
-	h.R(c, api.SuccessfulOption{Success: resp.GetAcceptd()})
+	h.R(c, api.SuccessfulOption{Success: resp.GetAccepted()})
 }
 
 // @ID GetDeploymentReport
