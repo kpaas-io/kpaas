@@ -16,20 +16,26 @@ package master
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"time"
+
+	"github.com/sirupsen/logrus"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
-	"github.com/sirupsen/logrus"
-	"strings"
-
-	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 const (
+	defaultControlPlaneReadyTimeout    = 5 * time.Minute
 	kubeadmConfigFileName              = "kubeadm_config.yaml"
 	kubeadmConfigPath                  = consts.DefaultK8sConfigDir + kubeadmConfigFileName
 	defaultApiServerEtcdClientCertName = "apiserver-etcd-client.crt"
@@ -130,17 +136,70 @@ func (op *initMasterOperation) PreDo() error {
 func (op *initMasterOperation) Do() error {
 	defer op.machine.Close()
 
+	if err := op.PreDo(); err != nil {
+		return err
+	}
+
 	// init first master
 	stdErr, _, err := op.BaseOperation.Do()
 	if err != nil {
 		return fmt.Errorf("failed to initilize first master, error:%s", stdErr)
 	}
 
+	if err := op.PostDo(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (op *initMasterOperation) PostDo() error {
-	// TODO
 	// wait until master cluster ready
+
+	deadline := time.Now().Add(defaultControlPlaneReadyTimeout)
+	for retries := 0; time.Now().Before(deadline); retries++ {
+		err := masterUpAndRunning(op)
+		if err == nil {
+			return nil
+		}
+		op.Logger.Warnf("etd cluster not ready, error: %v, will retry", err)
+		time.Sleep(time.Second << uint(retries))
+	}
+
+	return fmt.Errorf("wait for etcd cluster ready timeout after:%v", defaultControlPlaneReadyTimeout)
+}
+
+func masterUpAndRunning(op *initMasterOperation) error {
+	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(op.ClusterConfig, op.MasterNodes)
+	if err != nil {
+		return fmt.Errorf("failed to get control plane endpoint, error:%v", err)
+	}
+
+	healthCheckUrl := fmt.Sprintf("https://%v/healthz", controlPlaneEndpoint)
+
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	httpC := &http.Client{
+		Timeout:   time.Minute,
+		Transport: tr,
+	}
+
+	resp, err := httpC.Get(healthCheckUrl)
+	if err != nil {
+		return fmt.Errorf("get %v failed, error: %v", healthCheckUrl, err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if string(body) != "ok" {
+		return fmt.Errorf("controlplane status: %v, not ok", string(body))
+	}
+
 	return nil
 }
