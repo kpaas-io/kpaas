@@ -48,6 +48,7 @@ func (executor *DeployWorkerExecutor) Execute(act Action) error {
 
 		return fmt.Errorf("reason: %s, detail: %s, fixMethods: %s", err.GetReason(), err.GetDetail(), err.GetFixMethods())
 	}
+	defer executor.disconnectSSH()
 
 	if err := executor.installKubelet(); err != nil {
 		return fmt.Errorf("reason: %s, detail: %s, fixMethods: %s", err.GetReason(), err.GetDetail(), err.GetFixMethods())
@@ -210,4 +211,13 @@ func (executor *DeployWorkerExecutor) appendTaint() *protos.Error {
 
 	executor.logger.Info("Finish to append taint action")
 	return nil
+}
+
+func (executor *DeployWorkerExecutor) disconnectSSH() {
+
+	executor.logger.Debug("Start to disconnect ssh")
+
+	executor.machine.Close()
+
+	executor.logger.Debug("ssh disconnected")
 }
