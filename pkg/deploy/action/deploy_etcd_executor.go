@@ -15,8 +15,6 @@
 package action
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
@@ -27,10 +25,10 @@ import (
 type deployEtcdExecutor struct {
 }
 
-func (a *deployEtcdExecutor) Execute(act Action) error {
+func (a *deployEtcdExecutor) Execute(act Action) *pb.Error {
 	etcdAction, ok := act.(*DeployEtcdAction)
 	if !ok {
-		return fmt.Errorf("the action type is not match: should be deploy etcd action, but is %T", act)
+		return errOfTypeMismatched(new(DeployEtcdAction), act)
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
@@ -48,16 +46,18 @@ func (a *deployEtcdExecutor) Execute(act Action) error {
 	}
 	op, err := etcd.NewDeployEtcdOperation(config)
 	if err != nil {
-		return fmt.Errorf("failed to get etcd operation, error: %v", err)
+		return &pb.Error{
+			Reason: "failed to get etcd operation",
+			Detail: err.Error(),
+		}
 	}
 
 	logger.Debugf("Start to deploy etcd on nodes: %s", etcdAction.Node.Name)
 
 	etcdAction.Status = ActionDone
 	if err := op.Do(); err != nil {
-		etcdAction.Status = ActionFailed
-		etcdAction.Err = &pb.Error{
-			Reason:     err.Error(),
+		return &pb.Error{
+			Reason:     "failed to do etcd operation",
 			Detail:     err.Error(),
 			FixMethods: "",
 		}

@@ -88,39 +88,34 @@ func NewConnectivityCheckAction(cfg *ConnectivityCheckActionConfig) (Action, err
 
 type connectivityCheckExecutor struct{}
 
-func (e *connectivityCheckExecutor) Execute(act Action) error {
+func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 	connectivityCheckAction, ok := act.(*ConnectivityCheckAction)
 	if !ok {
-		return fmt.Errorf("action type not match: should be connectivity check action, but is %T", act)
+		return errOfTypeMismatched(new(ConnectivityCheckAction), act)
 	}
-	connectivityCheckAction.Status = ActionDoing
 
 	dstNode := connectivityCheckAction.DestinationNode
 	srcNode := connectivityCheckAction.SourceNode
 	// start SSH connection to destination node to dump packets
 	sshClientDst, err := ssh.NewClient(dstNode.Ssh.Auth.Username, dstNode.Ip, dstNode.Ssh)
 	if err != nil {
-		connectivityCheckAction.Status = ActionFailed
-		connectivityCheckAction.Err = &pb.Error{
+		return &pb.Error{
 			Reason: "failed to start SSH client",
 			Detail: fmt.Sprintf("Failed to create SSH connetion to %s by connecting to %s:%d, error %v",
 				dstNode.Name, dstNode.Ip, dstNode.Ssh.Port, err),
 			FixMethods: "configure no-password ssh login from deploy node",
 		}
-		return fmt.Errorf("SSH: failed to connect to %s, error %v", dstNode.Name, err)
 	}
 
 	// start SSH connection to source node to send packets
 	sshClientSrc, err := ssh.NewClient(srcNode.Ssh.Auth.Username, srcNode.Ip, srcNode.Ssh)
 	if err != nil {
-		connectivityCheckAction.Status = ActionFailed
-		connectivityCheckAction.Err = &pb.Error{
+		return &pb.Error{
 			Reason: "failed to start SSH client",
 			Detail: fmt.Sprintf("Failed to create SSH connetion to %s by connecting to %s:%d, error %v",
 				srcNode.Name, srcNode.Ip, srcNode.Ssh.Port, err),
 			FixMethods: "configure no-password ssh login from deploy node",
 		}
-		return fmt.Errorf("SSH: failed to connect to %s, error %v", srcNode.Name, err)
 	}
 
 	for _, checkItem := range connectivityCheckAction.CheckItems {
@@ -148,14 +143,12 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 			sendCommand = append(sendCommand, "-zuv",
 				dstNode.Ip, fmt.Sprintf("%d", checkItem.Port))
 		default:
-			connectivityCheckAction.Status = ActionFailed
-			connectivityCheckAction.Err = &pb.Error{
+			return &pb.Error{
 				Reason: "protocol not supported",
 				Detail: fmt.Sprintf("protocol %s is not supported. supported protocols are: TCP, UDP",
 					string(checkItem.Protocol)),
 				FixMethods: "Use a supported protocol",
 			}
-			return fmt.Errorf("unssported protocol: %s", string(checkItem.Protocol))
 		}
 		if checkItem.CheckResult != nil {
 			checkItem.CheckResult.Status = ItemActionDoing
@@ -173,18 +166,17 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 		err := <-captureChan
 
 		if err != nil {
-			connectivityCheckAction.Status = ActionFailed
 			checkErr := &pb.Error{
 				Reason: "check connectivity failed",
 				Detail: fmt.Sprintf("%s cannot connect to %s %s:%d",
 					srcNode.Name, string(checkItem.Protocol), dstNode.Name, checkItem.Port),
 				FixMethods: "configure network or firewall to allow these packets",
 			}
-			connectivityCheckAction.Err = checkErr
 			if checkItem.CheckResult != nil {
 				checkItem.CheckResult.Status = ItemActionFailed
 				checkItem.CheckResult.Err = checkErr
 			}
+			return checkErr
 			// continue to check other items
 		} else {
 			if checkItem.CheckResult != nil {
@@ -192,6 +184,5 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 			}
 		}
 	}
-	connectivityCheckAction.Status = ActionDone
 	return nil
 }

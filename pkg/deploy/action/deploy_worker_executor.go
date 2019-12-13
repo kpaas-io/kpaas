@@ -25,17 +25,17 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type DeployWorkerExecutor struct {
+type deployWorkerExecutor struct {
 	logger  *logrus.Entry
 	machine *deployMachine.Machine
 	action  *DeployWorkerAction
 }
 
-func (executor *DeployWorkerExecutor) Execute(act Action) error {
+func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
 
 	action, ok := act.(*DeployWorkerAction)
 	if !ok {
-		return fmt.Errorf("the action type is not match: should be deploy worker action, but is %T", act)
+		return errOfTypeMismatched(new(DeployWorkerAction), act)
 	}
 
 	executor.action = action
@@ -46,28 +46,28 @@ func (executor *DeployWorkerExecutor) Execute(act Action) error {
 
 	if err := executor.connectSSH(); err != nil {
 
-		return fmt.Errorf("reason: %s, detail: %s, fixMethods: %s", err.GetReason(), err.GetDetail(), err.GetFixMethods())
+		return err
 	}
 	defer executor.disconnectSSH()
 
 	if err := executor.installKubelet(); err != nil {
-		return fmt.Errorf("reason: %s, detail: %s, fixMethods: %s", err.GetReason(), err.GetDetail(), err.GetFixMethods())
+		return err
 	}
 
 	if err := executor.joinCluster(); err != nil {
-		return fmt.Errorf("reason: %s, detail: %s, fixMethods: %s", err.GetReason(), err.GetDetail(), err.GetFixMethods())
+		return err
 	}
 
 	if err := executor.appendLabel(); err != nil {
-		return fmt.Errorf("reason: %s, detail: %s, fixMethods: %s", err.GetReason(), err.GetDetail(), err.GetFixMethods())
+		return err
 	}
 
 	if err := executor.appendAnnotation(); err != nil {
-		return fmt.Errorf("reason: %s, detail: %s, fixMethods: %s", err.GetReason(), err.GetDetail(), err.GetFixMethods())
+		return err
 	}
 
 	if err := executor.appendTaint(); err != nil {
-		return fmt.Errorf("reason: %s, detail: %s, fixMethods: %s", err.GetReason(), err.GetDetail(), err.GetFixMethods())
+		return err
 	}
 
 	executor.logger.Info("deploy worker finished")
@@ -75,7 +75,7 @@ func (executor *DeployWorkerExecutor) Execute(act Action) error {
 	return nil
 }
 
-func (executor *DeployWorkerExecutor) connectSSH() *protos.Error {
+func (executor *deployWorkerExecutor) connectSSH() *protos.Error {
 
 	executor.logger.Debug("Start to connect ssh")
 
@@ -95,7 +95,7 @@ func (executor *DeployWorkerExecutor) connectSSH() *protos.Error {
 	return nil
 }
 
-func (executor *DeployWorkerExecutor) initLogger() {
+func (executor *deployWorkerExecutor) initLogger() {
 	executor.logger = logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: executor.action.GetName(),
 		"nodeName":            executor.action.config.Node.GetNode().GetName(),
@@ -103,7 +103,7 @@ func (executor *DeployWorkerExecutor) initLogger() {
 	})
 }
 
-func (executor *DeployWorkerExecutor) installKubelet() *protos.Error {
+func (executor *deployWorkerExecutor) installKubelet() *protos.Error {
 
 	executor.logger.Debug("Start to install kubelet")
 
@@ -125,7 +125,7 @@ func (executor *DeployWorkerExecutor) installKubelet() *protos.Error {
 	return nil
 }
 
-func (executor *DeployWorkerExecutor) joinCluster() *protos.Error {
+func (executor *deployWorkerExecutor) joinCluster() *protos.Error {
 
 	executor.logger.Debug("Start to join cluster")
 
@@ -147,7 +147,7 @@ func (executor *DeployWorkerExecutor) joinCluster() *protos.Error {
 	return nil
 }
 
-func (executor *DeployWorkerExecutor) appendLabel() *protos.Error {
+func (executor *deployWorkerExecutor) appendLabel() *protos.Error {
 
 	executor.logger.Debug("Start to append label")
 
@@ -169,7 +169,7 @@ func (executor *DeployWorkerExecutor) appendLabel() *protos.Error {
 	return nil
 }
 
-func (executor *DeployWorkerExecutor) appendAnnotation() *protos.Error {
+func (executor *deployWorkerExecutor) appendAnnotation() *protos.Error {
 
 	executor.logger.Debug("Start to append annotation")
 
@@ -191,7 +191,7 @@ func (executor *DeployWorkerExecutor) appendAnnotation() *protos.Error {
 	return nil
 }
 
-func (executor *DeployWorkerExecutor) appendTaint() *protos.Error {
+func (executor *deployWorkerExecutor) appendTaint() *protos.Error {
 
 	executor.logger.Debug("Start to append taint")
 
@@ -213,7 +213,7 @@ func (executor *DeployWorkerExecutor) appendTaint() *protos.Error {
 	return nil
 }
 
-func (executor *DeployWorkerExecutor) disconnectSSH() {
+func (executor *deployWorkerExecutor) disconnectSSH() {
 
 	executor.logger.Debug("Start to disconnect ssh")
 

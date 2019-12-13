@@ -52,7 +52,7 @@ func (c *controller) CheckNodes(ctx context.Context, req *pb.CheckNodesRequest) 
 	if err != nil {
 		logrus.Errorf("CheckNodes request failed: %s", err)
 		return &pb.CheckNodesReply{
-			Acceptd: false,
+			Accepted: false,
 			Err: &pb.Error{
 				Reason: consts.MsgRequestFailed,
 				Detail: err.Error(),
@@ -62,8 +62,8 @@ func (c *controller) CheckNodes(ctx context.Context, req *pb.CheckNodesRequest) 
 
 	logrus.Info("CheckNodes request succeeded")
 	return &pb.CheckNodesReply{
-		Acceptd: true,
-		Err:     nil,
+		Accepted: true,
+		Err:      nil,
 	}, nil
 }
 
@@ -105,7 +105,7 @@ func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.Dep
 	if err != nil {
 		logrus.Errorf("Deploy request failed: %s", err)
 		return &pb.DeployReply{
-			Acceptd: false,
+			Accepted: false,
 			Err: &pb.Error{
 				Reason: consts.MsgRequestFailed,
 				Detail: err.Error(),
@@ -115,8 +115,8 @@ func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.Dep
 
 	logrus.Info("Deploy request succeeded")
 	return &pb.DeployReply{
-		Acceptd: true,
-		Err:     nil,
+		Accepted: true,
+		Err:      nil,
 	}, nil
 }
 

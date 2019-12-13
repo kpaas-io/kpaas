@@ -15,20 +15,19 @@
 package action
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type fetchKubeConfigExecutor struct {
 }
 
-func (a *fetchKubeConfigExecutor) Execute(act Action) error {
+func (a *fetchKubeConfigExecutor) Execute(act Action) *pb.Error {
 	kubeCfgAction, ok := act.(*FetchKubeConfigAction)
 	if !ok {
-		return fmt.Errorf("the action type is not match: should be fetch kube config action, but is %T", act)
+		return errOfTypeMismatched(new(FetchKubeConfigAction), act)
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
@@ -40,7 +39,6 @@ func (a *fetchKubeConfigExecutor) Execute(act Action) error {
 	// TODO: ssh to fetch kube config file from kubeCfgAction.node
 
 	// Update action
-	kubeCfgAction.Status = ActionDone
 	kubeCfgAction.KubeConfig = []byte("todo: the content of kube config file")
 
 	logger.Debug("Finsih to execute action")
