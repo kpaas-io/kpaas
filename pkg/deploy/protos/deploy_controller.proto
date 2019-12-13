@@ -76,6 +76,7 @@ message NodeCheckConfig {
 // CheckNodesRequest contains the request of node pre-checking.
 message CheckNodesRequest {
   repeated NodeCheckConfig configs = 1;
+  NetworkOptions networkOptions = 2;
 }
 
 // CheckNodesReply contains the result of node pre-checking.
