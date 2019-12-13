@@ -285,10 +285,10 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-func (a *nodeCheckExecutor) Execute(act Action) error {
+func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	nodeCheckAction, ok := act.(*NodeCheckAction)
 	if !ok {
-		return fmt.Errorf("the action type is not match: should be node check action, but is %T", act)
+		return errOfTypeMismatched(new(NodeCheckAction), act)
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
@@ -310,7 +310,25 @@ func (a *nodeCheckExecutor) Execute(act Action) error {
 	go CheckSysPrefExecutor(nodeCheckAction, &wg)
 	wg.Wait()
 
-	nodeCheckAction.Status = ActionDone
+	// If any of check item was failed, we should return an error
+	failedItems := getFailedCheckItems(nodeCheckAction)
+	if len(failedItems) > 0 {
+		return &pb.Error{
+			Reason: fmt.Sprintf("%d check item(s) failed", len(failedItems)),
+			Detail: fmt.Sprintf("failed check item list: %v", failedItems),
+		}
+	}
+
 	logger.Debug("Finish to execute node check action")
 	return nil
+}
+
+func getFailedCheckItems(checkAction *NodeCheckAction) []string {
+	var failedItemName []string
+	for _, item := range checkAction.CheckItems {
+		if item.Status != ItemActionDone {
+			failedItemName = append(failedItemName, item.Name)
+		}
+	}
+	return failedItemName
 }

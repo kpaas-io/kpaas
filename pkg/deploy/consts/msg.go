@@ -36,6 +36,7 @@ const (
 	MsgActionExecutorCreationFailed string = "failed to create action executor"
 	MsgActionExecutionFailed        string = "failed to execute aciton"
 	MsgActionTypeMismatched         string = "action type mismatched"
+	MsgActionTypeMismatchedDetail   string = "the action type is not match: should be %T, but is %T"
 )
 
 var (

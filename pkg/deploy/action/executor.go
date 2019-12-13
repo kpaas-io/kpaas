@@ -25,7 +25,7 @@ import (
 // Executor represents the interface of an action executor.
 // Concrete executors implements the logic of actions.
 type Executor interface {
-	Execute(act Action) error
+	Execute(act Action) *pb.Error
 }
 
 // NewExecutor is a simple factory method to return an action executor based on action type.
@@ -72,15 +72,18 @@ func ExecuteAction(act Action, wg *sync.WaitGroup) {
 
 	act.SetStatus(ActionDoing)
 
-	err = executor.Execute(act)
-	if err != nil {
+	if exeErr := executor.Execute(act); exeErr != nil {
 		act.SetStatus(ActionFailed)
-		act.SetErr(&pb.Error{
-			Reason: consts.MsgActionExecutionFailed,
-			Detail: err.Error(),
-		})
+		act.SetErr(exeErr)
 		return
 	}
 
 	act.SetStatus(ActionDone)
+}
+
+func errOfTypeMismatched(expected, actual interface{}) *pb.Error {
+	return &pb.Error{
+		Reason: consts.MsgActionTypeMismatched,
+		Detail: fmt.Sprintf(consts.MsgActionTypeMismatchedDetail, expected, actual),
+	}
 }

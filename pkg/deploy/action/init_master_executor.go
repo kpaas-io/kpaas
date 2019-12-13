@@ -15,8 +15,6 @@
 package action
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
@@ -27,10 +25,10 @@ import (
 type initMasterExecutor struct {
 }
 
-func (a *initMasterExecutor) Execute(act Action) error {
+func (a *initMasterExecutor) Execute(act Action) *pb.Error {
 	action, ok := act.(*InitMasterAction)
 	if !ok {
-		return fmt.Errorf("the action type is not match: should be init master action, but is %T", act)
+		return errOfTypeMismatched(new(InitMasterAction), act)
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
@@ -49,16 +47,17 @@ func (a *initMasterExecutor) Execute(act Action) error {
 
 	op, err := master.NewInitMasterOperation(config)
 	if err != nil {
-		return fmt.Errorf("failed to get init master operation, error: %v", err)
+		return &pb.Error{
+			Reason: "failed to get init master operation",
+			Detail: err.Error(),
+		}
 	}
 
 	logger.Debugf("Start to init master on nodes: %s", action.Node.Name)
 
-	action.Status = ActionDone
 	if err := op.Do(); err != nil {
-		action.Status = ActionFailed
-		action.Err = &pb.Error{
-			Reason:     err.Error(),
+		return &pb.Error{
+			Reason:     "failed to do init master operation",
 			Detail:     err.Error(),
 			FixMethods: "",
 		}

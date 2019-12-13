@@ -15,8 +15,6 @@
 package action
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
@@ -27,10 +25,10 @@ import (
 type joinMasterExecutor struct {
 }
 
-func (a *joinMasterExecutor) Execute(act Action) error {
+func (a *joinMasterExecutor) Execute(act Action) *pb.Error {
 	action, ok := act.(*JoinMasterTask)
 	if !ok {
-		return fmt.Errorf("the action type is not match: should be join master action, but is %T", act)
+		return errOfTypeMismatched(new(JoinMasterTask), act)
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
@@ -48,14 +46,15 @@ func (a *joinMasterExecutor) Execute(act Action) error {
 
 	op, err := master.NewJoinMasterOperation(config)
 	if err != nil {
-		return fmt.Errorf("failed to get etcd operation, error: %v", err)
+		return &pb.Error{
+			Reason: "failed to get etcd operation",
+			Detail: err.Error(),
+		}
 	}
 
-	action.Status = ActionDone
 	if err := op.Do(); err != nil {
-		action.Status = ActionFailed
-		action.Err = &pb.Error{
-			Reason:     err.Error(),
+		return &pb.Error{
+			Reason:     "failed to get etcd operation",
 			Detail:     err.Error(),
 			FixMethods: "",
 		}
