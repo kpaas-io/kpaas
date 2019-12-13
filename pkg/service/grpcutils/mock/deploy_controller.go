@@ -51,8 +51,8 @@ func (mock *DeployController) GetCheckNodesResult(ctx context.Context, in *proto
 	return &protos.GetCheckNodesResultReply{
 		Status: "passed",
 		Err:    nil,
-		Nodes: []*protos.NodeCheckResult{
-			{
+		Nodes: map[string]*protos.NodeCheckResult{
+			"master1": {
 				NodeName: "master1",
 				Status:   "passed",
 				Err:      nil,
