@@ -37,9 +37,10 @@ func (c *controller) TestConnection(context.Context, *pb.TestConnectionRequest) 
 func (c *controller) CheckNodes(ctx context.Context, req *pb.CheckNodesRequest) (*pb.CheckNodesReply, error) {
 	logrus.Info("Begins CheckNodes request")
 
-	taskName := getCheckNodeTaskName(req)
+	taskName := getCheckNodeTaskName()
 	taskConfig := &task.NodeCheckTaskConfig{
 		NodeConfigs:     req.GetConfigs(),
+		NetworkOptions:  req.GetNetworkOptions(),
 		LogFileBasePath: c.logFileLoc,
 	}
 
@@ -66,9 +67,24 @@ func (c *controller) CheckNodes(ctx context.Context, req *pb.CheckNodesRequest) 
 	}, nil
 }
 
-func (c *controller) GetCheckNodesResult(context.Context, *pb.GetCheckNodesResultRequest) (*pb.GetCheckNodesResultReply, error) {
-	// TODO
-	return nil, nil
+func (c *controller) GetCheckNodesResult(ctx context.Context, req *pb.GetCheckNodesResultRequest) (*pb.GetCheckNodesResultReply, error) {
+	logrus.Info("Begins GetCheckNodesResult request")
+
+	var err error
+	defer func() {
+		if err != nil {
+			logrus.Errorf("Failed to reply GetCheckNodesResult request, error: %v", err)
+		} else {
+			logrus.Info("Succeeded to reply GetCheckNodesResult request.")
+		}
+	}()
+
+	tsk, err := c.getTask(getCheckNodeTaskName())
+	if err != nil {
+		return nil, err
+	}
+
+	return c.getCheckNodeResult(tsk, req.GetWithLogs())
 }
 
 func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.DeployReply, error) {
@@ -240,7 +256,7 @@ func (c *controller) storeAndExecuteTask(aTask task.Task) error {
 	return task.ExecuteTask(aTask)
 }
 
-func getCheckNodeTaskName(req *pb.CheckNodesRequest) string {
+func getCheckNodeTaskName() string {
 	// use a fixed name for checknode task, it may be changed in the future
 	return "node-check"
 }

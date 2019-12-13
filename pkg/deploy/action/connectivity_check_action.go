@@ -29,8 +29,9 @@ import (
 
 // ConnectivityCheckItem an item representing one check item of checking wheter a node can connect to another by the protocol and port.
 type ConnectivityCheckItem struct {
-	Protocol consts.Protocol
-	Port     uint16
+	Protocol    consts.Protocol
+	Port        uint16
+	CheckResult *pb.ItemCheckResult
 }
 
 // ConnectivityCheckActionConfig configuration of checking connectivity from soruce to destination.
@@ -77,6 +78,7 @@ func NewConnectivityCheckAction(cfg *ConnectivityCheckActionConfig) (Action, err
 			Status:            ActionPending,
 			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
 			CreationTimestamp: time.Now(),
+			Node:              cfg.SourceNode,
 		},
 		SourceNode:      cfg.SourceNode,
 		DestinationNode: cfg.DestinationNode,
@@ -126,7 +128,6 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 		srcPort := (randGen.Uint32() % 16384) + 45000
 		sshSessionDst, _ := sshClientDst.NewSession()
 		sshSessionSrc, _ := sshClientSrc.NewSession()
-
 		captureCommand := []string{"timeout", "5",
 			"tcpdump", "-nni", "any", "-c", "1",
 			"src", srcNode.Ip, "and", "dst", dstNode.Ip,
@@ -156,7 +157,9 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 			}
 			return fmt.Errorf("unssported protocol: %s", string(checkItem.Protocol))
 		}
-
+		if checkItem.CheckResult != nil {
+			checkItem.CheckResult.Status = ItemActionDoing
+		}
 		// first, start the capturing on destination node.
 		sshSessionDst.Start(strings.Join(captureCommand, " "))
 		captureChan := make(chan error)
@@ -168,15 +171,25 @@ func (e *connectivityCheckExecutor) Execute(act Action) error {
 		time.Sleep(time.Second)
 		sshSessionSrc.Start(strings.Join(sendCommand, " "))
 		err := <-captureChan
+
 		if err != nil {
 			connectivityCheckAction.Status = ActionFailed
-			connectivityCheckAction.Err = &pb.Error{
+			checkErr := &pb.Error{
 				Reason: "check connectivity failed",
 				Detail: fmt.Sprintf("%s cannot connect to %s %s:%d",
 					srcNode.Name, string(checkItem.Protocol), dstNode.Name, checkItem.Port),
 				FixMethods: "configure network or firewall to allow these packets",
 			}
-			return nil
+			connectivityCheckAction.Err = checkErr
+			if checkItem.CheckResult != nil {
+				checkItem.CheckResult.Status = ItemActionFailed
+				checkItem.CheckResult.Err = checkErr
+			}
+			// continue to check other items
+		} else {
+			if checkItem.CheckResult != nil {
+				checkItem.CheckResult.Status = ItemActionDone
+			}
 		}
 	}
 	connectivityCheckAction.Status = ActionDone
