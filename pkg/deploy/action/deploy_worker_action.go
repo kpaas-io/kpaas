@@ -44,7 +44,7 @@ func NewDeployWorkerAction(config *DeployWorkerActionConfig) (Action, error) {
 	return &DeployWorkerAction{
 		Base: Base{
 			Name:              actionName,
-			ActionType:        ActionTypeDeployEtcd,
+			ActionType:        ActionTypeDeployWorker,
 			Status:            ActionPending,
 			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName),
 			CreationTimestamp: time.Now(),
