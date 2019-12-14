@@ -120,15 +120,9 @@ func (op *initMasterOperation) PreDo() error {
 		return fmt.Errorf("failed to get control plane endpoint, error:%v", err)
 	}
 
-	initOptions := map[string]string{
-		"--config":                 kubeadmConfigPath,
-		"--upload-certs":           "",
-		"--control-plane-endpoint": endpoint,
-	}
-
 	op.AddCommands(
-		command.NewShellCommand(op.machine, "systemctl", "start kubelet", nil),
-		command.NewShellCommand(op.machine, "kubeadm", "init", initOptions),
+		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
+		command.NewShellCommand(op.machine, "kubeadm", "init", "--config", kubeadmConfigPath, "--upload-certs", "--control-plane-endpoint", endpoint),
 	)
 	return nil
 }

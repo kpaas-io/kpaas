@@ -15,9 +15,13 @@
 package master
 
 import (
+	"fmt"
+	"github.com/kpaas-io/kpaas/pkg/deploy"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -29,6 +33,7 @@ type JoinMasterOperationConfig struct {
 }
 
 type joinMasterOperation struct {
+	operation.BaseOperation
 	Logger        *logrus.Entry
 	MasterNodes   []*pb.Node
 	machine       *machine.Machine
@@ -52,21 +57,37 @@ func NewJoinMasterOperation(config *JoinMasterOperationConfig) (*joinMasterOpera
 	return ops, nil
 }
 
-func (d *joinMasterOperation) PreDo() error {
-	// TODO
-	// put apiserver etcd client cert and key to first master node
+func (op *joinMasterOperation) PreDo() error {
+	// compose join command
+	//kubeadm join 192.168.0.200:6443 --token 9vr73a.a8uxyaju799qwdjv --control-plane --discovery-token-unsafe-skip-ca-verification
+	endpoint, err := deploy.GetControlPlaneEndpoint(op.ClusterConfig, op.MasterNodes)
+	if err != nil {
+		return fmt.Errorf("failed to get control plane endpoint addr, error: %v", err)
+	}
 
+	op.AddCommands(
+		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
+		command.NewShellCommand(op.machine, "kubeadm", "join", endpoint, "--token", Token, "--control-plane", "--discovery-token-unsafe-skip-ca-verification"))
 	return nil
 }
 
-func (d *joinMasterOperation) Do() error {
-	// TODO
+func (op *joinMasterOperation) Do() error {
+	defer op.machine.Close()
+
+	if err := op.PreDo(); err != nil {
+		return err
+	}
+
 	// init first master
+	stdErr, _, err := op.BaseOperation.Do()
+	if err != nil {
+		return fmt.Errorf("failed to join master:%v to cluster, error:%s", op.machine.Name, stdErr)
+	}
 	return nil
 }
 
-func (d *joinMasterOperation) PostDo() error {
-	// TODO
-	// wait until master cluster ready
-	return nil
-}
+//func (op *joinMasterOperation) PostDo() error {
+//	// TODO
+//	// wait until master cluster ready
+//	return nil
+//}
