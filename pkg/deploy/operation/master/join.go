@@ -78,7 +78,7 @@ func (op *joinMasterOperation) Do() error {
 		return err
 	}
 
-	// init first master
+	// join master
 	stdErr, _, err := op.BaseOperation.Do()
 	if err != nil {
 		return fmt.Errorf("failed to join master:%v to cluster, error:%s", op.machine.Name, stdErr)
