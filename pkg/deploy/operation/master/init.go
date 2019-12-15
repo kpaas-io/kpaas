@@ -114,15 +114,11 @@ func (op *initMasterOperation) PreDo() error {
 		return fmt.Errorf("failed to put kubeadm init config file to %v:%v, error: %v", op.machine.Name, defaultApiServerEtcdClientKeyPath, err)
 	}
 
-	// prepare commands to this operation
-	endpoint, err := deploy.GetControlPlaneEndpoint(op.ClusterConfig, op.MasterNodes)
-	if err != nil {
-		return fmt.Errorf("failed to get control plane endpoint, error:%v", err)
-	}
-
 	op.AddCommands(
 		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
-		command.NewShellCommand(op.machine, "kubeadm", "init", "--config", kubeadmConfigPath, "--upload-certs", "--control-plane-endpoint", endpoint),
+		command.NewShellCommand(op.machine, "kubeadm", "init",
+			"--config", kubeadmConfigPath,
+			"--upload-certs"),
 	)
 	return nil
 }

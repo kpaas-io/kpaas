@@ -67,7 +67,11 @@ func (op *joinMasterOperation) PreDo() error {
 
 	op.AddCommands(
 		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
-		command.NewShellCommand(op.machine, "kubeadm", "join", endpoint, "--token", Token, "--control-plane", "--discovery-token-unsafe-skip-ca-verification"))
+		command.NewShellCommand(op.machine, "kubeadm", "join", endpoint,
+			"--token", Token,
+			"--control-plane",
+			"--discovery-token-unsafe-skip-ca-verification"),
+	)
 	return nil
 }
 
