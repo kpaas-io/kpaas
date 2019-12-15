@@ -48,9 +48,19 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	roles := p.groupByRole(deployTask.NodeConfigs)
 
 	// create the init sub tasks with priority = 10
-	initTask, err := p.createInitSubTask(deployTask, roles)
+	// create the init master sub tasks with priority = 10
+	initMasterTask, err := p.createInitSubTask(consts.NodeRoleMaster, deployTask, roles)
 	if err != nil {
-		err = fmt.Errorf("failed to create init sub tasks: %s", err)
+		err = fmt.Errorf("failed to create master init sub tasks: %s", err)
+		logger.Error(err)
+		return err
+	}
+	subTasks = append(subTasks, initMasterTask)
+
+	// create the init common sub tasks with priority = 10
+	initTask, err := p.createInitSubTask("", deployTask, roles)
+	if err != nil {
+		err = fmt.Errorf("failed to create common init sub tasks: %s", err)
 		logger.Error(err)
 		return err
 	}
@@ -136,9 +146,36 @@ func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.No
 	return roles
 }
 
-func (p *deployProcessor) createInitSubTask(t *DeployTask, rn map[consts.NodeRole][]*pb.NodeDeployConfig) (Task, error) {
-	// TODO
-	return nil, nil
+func (p *deployProcessor) createInitSubTask(role consts.NodeRole, parent *DeployTask, rn map[consts.NodeRole][]*pb.NodeDeployConfig) (task Task, err error) {
+	switch role {
+	case consts.NodeRoleMaster:
+
+		config := &NodeMasterInitTaskConfig{
+			NodeConfigs:     parent.NodeConfigs,
+			LogFileBasePath: parent.GetLogFilePath(),
+			Priority:        int(initPriority),
+			Parent:          parent.GetName(),
+			ClusterConfig:   parent.ClusterConfig,
+		}
+		taskName := string(role)
+		task, err = NewNodeMasterInitTask(taskName, config)
+
+	default:
+		goto EXTRA
+	}
+
+EXTRA:
+	// common init task
+	config := &NodeInitTaskConfig{
+		NodeConfigs:     parent.NodeConfigs,
+		LogFileBasePath: parent.GetLogFilePath(),
+		Priority:        int(initPriority),
+		Parent:          parent.GetName(),
+		ClusterConfig:   parent.ClusterConfig,
+	}
+	taskName := "common init"
+	task, err = NewNodeInitTask(taskName, config)
+	return
 }
 
 func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, parent *DeployTask, rn map[consts.NodeRole][]*pb.NodeDeployConfig) (task Task, err error) {

@@ -29,6 +29,7 @@ type Type string
 const (
 	ActionTypeNodeCheck         Type = "NodeCheck"
 	ActionTypeNodeInit          Type = "NodeInit"
+	ActionTypeMasterNodeInit    Type = "MasterNodeInit"
 	ActionTypeDeployEtcd        Type = "DeployEtcd"
 	ActionTypeDeployMaster      Type = "DeployMaster"
 	ActionTypeInitMaster        Type = "InitMaster"

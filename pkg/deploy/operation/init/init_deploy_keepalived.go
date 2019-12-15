@@ -19,7 +19,16 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	keepalivedScript     = "/scripts/init_deploy_haproxy_keepalived/"
+	keepalivedScriptPath = "/tmp"
 )
 
 func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
@@ -40,4 +49,45 @@ func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 		"error_reason": operation.ErrPara,
 	}).Errorf("%v", operation.ErrInvalid)
 	return fmt.Errorf(operation.ErrInvalid)
+}
+
+type InitKeepalivedOperation struct {
+	operation.BaseOperation
+	InitOperations
+	Machine *machine.Machine
+}
+
+func (itOps *InitKeepalivedOperation) getScript() string {
+	itOps.Script = routeScript
+	return itOps.Script
+}
+
+func (itOps *InitKeepalivedOperation) getScriptPath() string {
+	itOps.ScriptPath = routeScriptPath
+	return itOps.ScriptPath
+}
+
+func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+	ops := &InitRouteOperation{}
+	m, err := machine.NewMachine(node)
+	if err != nil {
+		return nil, err
+	}
+	itOps.Machine = m
+
+	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	return ops, nil
+}
+
+func (itOps *InitKeepalivedOperation) CloseSSH() {
+	itOps.Machine.Close()
 }

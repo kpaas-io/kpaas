@@ -23,8 +23,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-// NodeInitTaskConfig represents the config for a node init task
-type NodeInitTaskConfig struct {
+// NodeInitTaskConfig represents the config for a master node init task
+type NodeMasterInitTaskConfig struct {
 	NodeConfigs     []*pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig
 	LogFileBasePath string
@@ -32,15 +32,15 @@ type NodeInitTaskConfig struct {
 	Parent          string
 }
 
-type NodeInitTask struct {
+type NodeMasterInitTask struct {
 	Base
 	NodeConfigs   []*pb.NodeDeployConfig
 	ClusterConfig *pb.ClusterConfig
 }
 
-// NewNodeInitTask returns a common node init task based on the config.
-// User should use this function to create a common node init task.
-func NewNodeInitTask(taskName string, taskConfig *NodeInitTaskConfig) (Task, error) {
+// NewNodeInitTask returns a master node init task based on the config.
+// User should use this function to create a master node init task.
+func NewNodeMasterInitTask(taskName string, taskConfig *NodeMasterInitTaskConfig) (Task, error) {
 	var err error
 	if taskConfig == nil {
 		err = fmt.Errorf("invalid task config: nil")
@@ -53,7 +53,7 @@ func NewNodeInitTask(taskName string, taskConfig *NodeInitTaskConfig) (Task, err
 		return nil, err
 	}
 
-	task := &NodeInitTask{
+	task := &NodeMasterInitTask{
 		Base: Base{
 			Name:              taskName,
 			TaskType:          TaskTypeNodeInit,

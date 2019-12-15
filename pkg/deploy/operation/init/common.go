@@ -69,10 +69,10 @@ func (og *OperationsGenerator) CreateOperations(item ItemEnum) InitAction {
 		return &InitSwapOperation{}
 	case TimeZone:
 		return &InitTimeZoneOperation{}
-	//case Haproxy:
-	//	return &InitHaproxyOperation{}
-	//case Keepalived:
-	//	return &InitKeepalivedOperation{}
+	case Haproxy:
+		return &InitHaproxyOperation{}
+	case Keepalived:
+		return &InitKeepalivedOperation{}
 	// TODO setup.sh for init kubeadm kubectl kubelet @yangruiray
 	default:
 		return nil

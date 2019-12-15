@@ -19,7 +19,17 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	HaproxyPort       uint16 = 6443
+	haproxyScript            = "/scripts/init_deploy_haproxy_keepalived/"
+	haproxyScriptPath        = "/tmp"
 )
 
 func CheckHaproxyParameter(ipAddresses ...string) error {
@@ -44,4 +54,45 @@ func CheckHaproxyParameter(ipAddresses ...string) error {
 	}
 
 	return nil
+}
+
+type InitHaproxyOperation struct {
+	operation.BaseOperation
+	InitOperations
+	Machine *machine.Machine
+}
+
+func (itOps *InitHaproxyOperation) getScript() string {
+	itOps.Script = routeScript
+	return itOps.Script
+}
+
+func (itOps *InitHaproxyOperation) getScriptPath() string {
+	itOps.ScriptPath = routeScriptPath
+	return itOps.ScriptPath
+}
+
+func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+	ops := &InitRouteOperation{}
+	m, err := machine.NewMachine(node)
+	if err != nil {
+		return nil, err
+	}
+	itOps.Machine = m
+
+	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	if err != nil {
+		return nil, err
+	}
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	return ops, nil
+}
+
+func (itOps *InitHaproxyOperation) CloseSSH() {
+	itOps.Machine.Close()
 }

@@ -24,41 +24,34 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	nodeInitItemPending = "pending"
-	nodeInitItemDoing   = "doing"
-	nodeInitItemDone    = "done"
-	nodeInitItemFailed  = "failed"
-)
-
-// NodeInitActionConfig represents the config for a node init action
-type NodeInitActionConfig struct {
+// NodeInitActionConfig represents the config for a master node init action
+type NodeMasterInitActionConfig struct {
 	NodeInitConfig  *pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig
 	LogFileBasePath string
 }
 
-type NodeInitAction struct {
+type NodeMasterInitAction struct {
 	Base
 	sync.RWMutex
 
 	NodeInitConfig *pb.NodeDeployConfig
 	ClusterConfig  *pb.ClusterConfig
-	InitItems      []*NodeInitItem
+	InitItems      []*NodeMasterInitItem
 }
 
-type NodeInitItemStatus string
+type NodeMasterInitItemStatus string
 
-type NodeInitItem struct {
+type NodeMasterInitItem struct {
 	Name        string
 	Description string
 	Status      NodeInitItemStatus
 	Err         *pb.Error
 }
 
-// NewNodeInitAction returns a node init action based on the config.
-// User should use this function to create a node init action.
-func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
+// NewNodeInitAction returns a master node init action based on the config.
+// User should use this function to create a master node init action.
+func NewMasterNodeInitAction(cfg *NodeMasterInitActionConfig) (Action, error) {
 	var err error
 	if cfg == nil {
 		err = fmt.Errorf("action config is nil")
@@ -73,8 +66,8 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 		return nil, err
 	}
 
-	actionName := getNodeInitActionName(cfg)
-	return &NodeInitAction{
+	actionName := getNodMasterInitActionName(cfg)
+	return &NodeMasterInitAction{
 		Base: Base{
 			Name:              actionName,
 			ActionType:        ActionTypeNodeInit,
@@ -87,7 +80,7 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 	}, nil
 }
 
-// return node name as the action name, temporarily
-func getNodeInitActionName(cfg *NodeInitActionConfig) string {
+// return master node name as the action name, temporarily
+func getNodMasterInitActionName(cfg *NodeMasterInitActionConfig) string {
 	return cfg.NodeInitConfig.Node.GetName()
 }

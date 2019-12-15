@@ -25,10 +25,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type nodeInitExecutor struct{}
+type nodeMasterInitExecutor struct{}
 
 // due to items, ItemInitScripts exec remote scripts and return std, report, error
-func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInitItem) (string, *NodeInitItem, error) {
+func ExecuteMasterInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInitItem) (string, *NodeInitItem, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"error_reason": fmt.Sprintf("failed to run script on node: %v", node.Name),
 	})
@@ -75,33 +75,33 @@ func ExecuteInitScript(item it.ItemEnum, node *pb.Node, initItemReport *NodeInit
 	return initItemStdOut, initItemReport, nil
 }
 
-func newNodeInitItem() *NodeInitItem {
+func newNodeMasterInitItem() *NodeMasterInitItem {
 
-	return &NodeInitItem{
+	return &NodeMasterInitItem{
 		Status: ItemActionPending,
 		Err:    &pb.Error{},
 	}
 }
 
 // goroutine exec item init event
-func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.WaitGroup) {
+func InitMasterAsyncExecutor(item it.ItemEnum, ncAction *NodeMasterInitAction, wg *sync.WaitGroup) {
 
 	initItemReport := newNodeInitItem()
 	initItemReport.Status = ItemActionDoing
-	_, initItemReport, err := ExecuteInitScript(item, ncAction.Node, initItemReport)
+	_, initItemReport, err := ExecuteMasterInitScript(item, ncAction.Node, initItemReport)
 	if err != nil {
 		initItemReport.Status = ItemActionFailed
 	}
 
-	UpdateInitItems(ncAction, initItemReport)
+	UpdateInitMasterItems(ncAction, initItemReport)
 
 	wg.Done()
 }
 
-func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
-	nodeInitAction, ok := act.(*NodeInitAction)
+func (a *nodeMasterInitExecutor) Execute(act Action) *pb.Error {
+	nodeMasterInitAction, ok := act.(*NodeMasterInitAction)
 	if !ok {
-		return errOfTypeMismatched(new(NodeInitAction), act)
+		return errOfTypeMismatched(new(NodeMasterInitAction), act)
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
@@ -112,22 +112,18 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	logger.Debug("Start to execute node init action")
 
-	// init events include firewall, hostalias, hostname, network
-	// route, swap, timezone, haproxy, keepalived
+	// init master node events include haproxy, keepalived
 
-	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias}
+	itemEnums := []it.ItemEnum{it.Haproxy, it.Keepalived}
 	for _, item := range itemEnums {
 		wg.Add(1)
-		go InitAsyncExecutor(item, nodeInitAction, &wg)
+		go InitMasterAsyncExecutor(item, nodeMasterInitAction, &wg)
 	}
-
-	// TODO Other Init Items
-	// 9. Install kubeadm kubectl kubelet
 
 	wg.Wait()
 
 	// If any of init item was failed, we should return an error
-	failedItems := getFailedInitItems(nodeInitAction)
+	failedItems := getFailedInitMasterItems(nodeMasterInitAction)
 	if len(failedItems) > 0 {
 		return &pb.Error{
 			Reason: fmt.Sprintf("%d init item(s) failed", len(failedItems)),
@@ -140,7 +136,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 }
 
 // update init items with matching name
-func UpdateInitItems(initAction *NodeInitAction, report *NodeInitItem) {
+func UpdateInitMasterItems(initAction *NodeMasterInitAction, report *NodeInitItem) {
 
 	initAction.Lock()
 	defer initAction.Unlock()
@@ -148,7 +144,7 @@ func UpdateInitItems(initAction *NodeInitAction, report *NodeInitItem) {
 	initAction.InitItems = append(initAction.InitItems, report)
 }
 
-func getFailedInitItems(initAction *NodeInitAction) []string {
+func getFailedInitMasterItems(initAction *NodeMasterInitAction) []string {
 	var failedItemName []string
 	for _, item := range initAction.InitItems {
 		if item.Status != nodeInitItemDone {

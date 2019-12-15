@@ -23,11 +23,11 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
-// nodeInitProcessor implements the specific logic to init nodes
-type nodeInitProcessor struct{}
+// nodeInitProcessor implements the specific logic to init master nodes
+type nodeMasterInitProcessor struct{}
 
 // Spilt the task into one or more node init actions
-func (p *nodeInitProcessor) SplitTask(t Task) error {
+func (p *nodeMasterInitProcessor) SplitTask(t Task) error {
 	if err := p.verifyTask(t); err != nil {
 		logrus.Errorf("invalid task: %s", err)
 		return err
@@ -39,17 +39,17 @@ func (p *nodeInitProcessor) SplitTask(t Task) error {
 
 	logger.Debug("Start to split node init task")
 
-	initTask := t.(*NodeInitTask)
+	initTask := t.(*NodeMasterInitTask)
 
-	// split task into actions: will create a action for every node, the action type
-	// is NodeInitAction
+	// split task into actions: will create a action for master node, the action type
+	// is NodeMasterInitAction
 	actions := make([]action.Action, 0, len(initTask.NodeConfigs))
 	for _, node := range initTask.NodeConfigs {
-		actionCfg := &action.NodeInitActionConfig{
+		actionCfg := &action.NodeMasterInitActionConfig{
 			NodeInitConfig:  node,
 			LogFileBasePath: initTask.LogFilePath,
 		}
-		act, err := action.NewNodeInitAction(actionCfg)
+		act, err := action.NewMasterNodeInitAction(actionCfg)
 		if err != nil {
 			return err
 		}
@@ -62,17 +62,17 @@ func (p *nodeInitProcessor) SplitTask(t Task) error {
 }
 
 // Verify if the task is valid
-func (p *nodeInitProcessor) verifyTask(t Task) error {
+func (p *nodeMasterInitProcessor) verifyTask(t Task) error {
 	if t == nil {
 		return consts.ErrEmptyTask
 	}
 
-	nodeInitTask, ok := t.(*NodeInitTask)
+	nodeMasterInitTask, ok := t.(*NodeMasterInitTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if len(nodeInitTask.NodeConfigs) == 0 {
+	if len(nodeMasterInitTask.NodeConfigs) == 0 {
 		return fmt.Errorf("nodeConfigs is empty")
 	}
 
