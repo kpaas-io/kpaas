@@ -54,24 +54,19 @@ func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
 	}
 	defer executor.disconnectSSH()
 
-	if err := executor.installKubelet(); err != nil {
-		return err
+	operations := []func() *protos.Error{
+		executor.installKubelet,
+		executor.joinCluster,
+		executor.appendLabel,
+		executor.appendAnnotation,
+		executor.appendTaint,
 	}
 
-	if err := executor.joinCluster(); err != nil {
-		return err
-	}
-
-	if err := executor.appendLabel(); err != nil {
-		return err
-	}
-
-	if err := executor.appendAnnotation(); err != nil {
-		return err
-	}
-
-	if err := executor.appendTaint(); err != nil {
-		return err
+	for _, operation := range operations {
+		err := operation()
+		if err != nil {
+			return err
+		}
 	}
 
 	executor.logger.Info("deploy worker finished")
