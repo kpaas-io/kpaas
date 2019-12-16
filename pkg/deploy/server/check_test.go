@@ -242,8 +242,8 @@ func TestGetNodeCheckResult(t *testing.T) {
 			wantReply: &pb.GetCheckNodesResultReply{
 				Status: string(task.TaskDone),
 				Err:    nil,
-				Nodes: []*pb.NodeCheckResult{
-					&pb.NodeCheckResult{
+				Nodes: map[string]*pb.NodeCheckResult{
+					"node1": &pb.NodeCheckResult{
 						NodeName: "node1",
 						Status:   string(action.ActionDone),
 						Err:      nil,

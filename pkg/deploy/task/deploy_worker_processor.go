@@ -23,6 +23,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
+func init() {
+	RegisterProcessor(TaskTypeDeployWorker, new(DeployWorkerProcessor))
+}
+
 type DeployWorkerProcessor struct {
 }
 

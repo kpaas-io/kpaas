@@ -21,6 +21,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeFetchKubeConfig Type = "FetchKubeConfig"
+
 // FetchKubeConfigTaskConfig represents the config for a fetch-kube-config task.
 type FetchKubeConfigTaskConfig struct {
 	Node            *pb.Node

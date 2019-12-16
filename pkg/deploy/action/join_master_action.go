@@ -21,6 +21,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const ActionTypeJoinMaster Type = "JoinMaster"
+
 type joinMasterStatus string
 
 type JoinMasterActionConfig struct {

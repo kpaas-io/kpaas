@@ -21,6 +21,8 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeDeployWorker Type = "DeployWorker"
+
 type DeployWorkerTaskConfig struct {
 	MasterNodes     []*protos.Node
 	Nodes           []*protos.NodeDeployConfig

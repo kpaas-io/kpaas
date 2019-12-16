@@ -116,7 +116,7 @@ message GetCheckNodesResultRequest {
 message GetCheckNodesResultReply {
   string status = 1;
   Error err = 2;
-  repeated NodeCheckResult nodes = 3;
+  map<string,NodeCheckResult> nodes = 3;
 }
 
 message NodePortRange {

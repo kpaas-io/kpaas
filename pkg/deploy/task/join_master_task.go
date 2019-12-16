@@ -23,6 +23,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeJoinMaster Type = "JoinMaster"
+
 const (
 	JointMasterOperation Operation = "join"
 	JoinMasterPriority   Priority  = 20

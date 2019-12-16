@@ -24,6 +24,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const ActionTypeNodeInit Type = "NodeInit"
+
 const (
 	nodeInitItemPending = "pending"
 	nodeInitItemDoing   = "doing"

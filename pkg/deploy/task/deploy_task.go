@@ -27,6 +27,8 @@ import (
 type Operation string
 type Priority int
 
+const TaskTypeDeploy Type = "Deploy"
+
 const (
 	initOperation   Operation = "initialization"
 	deployOperation Operation = "deployment"

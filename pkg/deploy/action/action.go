@@ -26,19 +26,6 @@ import (
 // Type represents the type of an action
 type Type string
 
-const (
-	ActionTypeNodeCheck         Type = "NodeCheck"
-	ActionTypeNodeInit          Type = "NodeInit"
-	ActionTypeDeployEtcd        Type = "DeployEtcd"
-	ActionTypeDeployMaster      Type = "DeployMaster"
-	ActionTypeInitMaster        Type = "InitMaster"
-	ActionTypeJoinMaster        Type = "JoinMaster"
-	ActionTypeDeployWorker      Type = "DeployWorker"
-	ActionTypeDeployIngress     Type = "DeployIngress"
-	ActionTypeFetchKubeConfig   Type = "FetchKubeConfig"
-	ActionTypeConnectivityCheck Type = "ConnectivityCheck"
-)
-
 // Status represents the status of an action
 type Status string
 

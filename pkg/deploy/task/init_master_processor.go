@@ -22,6 +22,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
+func init() {
+	RegisterProcessor(TaskTypeInitMaster, new(initMasterProcessor))
+}
+
 type initMasterProcessor struct {
 }
 

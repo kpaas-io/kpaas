@@ -21,6 +21,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+func init() {
+	RegisterExecutor(ActionTypeFetchKubeConfig, new(fetchKubeConfigExecutor))
+}
+
 type fetchKubeConfigExecutor struct {
 }
 

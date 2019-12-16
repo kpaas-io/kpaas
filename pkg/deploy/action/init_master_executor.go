@@ -22,6 +22,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+func init() {
+	RegisterExecutor(ActionTypeInitMaster, new(initMasterExecutor))
+}
+
 type initMasterExecutor struct {
 }
 

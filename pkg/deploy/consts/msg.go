@@ -24,7 +24,7 @@ const (
 	MsgUnknownFixMethod string = "unknown"
 
 	// Task related messages
-	MsgTaskTypeUnsupported         string = "unsupported action type"
+	MsgTaskTypeUnsupported         string = "unsupported task type"
 	MsgTaskSplitFailed             string = "failed to split task"
 	MsgTaskTypeMismatched          string = "task type mismatched"
 	MsgEmptyTask                   string = "empty task"

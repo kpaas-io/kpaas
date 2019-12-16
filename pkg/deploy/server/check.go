@@ -34,7 +34,7 @@ func (c *controller) getCheckNodeResult(aTask task.Task, withLogs bool) (*pb.Get
 	// Get all actions of the check task
 	actions := task.GetAllActions(aTask)
 	// Create a pb.NodeCheckResult for each action
-	var nodeResults []*pb.NodeCheckResult
+	nodeResults := map[string]*pb.NodeCheckResult{}
 	for _, act := range actions {
 		var nodeResult *pb.NodeCheckResult
 		switch act.(type) {
@@ -48,7 +48,13 @@ func (c *controller) getCheckNodeResult(aTask task.Task, withLogs bool) (*pb.Get
 			logrus.Warnf("Unexpected aciton type: %v", act.GetType())
 		}
 		if nodeResult != nil {
-			nodeResults = append(nodeResults, nodeResult)
+			nodeName := nodeResult.GetNodeName()
+			if nodeResults[nodeName] == nil {
+				nodeResults[nodeName] = nodeResult
+			} else {
+				// merge node check results
+				nodeResults[nodeName].Items = append(nodeResults[nodeName].Items, nodeResult.Items...)
+			}
 		}
 	}
 

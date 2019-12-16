@@ -21,6 +21,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const ActionTypeDeployWorker Type = "DeployWorker"
+
 type DeployWorkerActionConfig struct {
 	Node            *pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig

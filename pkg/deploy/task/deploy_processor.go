@@ -23,6 +23,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+func init() {
+	RegisterProcessor(TaskTypeDeploy, new(deployProcessor))
+}
+
 // deployProcessor implements the specific logic for the deploy task.
 type deployProcessor struct {
 }
