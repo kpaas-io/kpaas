@@ -86,7 +86,7 @@ const (
 	TaintValueLengthLimit         = 63
 	TaintKeyRegularExpression     = `[a-zA-Z](\w+)?`
 	TaintValueRegularExpression   = `[a-zA-Z](\w+)?`
-	NodeUsernameRegularExpression = `[A-Za-z][A-Za-z0-9._-]+`
+	NodeUsernameRegularExpression = `[A-Za-z][\w._\-]+`
 
 	NodeSSHPortMinimum = 1
 	NodeSSHPortMaximum = 65535
