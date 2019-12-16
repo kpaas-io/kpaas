@@ -242,6 +242,16 @@ func parseRelease(c *gin.Context, r *api.HelmRelease) error {
 			fmt.Sprintf("failed to parse request body for helm release, error %v", err)))
 		return fmt.Errorf("failed to parse JSON: %v", err)
 	}
+	// fill in cluster, namespace, and name if not presented in body.
+	if r.Cluster == "" {
+		r.Cluster = cluster
+	}
+	if r.Namespace == "" {
+		r.Namespace = namespace
+	}
+	if r.Name == "" {
+		r.Name = releaseName
+	}
 	if cluster != r.Cluster {
 		h.E(c, h.EParamsError.WithPayload(
 			fmt.Sprintf("invalid cluster name, %s in path, but %s in body", cluster, r.Cluster)))

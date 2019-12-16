@@ -33,7 +33,7 @@ const (
 func generateHelmActionConfig(cluster string, namespace string, logger *logrus.Entry) (
 	*action.Configuration, error) {
 	if logger == nil {
-		logger = logrus.NewEntry(nil)
+		logger = logrus.NewEntry(logrus.StandardLogger())
 	}
 	kubeConfigPath, err := kubeutils.KubeConfigPathForCluster(cluster)
 	if err != nil {
