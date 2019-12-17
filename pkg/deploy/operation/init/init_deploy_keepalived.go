@@ -27,10 +27,9 @@ import (
 
 const (
 	// we use master IP as keepalived listen IP, later we need use VIP to replace it
-	keepalivedEthernet         = "eth0"
-	keepalivedScript           = "/scripts/init_deploy_haproxy_keepalived/"
-	keepalivedScriptPath       = "/scripts/init_deploy_haproxy_keepalived/setup.sh"
-	keepalivedScriptRemotePath = "/tmp"
+	keepalivedEthernet   = "eth0"
+	keepalivedScript     = "/scripts/init_deploy_haproxy_keepalived/"
+	keepalivedScriptPath = "/scripts/init_deploy_haproxy_keepalived/setup.sh"
 )
 
 func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
@@ -66,7 +65,7 @@ func (itOps *InitKeepalivedOperation) getScript() string {
 }
 
 func (itOps *InitKeepalivedOperation) getScriptPath() string {
-	itOps.ScriptPath = keepalivedScriptRemotePath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 
@@ -85,7 +84,7 @@ func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *o
 		return nil, err
 	}
 
-	err = m.PutDir(keepalivedScript, keepalivedScriptRemotePath, deploy.AllFilesNeeded)
+	err = m.PutDir(keepalivedScript, RemoteScriptPath, deploy.AllFilesNeeded)
 	if err != nil {
 		return nil, err
 	}

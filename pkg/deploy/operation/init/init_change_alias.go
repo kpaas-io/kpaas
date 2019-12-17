@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	hostAliasScript     = "/scripts/init_change_hostalias.sh"
-	hostAliasScriptPath = "/tmp"
+	hostAliasScript = "/scripts/init_change_hostalias.sh"
 )
 
 type InitHostaliasOperation struct {
@@ -40,7 +39,7 @@ func (itOps *InitHostaliasOperation) getScript() string {
 }
 
 func (itOps *InitHostaliasOperation) getScriptPath() string {
-	itOps.ScriptPath = hostAliasScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 

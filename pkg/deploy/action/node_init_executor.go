@@ -59,6 +59,9 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		return "", initItemReport, fmt.Errorf("can not create %v's operation for node: %v", item, action.Node.Name)
 	}
 
+	// close ssh client
+	defer initItem.CloseSSH()
+
 	op, err := initItem.GetOperations(action.Node, initAction)
 	if err != nil {
 		initItemReport.Status = ItemActionFailed
@@ -78,9 +81,6 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		logger.Errorf("can not execute %v operation", item)
 		return "", initItemReport, fmt.Errorf("can not execute %v operation command on node: %v", item, action.Node.Name)
 	}
-
-	// close ssh client
-	initItem.CloseSSH()
 
 	initItemStdOut := string(stdOut)
 	return initItemStdOut, initItemReport, nil

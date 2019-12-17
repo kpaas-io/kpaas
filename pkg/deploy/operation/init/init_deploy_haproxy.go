@@ -28,10 +28,9 @@ import (
 )
 
 const (
-	HaproxyPort             uint16 = 6443
-	haproxyScript                  = "/scripts/init_deploy_haproxy_keepalived/"
-	haproxyScriptPath              = "/scripts/init_deploy_haproxy_keepalived/setup.sh"
-	haproxyScriptRemotePath        = "/tmp"
+	HaproxyPort       uint16 = 6443
+	haproxyScript            = "/scripts/init_deploy_haproxy_keepalived/"
+	haproxyScriptPath        = "/scripts/init_deploy_haproxy_keepalived/setup.sh"
 )
 
 func CheckHaproxyParameter(ipAddresses ...string) error {
@@ -71,7 +70,7 @@ func (itOps *InitHaproxyOperation) getScript() string {
 }
 
 func (itOps *InitHaproxyOperation) getScriptPath() string {
-	itOps.ScriptPath = haproxyScriptRemotePath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 
@@ -95,7 +94,7 @@ func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *oper
 		return nil, err
 	}
 
-	err = m.PutDir(haproxyScript, haproxyScriptRemotePath, deploy.AllFilesNeeded)
+	err = m.PutDir(haproxyScript, RemoteScriptPath, deploy.AllFilesNeeded)
 	if err != nil {
 		return nil, err
 	}

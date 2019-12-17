@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	fireWallScript     = "/scripts/init_change_firewall.sh"
-	fireWallScriptPath = "/tmp"
+	fireWallScript = "/scripts/init_change_firewall.sh"
 )
 
 type InitFireWallOperation struct {
@@ -40,7 +39,7 @@ func (itOps *InitFireWallOperation) getScript() string {
 }
 
 func (itOps *InitFireWallOperation) getScriptPath() string {
-	itOps.ScriptPath = fireWallScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 

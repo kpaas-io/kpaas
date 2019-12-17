@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	networkScript     = "/scripts/init_change_network.sh"
-	networkScriptPath = "/tmp"
+	networkScript = "/scripts/init_change_network.sh"
 )
 
 type InitNetworkOperation struct {
@@ -40,7 +39,7 @@ func (itOps *InitNetworkOperation) getScript() string {
 }
 
 func (itOps *InitNetworkOperation) getScriptPath() string {
-	itOps.ScriptPath = networkScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 

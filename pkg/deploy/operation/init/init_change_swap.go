@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	swapScript     = "/scripts/init_change_swap.sh"
-	swapScriptPath = "/tmp"
+	swapScript = "/scripts/init_change_swap.sh"
 )
 
 type InitSwapOperation struct {
@@ -40,7 +39,7 @@ func (itOps *InitSwapOperation) getScript() string {
 }
 
 func (itOps *InitSwapOperation) getScriptPath() string {
-	itOps.ScriptPath = swapScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 

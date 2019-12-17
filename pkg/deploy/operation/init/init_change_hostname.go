@@ -25,8 +25,7 @@ import (
 )
 
 const (
-	hostNameScript     = "/scripts/init_change_hostname.sh"
-	hostNameScriptPath = "/tmp"
+	hostNameScript = "/scripts/init_change_hostname.sh"
 )
 
 type InitHostNameOperation struct {
@@ -42,7 +41,7 @@ func (itOps *InitHostNameOperation) getScript() string {
 }
 
 func (itOps *InitHostNameOperation) getScriptPath() string {
-	itOps.ScriptPath = hostNameScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 

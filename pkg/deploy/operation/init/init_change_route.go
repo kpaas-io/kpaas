@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	routeScript     = "/scripts/init_change_route.sh"
-	routeScriptPath = "/tmp"
+	routeScript = "/scripts/init_change_route.sh"
 )
 
 type InitRouteOperation struct {
@@ -40,7 +39,7 @@ func (itOps *InitRouteOperation) getScript() string {
 }
 
 func (itOps *InitRouteOperation) getScriptPath() string {
-	itOps.ScriptPath = routeScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 

@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	timeZoneScript     = "/scripts/init_change_timezone.sh"
-	timeZoneScriptPath = "/tmp"
+	timeZoneScript = "/scripts/init_change_timezone.sh"
 )
 
 type InitTimeZoneOperation struct {
@@ -40,7 +39,7 @@ func (itOps *InitTimeZoneOperation) getScript() string {
 }
 
 func (itOps *InitTimeZoneOperation) getScriptPath() string {
-	itOps.ScriptPath = timeZoneScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 

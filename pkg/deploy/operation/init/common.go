@@ -39,7 +39,8 @@ type InitAction interface {
 }
 
 const (
-	FireWall ItemEnum = iota
+	RemoteScriptPath          = "/tmp"
+	FireWall         ItemEnum = iota
 	HostAlias
 	HostName
 	Network
