@@ -16,6 +16,8 @@ package consts
 
 import (
 	"fmt"
+
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 const (
@@ -32,13 +34,22 @@ const (
 	MsgTaskGenSummaryFailed        string = "failed to generate task summary"
 
 	// Action related messages
-	MsgActionTypeUnsupported        string = "unsupported action type"
-	MsgActionExecutorCreationFailed string = "failed to create action executor"
-	MsgActionExecutionFailed        string = "failed to execute aciton"
-	MsgActionTypeMismatched         string = "action type mismatched"
-	MsgActionTypeMismatchedDetail   string = "the action type is not match: should be %T, but is %T"
+	MsgActionTypeUnsupported         string = "unsupported action type"
+	MsgActionExecutorCreationFailed  string = "failed to create action executor"
+	MsgActionExecutionFailed         string = "failed to execute aciton"
+	MsgActionTypeMismatched          string = "action type mismatched"
+	MsgActionTypeMismatchedDetail    string = "the action type is not match: should be %T, but is %T"
+	MsgActionInvalidConfig           string = "the action config is invalid"
+	MsgActionInvalidConfigNodeNotSet string = "the action's target node is not set"
 )
 
 var (
 	ErrEmptyTask error = fmt.Errorf(MsgEmptyTask)
+)
+
+var (
+	PBErrActionNodeEmpty *pb.Error = &pb.Error{
+		Reason: MsgActionInvalidConfig,
+		Detail: MsgActionInvalidConfigNodeNotSet,
+	}
 )
