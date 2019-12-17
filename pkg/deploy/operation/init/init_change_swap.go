@@ -23,14 +23,14 @@ import (
 )
 
 const (
-	swapScript     = "/scripts/init_change_swap.sh"
-	swapScriptPath = "/tmp"
+	swapScript = "/scripts/init_change_swap.sh"
 )
 
 type InitSwapOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine *machine.Machine
+	Machine        *machine.Machine
+	NodeInitAction *operation.NodeInitAction
 }
 
 func (itOps *InitSwapOperation) getScript() string {
@@ -39,17 +39,18 @@ func (itOps *InitSwapOperation) getScript() string {
 }
 
 func (itOps *InitSwapOperation) getScriptPath() string {
-	itOps.ScriptPath = swapScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 
-func (itOps *InitSwapOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+func (itOps *InitSwapOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitSwapOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, err
 	}
 	itOps.Machine = m
+	itOps.NodeInitAction = initAction
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {

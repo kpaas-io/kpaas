@@ -15,8 +15,13 @@
 package worker
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
@@ -63,8 +68,19 @@ func (operation *AppendLabel) computeLabels() {
 
 func (operation *AppendLabel) append() *pb.Error {
 
-	// TODO Lucky Implement
-	return nil
+	labels := make([]string, len(operation.labels))
+	for labelKey, labelValue := range operation.labels {
+		labels = append(labels, fmt.Sprintf("%s=%s", labelKey, labelValue))
+	}
+
+	return RunCommand(
+		command.NewKubectlCommand(operation.machine, consts.KubeConfigPath, "",
+			"label", "node", operation.node.GetNode().GetName(),
+			strings.Join(labels, " "),
+		),
+		"Append label to node error", // 节点添加Label错误
+		fmt.Sprintf("append label to node: %s", operation.node.GetNode().GetName()), // 添加Label到 %s 节点
+	)
 }
 
 func (operation *AppendLabel) Execute() *pb.Error {

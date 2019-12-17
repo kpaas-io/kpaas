@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	memoryScript    = "/scripts/check_memory_capacity.sh"
-	memoryRemoteDir = "/tmp"
+	memoryScript = "/scripts/check_memory_capacity.sh"
 )
 
 type CheckMemoryOperation struct {
@@ -39,7 +38,7 @@ func (ckops *CheckMemoryOperation) getScript() string {
 }
 
 func (ckops *CheckMemoryOperation) getScriptPath() string {
-	ckops.ScriptPath = memoryRemoteDir
+	ckops.ScriptPath = checkRemoteScriptPath
 	return ckops.ScriptPath
 }
 

@@ -16,10 +16,20 @@ package init
 
 import (
 	"fmt"
-
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	// we use master IP as keepalived listen IP, later we need use VIP to replace it
+	keepalivedEthernet   = "eth0"
+	keepalivedScript     = "/scripts/init_deploy_haproxy_keepalived/"
+	keepalivedScriptPath = "/scripts/init_deploy_haproxy_keepalived/setup_kubernetes_high_availability.sh"
 )
 
 func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
@@ -40,4 +50,63 @@ func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 		"error_reason": operation.ErrPara,
 	}).Errorf("%v", operation.ErrInvalid)
 	return fmt.Errorf(operation.ErrInvalid)
+}
+
+type InitKeepalivedOperation struct {
+	operation.BaseOperation
+	InitOperations
+	Machine        *machine.Machine
+	NodeInitAction *operation.NodeInitAction
+}
+
+func (itOps *InitKeepalivedOperation) getScript() string {
+	itOps.Script = keepalivedScriptPath
+	return itOps.Script
+}
+
+func (itOps *InitKeepalivedOperation) getScriptPath() string {
+	itOps.ScriptPath = RemoteScriptPath
+	return itOps.ScriptPath
+}
+
+func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+	ops := &InitKeepalivedOperation{}
+	m, err := machine.NewMachine(node)
+	if err != nil {
+		return nil, err
+	}
+	itOps.Machine = m
+	itOps.NodeInitAction = initAction
+
+	masterIP := itOps.getMastersIP()
+	if masterIP != "" {
+		err = fmt.Errorf("master ip can not be empty")
+		return nil, err
+	}
+
+	err = m.PutDir(keepalivedScript, RemoteScriptPath, deploy.AllFilesNeeded)
+	if err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", itOps.getScriptPath()+itOps.getScript(), masterIP, keepalivedEthernet)))
+	return ops, nil
+}
+
+func (itOps *InitKeepalivedOperation) CloseSSH() {
+	itOps.Machine.Close()
+}
+
+// get master IP with config
+func (itOps *InitKeepalivedOperation) getMastersIP() string {
+	for _, node := range itOps.NodeInitAction.NodesConfig {
+		if groupByRole(node.Roles, "master"); true {
+			err := CheckHaproxyParameter(node.Node.Ip)
+			if err != nil {
+				return ""
+			}
+			return node.Node.Ip
+		}
+	}
+	return ""
 }

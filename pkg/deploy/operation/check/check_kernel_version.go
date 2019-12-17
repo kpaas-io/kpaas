@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	kernelScript    = "/scripts/check_kernel_version.sh"
-	kernelRemoteDir = "/tmp"
+	kernelScript = "/scripts/check_kernel_version.sh"
 )
 
 type CheckKernelOperation struct {
@@ -39,7 +38,7 @@ func (ckops *CheckKernelOperation) getScript() string {
 }
 
 func (ckops *CheckKernelOperation) getScriptPath() string {
-	ckops.ScriptPath = kernelRemoteDir + kernelScript
+	ckops.ScriptPath = checkRemoteScriptPath
 	return ckops.ScriptPath
 }
 

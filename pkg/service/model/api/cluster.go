@@ -144,7 +144,7 @@ func (annotation *Annotation) Validate() error {
 
 func keyLimitFunction(key string, limit int) validator.ValidateFunc {
 	return func() error {
-		re := regexp.MustCompile(`^(?P<prefix>([a-zA-Z0-9-]+.)*[a-zA-Z0-9][a-zA-Z0-9-]+.[a-zA-Z]{2,11}?/)?(?P<name>[\w]([\w\-_.]+\w)?)$`)
+		re := regexp.MustCompile(`^(?P<prefix>\w[\w\-_]+\.[a-zA-Z]{2,11}?/)?(?P<name>\w([\w\-_.]+\w)?)$`)
 		match := re.FindStringSubmatch(key)
 		if len(match) <= 0 {
 			return fmt.Errorf("label key can not empty")

@@ -15,8 +15,13 @@
 package worker
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
@@ -48,8 +53,19 @@ func NewAppendTaint(config *AppendTaintConfig) *AppendTaint {
 
 func (operation *AppendTaint) append() *pb.Error {
 
-	// TODO Lucky Implement
-	return nil
+	taints := make([]string, len(operation.node.GetTaints()))
+	for _, taint := range operation.node.GetTaints() {
+		taints = append(taints, fmt.Sprintf("%s=%s:%s", taint.GetKey(), taint.GetValue(), taint.GetEffect()))
+	}
+
+	return RunCommand(
+		command.NewKubectlCommand(operation.machine, consts.KubeConfigPath, "",
+			"taint", "node", operation.node.GetNode().GetName(),
+			strings.Join(taints, " "),
+		),
+		"Append taint to node error", // 节点添加Taint错误
+		fmt.Sprintf("append taint to node: %s", operation.node.GetNode().GetName()), // 添加Taint到 %s 节点
+	)
 }
 
 func (operation *AppendTaint) Execute() *pb.Error {

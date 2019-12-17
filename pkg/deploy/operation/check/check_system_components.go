@@ -15,6 +15,7 @@
 package check
 
 import (
+	"fmt"
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -23,27 +24,27 @@ import (
 )
 
 const (
-	rootDiskScript = "/scripts/check_root_disk_volume.sh"
+	systemComponentScript = "/scripts/check_system_components.sh"
 )
 
-type CheckRootDiskOperation struct {
+type CheckSystemComponentOperation struct {
 	operation.BaseOperation
 	CheckOperations
 	Machine *machine.Machine
 }
 
-func (ckops *CheckRootDiskOperation) getScript() string {
-	ckops.Script = rootDiskScript
+func (ckops *CheckSystemComponentOperation) getScript() string {
+	ckops.Script = systemComponentScript
 	return ckops.Script
 }
 
-func (ckops *CheckRootDiskOperation) getScriptPath() string {
+func (ckops *CheckSystemComponentOperation) getScriptPath() string {
 	ckops.ScriptPath = checkRemoteScriptPath
 	return ckops.ScriptPath
 }
 
-func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckRootDiskOperation{}
+func (ckops *CheckSystemComponentOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckSystemComponentOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
@@ -64,15 +65,14 @@ func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (
 }
 
 // close ssh client
-func (ckops *CheckRootDiskOperation) CloseSSH() {
+func (ckops *CheckSystemComponentOperation) CloseSSH() {
 	ckops.Machine.Close()
 }
 
-// check if root disk volume satisfied with desired disk volume
-func CheckRootDiskVolume(rootDiskVolume string, desiredDiskVolume float64) error {
-	err := operation.CheckEntity(rootDiskVolume, desiredDiskVolume)
-	if err != nil {
-		return err
+// check is system manager is systemd
+func CheckSysComponent(systemManager string, desireSysManager string) error {
+	if systemManager != desireSysManager {
+		return fmt.Errorf("system manager is not systemd")
 	}
 	return nil
 }

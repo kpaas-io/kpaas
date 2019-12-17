@@ -47,10 +47,10 @@ func (p *nodeInitProcessor) SplitTask(t Task) error {
 
 	// split task into actions: will create a action for every node, the action type
 	// is NodeInitAction
-	actions := make([]action.Action, 0, len(initTask.Nodes))
-	for _, node := range initTask.Nodes {
+	actions := make([]action.Action, 0, len(initTask.NodeConfigs))
+	for _, node := range initTask.NodeConfigs {
 		actionCfg := &action.NodeInitActionConfig{
-			Node:            node,
+			NodeInitConfig:  node,
 			LogFileBasePath: initTask.LogFilePath,
 		}
 		act, err := action.NewNodeInitAction(actionCfg)
@@ -76,8 +76,8 @@ func (p *nodeInitProcessor) verifyTask(t Task) error {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, t)
 	}
 
-	if len(nodeInitTask.Nodes) == 0 {
-		return fmt.Errorf("nodes is empty")
+	if len(nodeInitTask.NodeConfigs) == 0 {
+		return fmt.Errorf("nodeConfigs is empty")
 	}
 
 	return nil
