@@ -40,13 +40,15 @@ type CheckAction interface {
 }
 
 const (
-	Docker ItemEnum = iota
+	checkRemoteScriptPath          = "/tmp"
+	Docker                ItemEnum = iota
 	CPU
 	Kernel
 	Memory
 	Disk
 	Distribution
 	SystemPreference
+	SystemComponent
 )
 
 func NewCheckOperations() *OperationsGenerator {
@@ -69,6 +71,8 @@ func (og *OperationsGenerator) CreateOperations(item ItemEnum) CheckAction {
 		return &CheckDistributionOperation{}
 	case SystemPreference:
 		return &CheckSysPrefOperation{}
+	case SystemComponent:
+		return &CheckSystemComponentOperation{}
 	default:
 		return nil
 	}

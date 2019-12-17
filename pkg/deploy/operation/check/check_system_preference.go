@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	sysPrefScript     = "/scripts/check_system_preference.sh"
-	sysPrefScriptPath = "/tmp"
+	sysPrefScript = "/scripts/check_system_preference.sh"
 )
 
 type CheckSysPrefOperation struct {
@@ -39,7 +38,7 @@ func (ckops *CheckSysPrefOperation) getScript() string {
 }
 
 func (ckops *CheckSysPrefOperation) getScriptPath() string {
-	ckops.ScriptPath = sysPrefScriptPath
+	ckops.ScriptPath = checkRemoteScriptPath
 	return ckops.ScriptPath
 }
 

@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	dockerScript    = "/scripts/check_docker_version.sh"
-	dockerRemoteDir = "/tmp"
+	dockerScript = "/scripts/check_docker_version.sh"
 )
 
 type CheckDockerOperation struct {
@@ -39,7 +38,7 @@ func (ckops *CheckDockerOperation) getScript() string {
 }
 
 func (ckops *CheckDockerOperation) getScriptPath() string {
-	ckops.ScriptPath = dockerRemoteDir
+	ckops.ScriptPath = checkRemoteScriptPath
 	return ckops.ScriptPath
 }
 

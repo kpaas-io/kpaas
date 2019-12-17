@@ -29,6 +29,7 @@ import (
 const (
 	desiredDockerVersion              = "18.09.0"
 	desiredKernelVersion              = "4.19.46"
+	desiredSystemManager              = "systemd"
 	desiredCPUCore            float64 = 8
 	desiredMemoryByteBase     float64 = 16
 	desiredMemory                     = desiredMemoryByteBase * operation.GiByteUnits
@@ -75,6 +76,9 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.FixMethods = ItemHelperEmpty
 	}
 
+	// close ssh client
+	defer checkItems.CloseSSH()
+
 	// create operation commands for specific item
 	op, err := checkItems.GetOperations(config)
 	if err != nil {
@@ -92,9 +96,6 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.Detail = string(stdErr)
 		checkItemReport.Err.FixMethods = ItemHelperScript
 	}
-
-	// close ssh client
-	checkItems.CloseSSH()
 
 	checkItemStdOut := string(stdOut)
 	return checkItemStdOut, checkItemReport, nil
@@ -292,6 +293,33 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
+// goroutine as executor for check system components
+func CheckSysComponentExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.Status = ItemActionDoing
+	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemComponent, ncAction.NodeCheckConfig, checkItemReport)
+	if err != nil {
+		checkItemReport.Status = ItemActionFailed
+	}
+
+	err = check.CheckSysComponent(systemManager, desiredSystemManager)
+	if err != nil {
+		checkItemReport.Err.Reason = "system component is not clear"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err.FixMethods = fmt.Sprint("please check system component is available")
+	} else {
+		checkItemReport.Status = ItemActionDone
+	}
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
+
+	wg.Done()
+}
+
 func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	nodeCheckAction, ok := act.(*NodeCheckAction)
 	if !ok {
@@ -307,7 +335,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	logger.Debug("Start to execute node check action")
 
 	// check docker, CPU, kernel, memory, disk, distribution, system preference
-	wg.Add(7)
+	wg.Add(8)
 	go CheckDockerExecutor(nodeCheckAction, &wg)
 	go CheckCPUExecutor(nodeCheckAction, &wg)
 	go CheckKernelExecutor(nodeCheckAction, &wg)
@@ -315,6 +343,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	go CheckRootDiskExecutor(nodeCheckAction, &wg)
 	go CheckDistributionExecutor(nodeCheckAction, &wg)
 	go CheckSysPrefExecutor(nodeCheckAction, &wg)
+	go CheckSysComponentExecutor(nodeCheckAction, &wg)
 	wg.Wait()
 
 	// If any of check item was failed, we should return an error

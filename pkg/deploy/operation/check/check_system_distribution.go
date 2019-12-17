@@ -27,11 +27,10 @@ import (
 )
 
 const (
-	DistributionCentos          string = "centos"
-	DistributionUbuntu          string = "ubuntu"
-	DistributionRHEL            string = "rhel"
-	systemDistributionScript           = "/scripts/check_system_distribution.sh"
-	systemDistributionRemoteDir        = "/tmp"
+	DistributionCentos       string = "centos"
+	DistributionUbuntu       string = "ubuntu"
+	DistributionRHEL         string = "rhel"
+	systemDistributionScript        = "/scripts/check_system_distribution.sh"
 )
 
 type CheckDistributionOperation struct {
@@ -46,7 +45,7 @@ func (ckops *CheckDistributionOperation) getScript() string {
 }
 
 func (ckops *CheckDistributionOperation) getScriptPath() string {
-	ckops.ScriptPath = systemDistributionRemoteDir
+	ckops.ScriptPath = checkRemoteScriptPath
 	return ckops.ScriptPath
 }
 
