@@ -235,6 +235,10 @@ func (executor *deployWorkerExecutor) disconnectSSH() {
 
 func (executor *deployWorkerExecutor) initExecuteLogWriter() {
 
+	if executor.action.LogFilePath == "" {
+		return
+	}
+
 	var err error
 	executor.executeLogWriter, err = os.OpenFile(executor.action.LogFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
 	if err != nil {

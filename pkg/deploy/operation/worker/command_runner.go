@@ -67,6 +67,10 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 
 func (runner *CommandRunner) log(data []byte) {
 
+	if runner.executeLogWriter == nil {
+		return
+	}
+
 	if len(data) > 0 {
 		_, _ = runner.executeLogWriter.Write(data)
 	}
