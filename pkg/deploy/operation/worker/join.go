@@ -68,6 +68,7 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 			"join",
 			"--token="+consts.KubernetesToken,
 			"--master="+controlPlaneEndpoint,
+			"--discovery-token-unsafe-skip-ca-verification",
 		),
 		"Join node to cluster failed",     // 添加节点到集群失败
 		"join node to kubernetes cluster", // 添加节点到Kubernetes集群
