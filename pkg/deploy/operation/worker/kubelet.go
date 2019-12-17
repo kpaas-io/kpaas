@@ -15,6 +15,8 @@
 package worker
 
 import (
+	"io"
+
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -27,34 +29,27 @@ const (
 	fixMethodSelfAnalyseIt = "Please follow the error message and download deploy log to analyse it. Please create issues if you find any problem."
 )
 
-type InstallKubeletConfig struct {
-	Machine *deployMachine.Machine
-	Logger  *logrus.Entry
-	Node    *pb.NodeDeployConfig
-	Cluster *pb.ClusterConfig
+type StartKubeletConfig struct {
+	Machine          *deployMachine.Machine
+	Node             *pb.NodeDeployConfig
+	Logger           *logrus.Entry
+	ExecuteLogWriter io.Writer
 }
 
-type InstallKubelet struct {
+type StartKubelet struct {
 	operation.BaseOperation
-	logger      *logrus.Entry
-	node        *pb.NodeDeployConfig
-	cluster     *pb.ClusterConfig
-	machine     *deployMachine.Machine
-	isInstalled bool
+	config *StartKubeletConfig
 }
 
-func NewInstallKubelet(config *InstallKubeletConfig) *InstallKubelet {
-	return &InstallKubelet{
-		machine: config.Machine,
-		logger:  config.Logger,
-		node:    config.Node,
-		cluster: config.Cluster,
+func NewStartKubelet(config *StartKubeletConfig) *StartKubelet {
+	return &StartKubelet{
+		config: config,
 	}
 }
 
-func (operation *InstallKubelet) RunKubelet() *pb.Error {
+func (operation *StartKubelet) RunKubelet() *pb.Error {
 
-	operation.logger.Info("Start kubelet service")
+	operation.config.Logger.WithField("node", operation.config.Node.GetNode().GetName()).Info("Start kubelet service")
 
 	if err := operation.runCommand(
 		"systemctl restart kubelet",
@@ -70,12 +65,14 @@ func (operation *InstallKubelet) RunKubelet() *pb.Error {
 // shellCommand is run at remote command
 // errorTitle is pb.Error.Reason when error happened
 // doSomeThing is describe what the command done
-func (operation *InstallKubelet) runCommand(shellCommand string, errorTitle string, doSomeThing string) *pb.Error {
+func (operation *StartKubelet) runCommand(shellCommand string, errorTitle string, doSomeThing string) *pb.Error {
 
-	return RunCommand(command.NewShellCommand(operation.machine, shellCommand), errorTitle, doSomeThing)
+	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
+		command.NewShellCommand(operation.config.Machine, shellCommand), errorTitle, doSomeThing,
+	)
 }
 
-func (operation *InstallKubelet) Execute() *pb.Error {
+func (operation *StartKubelet) Execute() *pb.Error {
 
 	if err := operation.RunKubelet(); err != nil {
 		return err

@@ -15,7 +15,11 @@
 package action
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 
 	"github.com/sirupsen/logrus"
 
@@ -30,9 +34,10 @@ func init() {
 }
 
 type deployWorkerExecutor struct {
-	logger  *logrus.Entry
-	machine *deployMachine.Machine
-	action  *DeployWorkerAction
+	logger           *logrus.Entry
+	machine          *deployMachine.Machine
+	action           *DeployWorkerAction
+	executeLogWriter io.Writer
 }
 
 func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
@@ -45,6 +50,8 @@ func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
 	executor.action = action
 
 	executor.initLogger()
+	executor.initExecuteLogWriter()
+	defer executor.closeExecuteLogWriter()
 
 	executor.logger.Info("start to execute deploy worker executor")
 
@@ -55,7 +62,7 @@ func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
 	defer executor.disconnectSSH()
 
 	operations := []func() *protos.Error{
-		executor.installKubelet,
+		executor.startKubelet,
 		executor.joinCluster,
 		executor.appendLabel,
 		executor.appendAnnotation,
@@ -102,16 +109,16 @@ func (executor *deployWorkerExecutor) initLogger() {
 	})
 }
 
-func (executor *deployWorkerExecutor) installKubelet() *protos.Error {
+func (executor *deployWorkerExecutor) startKubelet() *protos.Error {
 
 	executor.logger.Debug("Start to install kubelet")
 
-	operation := worker.NewInstallKubelet(
-		&worker.InstallKubeletConfig{
-			Machine: executor.machine,
-			Logger:  executor.logger,
-			Node:    executor.action.config.Node,
-			Cluster: executor.action.config.ClusterConfig,
+	operation := worker.NewStartKubelet(
+		&worker.StartKubeletConfig{
+			Machine:          executor.machine,
+			Node:             executor.action.config.Node,
+			Logger:           executor.logger,
+			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
 
@@ -130,11 +137,12 @@ func (executor *deployWorkerExecutor) joinCluster() *protos.Error {
 
 	operation := worker.NewJoinCluster(
 		&worker.JoinClusterConfig{
-			Machine:     executor.machine,
-			Logger:      executor.logger,
-			Node:        executor.action.config.Node,
-			Cluster:     executor.action.config.ClusterConfig,
-			MasterNodes: executor.action.config.MasterNodes,
+			Machine:          executor.machine,
+			Node:             executor.action.config.Node,
+			Logger:           executor.logger,
+			Cluster:          executor.action.config.ClusterConfig,
+			MasterNodes:      executor.action.config.MasterNodes,
+			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
 
@@ -153,10 +161,11 @@ func (executor *deployWorkerExecutor) appendLabel() *protos.Error {
 
 	operation := worker.NewAppendLabel(
 		&worker.AppendLabelConfig{
-			Machine: executor.machine,
-			Logger:  executor.logger,
-			Node:    executor.action.config.Node,
-			Cluster: executor.action.config.ClusterConfig,
+			Machine:          executor.machine,
+			Logger:           executor.logger,
+			Node:             executor.action.config.Node,
+			Cluster:          executor.action.config.ClusterConfig,
+			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
 
@@ -175,10 +184,11 @@ func (executor *deployWorkerExecutor) appendAnnotation() *protos.Error {
 
 	operation := worker.NewAppendAnnotation(
 		&worker.AppendAnnotationConfig{
-			Machine: executor.machine,
-			Logger:  executor.logger,
-			Node:    executor.action.config.Node,
-			Cluster: executor.action.config.ClusterConfig,
+			Machine:          executor.machine,
+			Logger:           executor.logger,
+			Node:             executor.action.config.Node,
+			Cluster:          executor.action.config.ClusterConfig,
+			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
 
@@ -197,10 +207,11 @@ func (executor *deployWorkerExecutor) appendTaint() *protos.Error {
 
 	operation := worker.NewAppendTaint(
 		&worker.AppendTaintConfig{
-			Machine: executor.machine,
-			Logger:  executor.logger,
-			Node:    executor.action.config.Node,
-			Cluster: executor.action.config.ClusterConfig,
+			Machine:          executor.machine,
+			Logger:           executor.logger,
+			Node:             executor.action.config.Node,
+			Cluster:          executor.action.config.ClusterConfig,
+			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
 
@@ -220,4 +231,31 @@ func (executor *deployWorkerExecutor) disconnectSSH() {
 	executor.machine.Close()
 
 	executor.logger.Debug("ssh disconnected")
+}
+
+func (executor *deployWorkerExecutor) initExecuteLogWriter() {
+
+	var err error
+	executor.executeLogWriter, err = os.OpenFile(executor.action.LogFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
+	if err != nil {
+		executor.logger.Errorf("init deploy worker execute log writer error, error message: %v", err)
+		executor.executeLogWriter = bytes.NewBuffer([]byte{})
+		return
+	}
+}
+
+func (executor *deployWorkerExecutor) closeExecuteLogWriter() {
+
+	switch writer := executor.executeLogWriter.(type) {
+	case *os.File:
+		err := writer.Close()
+		if err != nil {
+			executor.logger.Errorf("close deploy worker execute log writer error, error message: %v", err)
+		}
+	case *bytes.Buffer:
+		err := ioutil.WriteFile(executor.action.LogFilePath, writer.Bytes(), os.FileMode(0644))
+		if err != nil {
+			executor.logger.Errorf("write deploy worker execute log error, error message: %v", err)
+		}
+	}
 }
