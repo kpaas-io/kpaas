@@ -29,7 +29,7 @@ const (
 	// we use master IP as keepalived listen IP, later we need use VIP to replace it
 	keepalivedEthernet   = "eth0"
 	keepalivedScript     = "/scripts/init_deploy_haproxy_keepalived/"
-	keepalivedScriptPath = "/scripts/init_deploy_haproxy_keepalived/setup.sh"
+	keepalivedScriptPath = "/scripts/init_deploy_haproxy_keepalived/setup_kubernetes_high_availability.sh"
 )
 
 func CheckKeepalivedParameter(ipAddress string, ethernet string) error {

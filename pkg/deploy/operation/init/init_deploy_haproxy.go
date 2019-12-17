@@ -30,7 +30,7 @@ import (
 const (
 	HaproxyPort       uint16 = 6443
 	haproxyScript            = "/scripts/init_deploy_haproxy_keepalived/"
-	haproxyScriptPath        = "/scripts/init_deploy_haproxy_keepalived/setup.sh"
+	haproxyScriptPath        = "/scripts/init_deploy_haproxy_keepalived/setup_kubernetes_high_availability.sh"
 )
 
 func CheckHaproxyParameter(ipAddresses ...string) error {
