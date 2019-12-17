@@ -714,7 +714,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.SuccessfulOption"
+                            "$ref": "#/definitions/api.HelmRelease"
                         }
                     },
                     "400": {

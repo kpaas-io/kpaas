@@ -64,7 +64,7 @@ func InstallRelease(c *gin.Context) {
 // @Param cluster path string  true "cluster to upgrade release in"
 // @Param namespace path string true "kubernetes namespace in that cluster to upgrade release in"
 // @Param name path string true "name of release to upgrade"
-// @Success 200 {object} api.SuccessfulOption
+// @Success 200 {object} api.HelmRelease
 // @Failure 404 {object} h.AppErr
 // @Failure 400 {object} h.AppErr
 // @Router /api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases/{name} [put]
@@ -74,7 +74,12 @@ func UpgradeRelease(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	h.R(c, api.SuccessfulOption{Success: true})
+	res, err := upgradeRelease(c, &release)
+	if err != nil {
+		h.E(c, err)
+		return
+	}
+	h.R(c, res)
 }
 
 // RollbackRelease rollbacks a release to a certain version.
@@ -94,6 +99,11 @@ func RollbackRelease(c *gin.Context) {
 	release := api.HelmRelease{}
 	err := parseRelease(c, &release)
 	if err != nil {
+		return
+	}
+	err = rollbackRelease(c, &release)
+	if err != nil {
+		h.E(c, err)
 		return
 	}
 	h.R(c, api.SuccessfulOption{Success: true})
@@ -159,6 +169,14 @@ func ListRelease(c *gin.Context) {
 // @Failure 404 {object} h.AppErr
 // @Router /api/v1/helm/clusters/{cluster}/namespaces/{namespace}/releases/{name} [delete]
 func UninstallRelease(c *gin.Context) {
+	cluster := c.Param(ParamCluster)
+	namespace := c.Param(ParamNamespace)
+	releaseName := c.Param(ParamName)
+	err := uninstallRelease(c, cluster, namespace, releaseName)
+	if err != nil {
+		h.E(c, err)
+		return
+	}
 	h.R(c, nil)
 }
 
@@ -223,6 +241,16 @@ func parseRelease(c *gin.Context, r *api.HelmRelease) error {
 		h.E(c, h.EBindBodyError.WithPayload(
 			fmt.Sprintf("failed to parse request body for helm release, error %v", err)))
 		return fmt.Errorf("failed to parse JSON: %v", err)
+	}
+	// fill in cluster, namespace, and name if not presented in body.
+	if r.Cluster == "" {
+		r.Cluster = cluster
+	}
+	if r.Namespace == "" {
+		r.Namespace = namespace
+	}
+	if r.Name == "" {
+		r.Name = releaseName
 	}
 	if cluster != r.Cluster {
 		h.E(c, h.EParamsError.WithPayload(
