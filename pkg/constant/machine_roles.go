@@ -17,7 +17,8 @@ package constant
 type MachineRole string
 
 const (
-	MachineRoleMaster MachineRole = "master" // Master role
-	MachineRoleWorker MachineRole = "worker" // Worker role
-	MachineRoleEtcd   MachineRole = "etcd"   // etcd role
+	MachineRoleMaster  MachineRole = "master"  // Master role
+	MachineRoleWorker  MachineRole = "worker"  // Worker role
+	MachineRoleEtcd    MachineRole = "etcd"    // etcd role
+	MachineRoleIngress MachineRole = "ingress" // ingress role
 )
