@@ -25,6 +25,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+func init() {
+	RegisterExecutor(ActionTypeDeployWorker, new(deployWorkerExecutor))
+}
+
 type deployWorkerExecutor struct {
 	logger  *logrus.Entry
 	machine *deployMachine.Machine
@@ -131,10 +135,11 @@ func (executor *deployWorkerExecutor) joinCluster() *protos.Error {
 
 	operation := worker.NewJoinCluster(
 		&worker.JoinClusterConfig{
-			Machine: executor.machine,
-			Logger:  executor.logger,
-			Node:    executor.action.config.Node,
-			Cluster: executor.action.config.ClusterConfig,
+			Machine:     executor.machine,
+			Logger:      executor.logger,
+			Node:        executor.action.config.Node,
+			Cluster:     executor.action.config.ClusterConfig,
+			MasterNodes: executor.action.config.MasterNodes,
 		},
 	)
 

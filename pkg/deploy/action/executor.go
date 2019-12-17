@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
@@ -28,31 +30,35 @@ type Executor interface {
 	Execute(act Action) *pb.Error
 }
 
+var _executorRegistry map[Type]Executor
+
+// RegisterExecutor is to register an Executor for an action type
+func RegisterExecutor(actionType Type, exec Executor) error {
+	if _executorRegistry == nil {
+		_executorRegistry = make(map[Type]Executor)
+	}
+	if exec == nil {
+		err := fmt.Errorf("the Executor to be registered is nil")
+		logrus.Error(err)
+		return err
+	}
+	if _, ok := _executorRegistry[actionType]; ok {
+		err := fmt.Errorf("the Executor for type %v has already been registered", actionType)
+		logrus.Error(err)
+		return err
+	}
+	_executorRegistry[actionType] = exec
+	return nil
+}
+
 // NewExecutor is a simple factory method to return an action executor based on action type.
 func NewExecutor(actionType Type) (Executor, error) {
-	var executor Executor
-	switch actionType {
-	case ActionTypeNodeCheck:
-		executor = &nodeCheckExecutor{}
-	case ActionTypeNodeInit:
-		executor = &nodeInitExecutor{}
-	case ActionTypeMasterNodeInit:
-		executor = &nodeInitExecutor{}
-	case ActionTypeDeployEtcd:
-		executor = &deployEtcdExecutor{}
-	case ActionTypeDeployWorker:
-		executor = &deployWorkerExecutor{}
-	case ActionTypeConnectivityCheck:
-		executor = &connectivityCheckExecutor{}
-	case ActionTypeInitMaster:
-		executor = &initMasterExecutor{}
-	case ActionTypeJoinMaster:
-		executor = &joinMasterExecutor{}
-	default:
+	exec, ok := _executorRegistry[actionType]
+	if !ok {
 		return nil, fmt.Errorf("%s: %s", consts.MsgActionTypeUnsupported, actionType)
 	}
 
-	return executor, nil
+	return exec, nil
 }
 
 // ExecuteAction creates and run the executor for an action,

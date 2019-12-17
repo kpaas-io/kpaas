@@ -23,6 +23,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const ActionTypeFetchKubeConfig Type = "FetchKubeConfig"
+
 // FetchKubeConfigActionConfig represents the config for a action to fetch the kube config
 type FetchKubeConfigActionConfig struct {
 	Node            *pb.Node

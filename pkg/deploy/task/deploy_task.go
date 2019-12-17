@@ -16,8 +16,9 @@ package task
 
 import (
 	"fmt"
-	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"time"
+
+	"github.com/kpaas-io/kpaas/pkg/constant"
 
 	"github.com/sirupsen/logrus"
 
@@ -26,6 +27,8 @@ import (
 
 type Operation string
 type Priority int
+
+const TaskTypeDeploy Type = "Deploy"
 
 const (
 	initOperation   Operation = "initialization"
@@ -39,11 +42,11 @@ const (
 )
 
 var (
-	Priorities = map[consts.NodeRole]Priority{
-		consts.NodeRoleEtcd:    DeployEtcdPriority,
-		consts.NodeRoleMaster:  DeployMasterPriority,
-		consts.NodeRoleWorker:  DeployWorkerPriority,
-		consts.NodeRoleIngress: DeployIngressPriority,
+	Priorities = map[constant.MachineRole]Priority{
+		constant.MachineRoleEtcd:    DeployEtcdPriority,
+		constant.MachineRoleMaster:  DeployMasterPriority,
+		constant.MachineRoleWorker:  DeployWorkerPriority,
+		constant.MachineRoleIngress: DeployIngressPriority,
 	}
 )
 

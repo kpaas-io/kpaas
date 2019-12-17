@@ -26,6 +26,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+func init() {
+	RegisterExecutor(ActionTypeNodeInit, new(nodeInitExecutor))
+}
+
 type nodeInitExecutor struct{}
 
 // due to items, ItemInitScripts exec remote scripts and return std, report, error

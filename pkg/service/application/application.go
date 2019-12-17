@@ -214,19 +214,17 @@ func (a *app) startRESTfulAPIListener() {
 
 func (a *app) initClients() {
 
-	return
-	// TODO Lucky Wait for deploy controller service ok to use
-	// logrus.Debug("start to init deploy controller client")
-	// if config.Config.DeployController.GetAddress() == "" {
-	// 	logrus.Error("deploy controller address not set")
-	// 	return
-	// }
-	//
-	// err := connection.InitConnection(config.Config.DeployController.GetAddress())
-	// if err != nil {
-	// 	logrus.Errorf("init deploy controller client error, %v", err)
-	// }
-	// logrus.Debug("init deploy controller client succeed")
+	logrus.Debug("start to init deploy controller client")
+	if config.Config.DeployController.GetAddress() == "" {
+		logrus.Error("deploy controller address not set")
+		return
+	}
+
+	err := connection.InitConnection(config.Config.DeployController.GetAddress())
+	if err != nil {
+		logrus.Errorf("init deploy controller client error, %v", err)
+	}
+	logrus.Debug("init deploy controller client succeed")
 }
 
 func (a *app) initSnowFlake() {

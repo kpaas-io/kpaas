@@ -23,6 +23,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeNodeInit Type = "NodeInit"
+
 // NodeInitTaskConfig represents the config for a node init task
 type NodeInitTaskConfig struct {
 	NodeConfigs     []*pb.NodeDeployConfig

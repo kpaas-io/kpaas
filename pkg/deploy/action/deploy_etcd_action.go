@@ -25,6 +25,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const ActionTypeDeployEtcd Type = "DeployEtcd"
+
 // DeployEtcdActionConfig represents the config for a ectd deploy in a node
 type DeployEtcdActionConfig struct {
 	CaCrt           *x509.Certificate

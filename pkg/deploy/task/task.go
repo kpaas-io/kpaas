@@ -46,21 +46,6 @@ type Task interface {
 // Type represents the type of a task
 type Type string
 
-const (
-	TaskTypeNodeCheck                Type = "NodeCheck"
-	TaskTypeNodeInit                 Type = "NodeInit"
-	TaskTypeNodeMasterInit           Type = "NodeMasterInit"
-	TaskTypeDeploy                   Type = "Deploy"
-	TaskTypeDeployEtcd               Type = "DeployEtcd"
-	TaskTypeDeployMaster             Type = "DeployMaster"
-	TaskTypeInitMaster               Type = "InitMaster"
-	TaskTypeJoinMaster               Type = "JoinMaster"
-	TaskTypeDeployWorker             Type = "DeployWorker"
-	TaskTypeDeployIngress            Type = "DeployIngess"
-	TaskTypeFetchKubeConfig          Type = "FetchKubeConfig"
-	TaskTypeCheckNetworkRequirements Type = "CheckNetworkRequirements"
-)
-
 // Status represents the status of a task
 type Status string
 

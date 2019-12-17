@@ -51,6 +51,10 @@ const (
 
 var systemDistributions = [3]string{check.DistributionCentos, check.DistributionUbuntu, check.DistributionRHEL}
 
+func init() {
+	RegisterExecutor(ActionTypeNodeCheck, new(nodeCheckExecutor))
+}
+
 type nodeCheckExecutor struct {
 }
 

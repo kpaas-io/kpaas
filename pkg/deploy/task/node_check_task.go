@@ -23,6 +23,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeNodeCheck Type = "NodeCheck"
+
 // NodeCheckTaskConfig represents the config for a node check task.
 type NodeCheckTaskConfig struct {
 	NodeConfigs     []*pb.NodeCheckConfig

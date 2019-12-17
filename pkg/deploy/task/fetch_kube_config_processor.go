@@ -23,6 +23,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
+func init() {
+	RegisterProcessor(TaskTypeFetchKubeConfig, new(fetchKubeConfigProcessor))
+}
+
 // fetchKubeConfigProcessor implements the specific logic for the fetch-kube-config task.
 type fetchKubeConfigProcessor struct {
 }

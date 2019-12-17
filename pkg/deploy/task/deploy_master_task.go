@@ -23,6 +23,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const TaskTypeDeployMaster Type = "DeployMaster"
+
 // DeploymasterTaskConfig represents the config for a deploy master task.
 type DeployMasterTaskConfig struct {
 	etcdNodes       []*pb.Node

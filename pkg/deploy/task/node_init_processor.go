@@ -23,6 +23,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
+func init() {
+	RegisterProcessor(TaskTypeNodeInit, new(nodeInitProcessor))
+}
+
 // nodeInitProcessor implements the specific logic to init nodes
 type nodeInitProcessor struct{}
 

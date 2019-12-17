@@ -27,6 +27,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const ActionTypeConnectivityCheck Type = "ConnectivityCheck"
+
 // ConnectivityCheckItem an item representing one check item of checking wheter a node can connect to another by the protocol and port.
 type ConnectivityCheckItem struct {
 	Protocol    consts.Protocol
@@ -84,6 +86,10 @@ func NewConnectivityCheckAction(cfg *ConnectivityCheckActionConfig) (Action, err
 		DestinationNode: cfg.DestinationNode,
 		CheckItems:      cfg.ConnectivityCheckItems,
 	}, nil
+}
+
+func init() {
+	RegisterExecutor(ActionTypeConnectivityCheck, new(connectivityCheckExecutor))
 }
 
 type connectivityCheckExecutor struct{}

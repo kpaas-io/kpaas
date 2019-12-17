@@ -23,6 +23,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 )
 
+func init() {
+	RegisterProcessor(TaskTypeDeployWorker, new(DeployWorkerProcessor))
+}
+
 type DeployWorkerProcessor struct {
 }
 
@@ -50,6 +54,7 @@ func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 			Node:            node,
 			ClusterConfig:   deployTask.Cluster,
 			LogFileBasePath: deployTask.LogFilePath,
+			MasterNodes:     deployTask.MasterNodes,
 		}
 		act, err := action.NewDeployWorkerAction(actionCfg)
 		if err != nil {

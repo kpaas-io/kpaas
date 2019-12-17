@@ -353,7 +353,6 @@ definitions:
         description: the private key name of login
         type: string
       roles:
-        default: master
         description: machine role, Master and worker roles are mutually exclusive.
         enum:
         - master
@@ -444,7 +443,6 @@ definitions:
         description: the private key name of login
         type: string
       roles:
-        default: master
         description: machine role, Master and worker roles are mutually exclusive.
         enum:
         - master
@@ -562,7 +560,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.Cluster'
-          type: object
       produces:
       - application/json
       responses:
@@ -688,7 +685,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.NodeData'
-          type: object
       produces:
       - application/json
       responses:
@@ -775,7 +771,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.UpdateNodeData'
-          type: object
       - description: Node IP Address
         in: path
         name: ip
@@ -980,7 +975,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.SuccessfulOption'
+            $ref: '#/definitions/api.HelmRelease'
         "400":
           description: Bad Request
           schema:
@@ -1093,7 +1088,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.ConnectionData'
-          type: object
       produces:
       - application/json
       responses:
@@ -1142,7 +1136,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.SSHCertificate'
-          type: object
       produces:
       - application/json
       responses:

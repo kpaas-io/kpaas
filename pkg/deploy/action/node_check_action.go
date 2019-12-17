@@ -24,6 +24,8 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const ActionTypeNodeCheck Type = "NodeCheck"
+
 // NodeCheckActionConfig represents the config for a node check action
 type NodeCheckActionConfig struct {
 	NodeCheckConfig *pb.NodeCheckConfig

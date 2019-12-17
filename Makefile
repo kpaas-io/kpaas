@@ -72,6 +72,10 @@ build_service_cross_without_doc:
 run_service_local: build_service_local
 	builds/debug/service --log-level=debug
 
+.PHONY: run_deploy_local
+run_deploy_local: build_deploy_local
+	builds/debug/deploy --log-level=debug
+
 build_service_image: build_service_cross
 	docker build -t $(IMAGE_REPOSITORY_URL)/service:$(BUILD_TAG) -f builds/docker/service/Dockerfile .
 
