@@ -74,6 +74,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.Reason = ItemErrEmpty
 		checkItemReport.Err.Detail = ItemErrEmpty
 		checkItemReport.Err.FixMethods = ItemHelperEmpty
+		return "", checkItemReport, fmt.Errorf("fail to construct %v operation", item)
 	}
 
 	// close ssh client
@@ -86,6 +87,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.Reason = ItemErrOperation
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Err.FixMethods = ItemHelperOperation
+		return "", checkItemReport, fmt.Errorf("fail to construct %v commands", item)
 	}
 
 	// exec operations commands
@@ -95,6 +97,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.Reason = ItemErrScript
 		checkItemReport.Err.Detail = string(stdErr)
 		checkItemReport.Err.FixMethods = ItemHelperScript
+		return "", checkItemReport, fmt.Errorf("fail to run %v commands", item)
 	}
 
 	checkItemStdOut := string(stdOut)
