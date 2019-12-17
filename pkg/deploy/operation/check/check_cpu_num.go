@@ -23,8 +23,7 @@ import (
 )
 
 const (
-	cpuScript    = "/scripts/check_cpu_num.sh"
-	cpuRemoteDir = "/tmp"
+	cpuScript = "/scripts/check_cpu_num.sh"
 )
 
 type CheckCPUOperation struct {
@@ -39,7 +38,7 @@ func (ckops *CheckCPUOperation) getScript() string {
 }
 
 func (ckops *CheckCPUOperation) getScriptPath() string {
-	ckops.ScriptPath = cpuRemoteDir + cpuScript
+	ckops.ScriptPath = checkRemoteScriptPath
 	return ckops.ScriptPath
 }
 
