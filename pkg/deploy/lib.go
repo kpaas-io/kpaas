@@ -20,6 +20,7 @@ import (
 	"os"
 
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -71,4 +72,23 @@ func GetControlPlaneEndpoint(clusterConfig *pb.ClusterConfig, masterNodes []*pb.
 	}
 
 	return
+}
+
+// PBErrLogger creates a new logging entry with the content of a pb.Error added as struct info,
+// the new entry is set based on the passed in logging entry.
+func PBErrLogger(pbErr *pb.Error, entry *logrus.Entry) *logrus.Entry {
+	if pbErr == nil {
+		// create an empty pb.Error to avoid return an error to caller.
+		pbErr = new(pb.Error)
+	}
+	fields := logrus.Fields{
+		"reason":    pbErr.Reason,
+		"detail":    pbErr.Detail,
+		"fixMethod": pbErr.FixMethods,
+	}
+
+	if entry == nil {
+		return logrus.WithFields(fields)
+	}
+	return entry.WithFields(fields)
 }

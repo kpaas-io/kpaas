@@ -15,8 +15,10 @@
 package consts
 
 const (
-	LogFieldTask   string = "task"
-	LogFieldAction string = "action"
+	LogFieldTask       string = "task"
+	LogFieldAction     string = "action"
+	LogFieldActionType string = "action-type"
+	LogFieldNode       string = "node"
 
 	// TODO:
 	// 1. difference between pkg/constant
