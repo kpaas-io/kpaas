@@ -180,6 +180,7 @@ func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, parent *Depl
 			LogFileBasePath: parent.GetLogFilePath(),
 			Priority:        int(Priorities[role]),
 			Parent:          parent.GetName(),
+			MasterNodes:     p.unwrapNodes(rn[consts.NodeRoleMaster]),
 		}
 
 		// Use the role name as the task name for now.

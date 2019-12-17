@@ -15,8 +15,6 @@
 package worker
 
 import (
-	"fmt"
-
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -26,7 +24,7 @@ import (
 )
 
 const (
-	fixMethodSelfAnalyseIt = "Please follow the error message and download deploy log to analyse it. If any problem can make issue for us."
+	fixMethodSelfAnalyseIt = "Please follow the error message and download deploy log to analyse it. Please create issues if you find any problem."
 )
 
 type InstallKubeletConfig struct {
@@ -73,26 +71,8 @@ func (operation *InstallKubelet) RunKubelet() *pb.Error {
 // errorTitle is pb.Error.Reason when error happened
 // doSomeThing is describe what the command done
 func (operation *InstallKubelet) runCommand(shellCommand string, errorTitle string, doSomeThing string) *pb.Error {
-	var stderr []byte
-	var err error
-	_, stderr, err = command.NewShellCommand(operation.machine, shellCommand).Execute()
-	if err != nil {
-		return &pb.Error{
-			Reason:     errorTitle,                                                                                // {$errorTitle}
-			Detail:     fmt.Sprintf("We tried to %s, but command run error, error message: %v", doSomeThing, err), // 我们尝试{$doSomeThing}，命令运行出错了，错误信息： %v
-			FixMethods: fixMethodSelfAnalyseIt,                                                                    // 请根据错误提示，并且下载日志进行分析，如果遇到困难，可以提issue给我们
-		}
-	}
 
-	if len(stderr) > 0 {
-
-		return &pb.Error{
-			Reason:     errorTitle,                                                                                              // {$errorTitle}
-			Detail:     fmt.Sprintf("We tried to %s, but command return error, error message: %s", doSomeThing, string(stderr)), // 我们尝试{$doSomeThing}，但是命令返回出错了，错误信息： %s
-			FixMethods: fixMethodSelfAnalyseIt,                                                                                  // 请根据错误提示，并且下载日志进行分析，如果遇到困难，可以提issue给我们
-		}
-	}
-	return nil
+	return RunCommand(command.NewShellCommand(operation.machine, shellCommand), errorTitle, doSomeThing)
 }
 
 func (operation *InstallKubelet) Execute() *pb.Error {

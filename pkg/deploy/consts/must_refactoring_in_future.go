@@ -14,26 +14,6 @@
 
 package consts
 
-type NodeRole string
-
-// TODO Lucky Be unified Machine Role From pkg.constant
 const (
-	NodeRoleEtcd    NodeRole = "etcd"
-	NodeRoleMaster  NodeRole = "master"
-	NodeRoleWorker  NodeRole = "worker"
-	NodeRoleIngress NodeRole = "ingress"
-)
-
-type NetworkType string
-
-const (
-	NetworkTypeCalico NetworkType = "calico"
-)
-
-type Protocol string
-
-const (
-	ProtocolTCP  = "tcp"
-	ProtocolUDP  = "udp"
-	ProtocolIPIP = "ipip"
+	KubernetesToken = "4a996f.8f1da0db96f8e50e"
 )
