@@ -24,6 +24,7 @@ import (
 
 const (
 	defaultApiServerPort = 6443
+	defaultHAProxyPort   = 4443
 )
 
 var (
@@ -62,7 +63,7 @@ func GetControlPlaneEndpoint(clusterConfig *pb.ClusterConfig, masterNodes []*pb.
 		}
 		addr = fmt.Sprintf("%v:%v", ip, defaultApiServerPort)
 	case "keepalived":
-		addr = conn.Keepalived.Vip
+		addr = fmt.Sprintf("%v:%v", conn.Keepalived.Vip, defaultHAProxyPort)
 	case "loadbalancer":
 		addr = fmt.Sprintf("%v:%v", conn.Loadbalancer.Ip, conn.Loadbalancer.Port)
 	default:

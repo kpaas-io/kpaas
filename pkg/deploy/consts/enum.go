@@ -14,15 +14,6 @@
 
 package consts
 
-type NodeRole string
-
-const (
-	NodeRoleEtcd    NodeRole = "etcd"
-	NodeRoleMaster  NodeRole = "master"
-	NodeRoleWorker  NodeRole = "worker"
-	NodeRoleIngress NodeRole = "ingress"
-)
-
 type NetworkType string
 
 const (

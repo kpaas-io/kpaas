@@ -25,7 +25,7 @@ type (
 	NodeBaseData struct {
 		Name                string                 `json:"name" binding:"required" minLength:"1" maxLength:"64"` // node name
 		Description         string                 `json:"description"`                                          // node description
-		MachineRoles        []constant.MachineRole `json:"roles" default:"master" enums:"master,worker,etcd"`    // machine role, Master and worker roles are mutually exclusive.
+		MachineRoles        []constant.MachineRole `json:"roles" default:"" enums:"master,worker,etcd"`          // machine role, Master and worker roles are mutually exclusive.
 		Labels              []Label                `json:"labels"`                                               // Node labels
 		Taints              []Taint                `json:"taints"`                                               // Node taints
 		DockerRootDirectory string                 `json:"dockerRootDirectory" default:"/var/lib/docker"`        // Docker Root Directory

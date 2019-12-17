@@ -16,13 +16,9 @@ package helm
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"helm.sh/helm/v3/pkg/action"
-	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
@@ -30,22 +26,24 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
-// installRelease inner function of calling helm actions to install a release
-func installRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error) {
+func upgradeRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error) {
 	logEntry := log.ReqEntry(c)
 
-	// fetch kubeconfig for cluster
-	logEntry.Debug("getting action config...")
-	installConfig, err := generateHelmActionConfig(r.Cluster, r.Namespace, logEntry)
+	// get helm action config for cluster
+	logEntry.Debug("getting helm action config...")
+	upgradeConfig, err := generateHelmActionConfig(r.Cluster, r.Namespace, logEntry)
 	if err != nil {
 		logEntry.WithField("cluster", r.Cluster).
 			Warningf("failed to generate configuration for helm action")
-		// generateHelmActionConfig returns h.AppErr, so we directly return err here
 		return nil, err
 	}
-	installAction := action.NewInstall(installConfig)
+	upgradeAction := action.NewUpgrade(upgradeConfig)
+	upgradeAction.Install = false
+	upgradeAction.Namespace = r.Namespace
 
-	logEntry.WithField("chartPath", r.Chart).Debug("loading chart...")
+	// load chart
+	// TODO: allow empty chart in request to use the chart used in current version of release
+	logEntry.WithField("chart", r.Chart).Debug("loading chart..")
 	ch, err := loader.Load(r.Chart)
 	if err != nil {
 		logEntry.WithField("chart", r.Chart).WithField("chart", r.Chart).
@@ -54,36 +52,21 @@ func installRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error
 		return nil, appErr
 	}
 
-	installAction.Namespace = r.Namespace
-	installAction.ReleaseName = r.Name
-	if r.Name == "" {
-		installAction.GenerateName = true
-		installAction.ReleaseName = generateReleaseName(ch)
-	}
-	logEntry.Debug("running installation...")
-	installResult, err := installAction.Run(ch, r.Values)
+	upgradeResult, err := upgradeAction.Run(r.Name, ch, r.Values)
 	if err != nil {
+		// TODO: analyze errors happened in running upgradeAction.Run and return proper AppErr
 		logEntry.WithField("cluster", r.Cluster).WithField("namespace", r.Namespace).
-			WithField("chart", r.Chart).WithField("error", err.Error()).
-			Warning("failed to run install action")
-		// TODO: analyze errors happened in running installAction.Run and return proper AppErr
-		return nil, fmt.Errorf("failed to run install action")
+			WithField("releaseName", r.Name).WithField("chart", r.Chart).WithField("error", err.Error()).
+			Warning("failed to run upgrade action")
+		return nil, fmt.Errorf("failed to run upgrade action")
 	}
 	res := &api.HelmRelease{
 		Cluster:      r.Cluster,
 		Namespace:    r.Namespace,
-		Name:         installResult.Name,
-		Chart:        installResult.Chart.Metadata.Name,
-		ChartVersion: installResult.Chart.Metadata.Version,
-		Revision:     uint32(installResult.Version),
+		Name:         upgradeResult.Name,
+		Chart:        upgradeResult.Chart.Metadata.Name,
+		ChartVersion: upgradeResult.Chart.Metadata.Version,
+		Revision:     uint32(upgradeResult.Version),
 	}
 	return res, nil
-}
-
-func generateReleaseName(ch *chart.Chart) string {
-	if ch == nil || ch.Metadata == nil {
-		return ""
-	}
-	return ch.Metadata.Name + "-" + strings.Replace(ch.Metadata.Version, ".", "-", -1) +
-		"-" + strconv.Itoa(int(time.Now().Unix()))
 }

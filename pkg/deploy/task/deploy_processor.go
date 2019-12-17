@@ -19,6 +19,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
@@ -61,8 +62,8 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	subTasks = append(subTasks, initTask)
 
 	// create the deploy etcd sub tasks with priority = 20
-	if _, ok := roles[consts.NodeRoleEtcd]; ok {
-		etcdTask, err := p.createDeploySubTask(consts.NodeRoleEtcd, deployTask, roles)
+	if _, ok := roles[constant.MachineRoleEtcd]; ok {
+		etcdTask, err := p.createDeploySubTask(constant.MachineRoleEtcd, deployTask, roles)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy etcd sub tasks: %s", err)
 			logger.Error(err)
@@ -72,8 +73,8 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	}
 
 	// create the deploy master sub tasks with priority = 30
-	if _, ok := roles[consts.NodeRoleMaster]; ok {
-		masterTask, err := p.createDeploySubTask(consts.NodeRoleMaster, deployTask, roles)
+	if _, ok := roles[constant.MachineRoleMaster]; ok {
+		masterTask, err := p.createDeploySubTask(constant.MachineRoleMaster, deployTask, roles)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy master sub tasks: %s", err)
 			logger.Error(err)
@@ -83,8 +84,8 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	}
 
 	// create the deploy worker sub tasks with priority = 40
-	if _, ok := roles[consts.NodeRoleWorker]; ok {
-		workerTask, err := p.createDeploySubTask(consts.NodeRoleWorker, deployTask, roles)
+	if _, ok := roles[constant.MachineRoleWorker]; ok {
+		workerTask, err := p.createDeploySubTask(constant.MachineRoleWorker, deployTask, roles)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy worker sub tasks: %s", err)
 			logger.Error(err)
@@ -94,8 +95,8 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	}
 
 	// create the deploy ingress sub tasks with priority = 50
-	if _, ok := roles[consts.NodeRoleIngress]; ok {
-		ingressTask, err := p.createDeploySubTask(consts.NodeRoleIngress, deployTask, roles)
+	if _, ok := roles[constant.MachineRoleIngress]; ok {
+		ingressTask, err := p.createDeploySubTask(constant.MachineRoleIngress, deployTask, roles)
 		if err != nil {
 			err = fmt.Errorf("failed to create deploy ingress sub tasks: %s", err)
 			logger.Error(err)
@@ -128,27 +129,27 @@ func (p *deployProcessor) verifyTask(t Task) (*DeployTask, error) {
 	return deployTask, nil
 }
 
-func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[consts.NodeRole][]*pb.NodeDeployConfig {
-	roles := make(map[consts.NodeRole][]*pb.NodeDeployConfig)
+func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[constant.MachineRole][]*pb.NodeDeployConfig {
+	roles := make(map[constant.MachineRole][]*pb.NodeDeployConfig)
 	for _, nodeCfg := range cfgs {
 		nodeRoles := nodeCfg.GetRoles()
 		for _, role := range nodeRoles {
-			roleName := consts.NodeRole(role)
+			roleName := constant.MachineRole(role)
 			roles[roleName] = append(roles[roleName], nodeCfg)
 		}
 	}
 	return roles
 }
 
-func (p *deployProcessor) createInitSubTask(t *DeployTask, rn map[consts.NodeRole][]*pb.NodeDeployConfig) (Task, error) {
+func (p *deployProcessor) createInitSubTask(t *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (Task, error) {
 	// TODO
 	return nil, nil
 }
 
-func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, parent *DeployTask, rn map[consts.NodeRole][]*pb.NodeDeployConfig) (task Task, err error) {
+func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {
 
 	switch role {
-	case consts.NodeRoleEtcd:
+	case constant.MachineRoleEtcd:
 		config := &DeployEtcdTaskConfig{
 			Nodes:           p.unwrapNodes(rn[role]),
 			LogFileBasePath: parent.GetLogFilePath(),
@@ -159,9 +160,9 @@ func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, parent *Depl
 		taskName := string(role)
 		task, err = NewDeployEtcdTask(taskName, config)
 
-	case consts.NodeRoleMaster:
+	case constant.MachineRoleMaster:
 		config := &DeployMasterTaskConfig{
-			etcdNodes:       p.unwrapNodes(rn[consts.NodeRoleEtcd]),
+			etcdNodes:       p.unwrapNodes(rn[constant.MachineRoleEtcd]),
 			Nodes:           p.unwrapNodes(rn[role]),
 			ClusterConfig:   parent.ClusterConfig,
 			LogFileBasePath: parent.GetLogFilePath(),
@@ -172,14 +173,15 @@ func (p *deployProcessor) createDeploySubTask(role consts.NodeRole, parent *Depl
 		taskName := string(role)
 		task, err = NewDeployMasterTask(taskName, config)
 
-	case consts.NodeRoleWorker:
+	case constant.MachineRoleWorker:
 
 		config := &DeployWorkerTaskConfig{
-			Nodes:           rn[consts.NodeRoleWorker],
+			Nodes:           rn[constant.MachineRoleWorker],
 			ClusterConfig:   parent.ClusterConfig,
 			LogFileBasePath: parent.GetLogFilePath(),
 			Priority:        int(Priorities[role]),
 			Parent:          parent.GetName(),
+			MasterNodes:     p.unwrapNodes(rn[constant.MachineRoleMaster]),
 		}
 
 		// Use the role name as the task name for now.

@@ -12,13 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package constant
-
-type MachineRole string
+package consts
 
 const (
-	MachineRoleMaster  MachineRole = "master"  // Master role
-	MachineRoleWorker  MachineRole = "worker"  // Worker role
-	MachineRoleEtcd    MachineRole = "etcd"    // etcd role
-	MachineRoleIngress MachineRole = "ingress" // ingress role
+	KubernetesToken = "4a996f.8f1da0db96f8e50e"
 )
