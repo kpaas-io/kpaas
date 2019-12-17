@@ -16,10 +16,11 @@ package init
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -27,9 +28,10 @@ import (
 )
 
 const (
-	HaproxyPort       uint16 = 6443
-	haproxyScript            = "/scripts/init_deploy_haproxy_keepalived/"
-	haproxyScriptPath        = "/tmp"
+	HaproxyPort             uint16 = 6443
+	haproxyScript                  = "/scripts/init_deploy_haproxy_keepalived/"
+	haproxyScriptPath              = "/scripts/init_deploy_haproxy_keepalived/setup.sh"
+	haproxyScriptRemotePath        = "/tmp"
 )
 
 func CheckHaproxyParameter(ipAddresses ...string) error {
@@ -59,40 +61,80 @@ func CheckHaproxyParameter(ipAddresses ...string) error {
 type InitHaproxyOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine *machine.Machine
+	Machine        *machine.Machine
+	NodeInitAction *operation.NodeInitAction
 }
 
 func (itOps *InitHaproxyOperation) getScript() string {
-	itOps.Script = routeScript
+	itOps.Script = haproxyScriptPath
 	return itOps.Script
 }
 
 func (itOps *InitHaproxyOperation) getScriptPath() string {
-	itOps.ScriptPath = routeScriptPath
+	itOps.ScriptPath = haproxyScriptRemotePath
 	return itOps.ScriptPath
 }
 
-func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
-	ops := &InitRouteOperation{}
+func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+
+	ops := &InitHaproxyOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, err
 	}
 	itOps.Machine = m
+	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	if masterIps := itOps.getMastersIP(); len(masterIps) == 0 {
+		err = fmt.Errorf("master ip can not be empty")
+		return nil, err
+	}
+	haproxyStr := buildHaproxyStr(itOps.getMastersIP(), HaproxyPort)
+	if haproxyStr == "" {
+		err = fmt.Errorf("haproxy string can not be built, please check")
+		return nil, err
+	}
+
+	err = m.PutDir(haproxyScript, haproxyScriptRemotePath, deploy.AllFilesNeeded)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
-		return nil, err
-	}
-
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -u '%v' haproxy run", itOps.getScriptPath()+itOps.getScript(), haproxyStr)))
 	return ops, nil
 }
 
 func (itOps *InitHaproxyOperation) CloseSSH() {
 	itOps.Machine.Close()
+}
+
+// construct haproxy parameter
+func buildHaproxyStr(masterIps []string, port uint16) string {
+	haproxyStr := ""
+	if len(masterIps) == 0 {
+		return ""
+	}
+	for _, ip := range masterIps {
+		haproxyStr += haproxyStr + fmt.Sprintf("%v:%v ", ip, port)
+	}
+	haproxyStr = strings.TrimSpace(haproxyStr)
+	return haproxyStr
+}
+
+// get master IP with config
+func (itOps *InitHaproxyOperation) getMastersIP() []string {
+	masterIps := []string{}
+	for _, node := range itOps.NodeInitAction.NodesConfig {
+		if groupByRole(node.Roles, "master"); true {
+			err := CheckHaproxyParameter(node.Node.Ip)
+			if err != nil {
+				return []string{}
+			}
+			masterIps = append(masterIps, node.Node.Ip)
+		}
+	}
+	if len(masterIps) < 3 {
+		return []string{}
+	}
+	return masterIps
 }

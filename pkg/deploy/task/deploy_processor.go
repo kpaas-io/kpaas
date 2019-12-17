@@ -150,7 +150,7 @@ func (p *deployProcessor) createInitSubTask(role consts.NodeRole, parent *Deploy
 	switch role {
 	case consts.NodeRoleMaster:
 
-		config := &NodeMasterInitTaskConfig{
+		config := &NodeInitTaskConfig{
 			NodeConfigs:     parent.NodeConfigs,
 			LogFileBasePath: parent.GetLogFilePath(),
 			Priority:        int(initPriority),
@@ -158,7 +158,7 @@ func (p *deployProcessor) createInitSubTask(role consts.NodeRole, parent *Deploy
 			ClusterConfig:   parent.ClusterConfig,
 		}
 		taskName := string(role)
-		task, err = NewNodeMasterInitTask(taskName, config)
+		task, err = NewNodeInitTask(taskName, config)
 
 	default:
 		goto EXTRA

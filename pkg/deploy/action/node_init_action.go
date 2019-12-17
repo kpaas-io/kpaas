@@ -34,6 +34,7 @@ const (
 // NodeInitActionConfig represents the config for a node init action
 type NodeInitActionConfig struct {
 	NodeInitConfig  *pb.NodeDeployConfig
+	NodesConfig     []*pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig
 	LogFileBasePath string
 }
@@ -43,6 +44,7 @@ type NodeInitAction struct {
 	sync.RWMutex
 
 	NodeInitConfig *pb.NodeDeployConfig
+	NodesConfig    []*pb.NodeDeployConfig
 	ClusterConfig  *pb.ClusterConfig
 	InitItems      []*NodeInitItem
 }
@@ -83,6 +85,7 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 			CreationTimestamp: time.Now(),
 		},
 		NodeInitConfig: cfg.NodeInitConfig,
+		NodesConfig:    cfg.NodesConfig,
 		ClusterConfig:  cfg.ClusterConfig,
 	}, nil
 }

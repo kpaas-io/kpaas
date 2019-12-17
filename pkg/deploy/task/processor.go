@@ -48,7 +48,7 @@ func NewProcessor(taskType Type) (Processor, error) {
 	case TaskTypeNodeInit:
 		processor = &nodeInitProcessor{}
 	case TaskTypeNodeMasterInit:
-		processor = &nodeMasterInitProcessor{}
+		processor = &nodeInitProcessor{}
 	case TaskTypeDeploy:
 		processor = &deployProcessor{}
 	case TaskTypeFetchKubeConfig:

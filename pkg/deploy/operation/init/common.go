@@ -25,13 +25,14 @@ type ItemEnum int
 type OperationsGenerator struct{}
 
 type InitOperations struct {
-	Script     string
-	ScriptPath string
-	Machine    *machine.Machine
+	Script         string
+	ScriptPath     string
+	Machine        *machine.Machine
+	InitNodeAction *operation.NodeInitAction
 }
 
 type InitAction interface {
-	GetOperations(config *pb.Node) (operation.Operation, error)
+	GetOperations(config *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error)
 	CloseSSH()
 	getScript() string
 	getScriptPath() string
@@ -53,7 +54,7 @@ func NewInitOperations() *OperationsGenerator {
 	return &OperationsGenerator{}
 }
 
-func (og *OperationsGenerator) CreateOperations(item ItemEnum) InitAction {
+func (og *OperationsGenerator) CreateOperations(item ItemEnum, action *operation.NodeInitAction) InitAction {
 	switch item {
 	case FireWall:
 		return &InitFireWallOperation{}
@@ -77,4 +78,14 @@ func (og *OperationsGenerator) CreateOperations(item ItemEnum) InitAction {
 	default:
 		return nil
 	}
+}
+
+// group by master role
+func groupByRole(arr []string, match string) bool {
+	for _, item := range arr {
+		if item == match {
+			return true
+		}
+	}
+	return false
 }

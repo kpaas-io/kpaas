@@ -30,7 +30,8 @@ const (
 type InitRouteOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine *machine.Machine
+	Machine        *machine.Machine
+	NodeInitAction *operation.NodeInitAction
 }
 
 func (itOps *InitRouteOperation) getScript() string {
@@ -43,13 +44,14 @@ func (itOps *InitRouteOperation) getScriptPath() string {
 	return itOps.ScriptPath
 }
 
-func (itOps *InitRouteOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+func (itOps *InitRouteOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitRouteOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, err
 	}
 	itOps.Machine = m
+	itOps.NodeInitAction = initAction
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {

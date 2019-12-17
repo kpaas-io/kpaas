@@ -16,10 +16,9 @@ package init
 
 import (
 	"fmt"
-
 	"github.com/sirupsen/logrus"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -27,8 +26,11 @@ import (
 )
 
 const (
-	keepalivedScript     = "/scripts/init_deploy_haproxy_keepalived/"
-	keepalivedScriptPath = "/tmp"
+	// we use master IP as keepalived listen IP, later we need use VIP to replace it
+	keepalivedEthernet         = "eth0"
+	keepalivedScript           = "/scripts/init_deploy_haproxy_keepalived/"
+	keepalivedScriptPath       = "/scripts/init_deploy_haproxy_keepalived/setup.sh"
+	keepalivedScriptRemotePath = "/tmp"
 )
 
 func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
@@ -54,40 +56,58 @@ func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 type InitKeepalivedOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine *machine.Machine
+	Machine        *machine.Machine
+	NodeInitAction *operation.NodeInitAction
 }
 
 func (itOps *InitKeepalivedOperation) getScript() string {
-	itOps.Script = routeScript
+	itOps.Script = keepalivedScriptPath
 	return itOps.Script
 }
 
 func (itOps *InitKeepalivedOperation) getScriptPath() string {
-	itOps.ScriptPath = routeScriptPath
+	itOps.ScriptPath = keepalivedScriptRemotePath
 	return itOps.ScriptPath
 }
 
-func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
-	ops := &InitRouteOperation{}
+func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+	ops := &InitKeepalivedOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, err
 	}
 	itOps.Machine = m
+	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	masterIP := itOps.getMastersIP()
+	if masterIP != "" {
+		err = fmt.Errorf("master ip can not be empty")
+		return nil, err
+	}
+
+	err = m.PutDir(keepalivedScript, keepalivedScriptRemotePath, deploy.AllFilesNeeded)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
-		return nil, err
-	}
-
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", itOps.getScriptPath()+itOps.getScript(), masterIP, keepalivedEthernet)))
 	return ops, nil
 }
 
 func (itOps *InitKeepalivedOperation) CloseSSH() {
 	itOps.Machine.Close()
+}
+
+// get master IP with config
+func (itOps *InitKeepalivedOperation) getMastersIP() string {
+	for _, node := range itOps.NodeInitAction.NodesConfig {
+		if groupByRole(node.Roles, "master"); true {
+			err := CheckHaproxyParameter(node.Node.Ip)
+			if err != nil {
+				return ""
+			}
+			return node.Node.Ip
+		}
+	}
+	return ""
 }
