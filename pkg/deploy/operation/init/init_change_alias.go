@@ -23,14 +23,14 @@ import (
 )
 
 const (
-	hostAliasScript     = "/scripts/init_change_hostalias.sh"
-	hostAliasScriptPath = "/tmp"
+	hostAliasScript = "/scripts/init_change_hostalias.sh"
 )
 
 type InitHostaliasOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine *machine.Machine
+	Machine        *machine.Machine
+	NodeInitAction *operation.NodeInitAction
 }
 
 func (itOps *InitHostaliasOperation) getScript() string {
@@ -39,17 +39,18 @@ func (itOps *InitHostaliasOperation) getScript() string {
 }
 
 func (itOps *InitHostaliasOperation) getScriptPath() string {
-	itOps.ScriptPath = hostAliasScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 
-func (itOps *InitHostaliasOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+func (itOps *InitHostaliasOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitHostaliasOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, err
 	}
 	itOps.Machine = m
+	itOps.NodeInitAction = initAction
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {

@@ -23,14 +23,14 @@ import (
 )
 
 const (
-	networkScript     = "/scripts/init_change_network.sh"
-	networkScriptPath = "/tmp"
+	networkScript = "/scripts/init_change_network.sh"
 )
 
 type InitNetworkOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine *machine.Machine
+	Machine        *machine.Machine
+	NodeInitAction *operation.NodeInitAction
 }
 
 func (itOps *InitNetworkOperation) getScript() string {
@@ -39,17 +39,18 @@ func (itOps *InitNetworkOperation) getScript() string {
 }
 
 func (itOps *InitNetworkOperation) getScriptPath() string {
-	itOps.ScriptPath = networkScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 
-func (itOps *InitNetworkOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+func (itOps *InitNetworkOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitNetworkOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, err
 	}
 	itOps.Machine = m
+	itOps.NodeInitAction = initAction
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {

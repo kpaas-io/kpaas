@@ -35,7 +35,9 @@ const (
 
 // NodeInitActionConfig represents the config for a node init action
 type NodeInitActionConfig struct {
-	Node            *pb.Node
+	NodeInitConfig  *pb.NodeDeployConfig
+	NodesConfig     []*pb.NodeDeployConfig
+	ClusterConfig   *pb.ClusterConfig
 	LogFileBasePath string
 }
 
@@ -43,8 +45,10 @@ type NodeInitAction struct {
 	Base
 	sync.RWMutex
 
-	Node      *pb.Node
-	InitItems []*NodeInitItem
+	NodeInitConfig *pb.NodeDeployConfig
+	NodesConfig    []*pb.NodeDeployConfig
+	ClusterConfig  *pb.ClusterConfig
+	InitItems      []*NodeInitItem
 }
 
 type NodeInitItemStatus string
@@ -62,8 +66,10 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 	var err error
 	if cfg == nil {
 		err = fmt.Errorf("action config is nil")
-	} else if cfg.Node == nil {
-		err = fmt.Errorf("invalid config: node is nil")
+	} else if cfg.NodeInitConfig == nil {
+		err = fmt.Errorf("Invalid config: node init config is nil")
+	} else if cfg.NodeInitConfig.Node == nil {
+		err = fmt.Errorf("Invalid node init config: node is nil")
 	}
 
 	if err != nil {
@@ -80,11 +86,13 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
 			CreationTimestamp: time.Now(),
 		},
-		Node: cfg.Node,
+		NodeInitConfig: cfg.NodeInitConfig,
+		NodesConfig:    cfg.NodesConfig,
+		ClusterConfig:  cfg.ClusterConfig,
 	}, nil
 }
 
 // return node name as the action name, temporarily
 func getNodeInitActionName(cfg *NodeInitActionConfig) string {
-	return cfg.Node.GetName()
+	return cfg.NodeInitConfig.Node.GetName()
 }

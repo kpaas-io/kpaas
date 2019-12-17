@@ -23,14 +23,14 @@ import (
 )
 
 const (
-	timeZoneScript     = "/scripts/init_change_timezone.sh"
-	timeZoneScriptPath = "/tmp"
+	timeZoneScript = "/scripts/init_change_timezone.sh"
 )
 
 type InitTimeZoneOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine *machine.Machine
+	Machine        *machine.Machine
+	NodeInitAction *operation.NodeInitAction
 }
 
 func (itOps *InitTimeZoneOperation) getScript() string {
@@ -39,17 +39,18 @@ func (itOps *InitTimeZoneOperation) getScript() string {
 }
 
 func (itOps *InitTimeZoneOperation) getScriptPath() string {
-	itOps.ScriptPath = timeZoneScriptPath
+	itOps.ScriptPath = RemoteScriptPath
 	return itOps.ScriptPath
 }
 
-func (itOps *InitTimeZoneOperation) GetOperations(node *pb.Node) (operation.Operation, error) {
+func (itOps *InitTimeZoneOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitTimeZoneOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, err
 	}
 	itOps.Machine = m
+	itOps.NodeInitAction = initAction
 
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {
