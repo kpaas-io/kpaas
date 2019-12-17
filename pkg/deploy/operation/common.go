@@ -22,6 +22,8 @@ import (
 	"unicode"
 
 	"github.com/sirupsen/logrus"
+
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 const (
@@ -42,6 +44,12 @@ const (
 	UnclearInputPara         = "input parameter not clear"
 	GiByteUnits      float64 = 1000 * 1000 * 1000
 )
+
+type NodeInitAction struct {
+	NodeInitConfig *pb.NodeDeployConfig
+	NodesConfig    []*pb.NodeDeployConfig
+	ClusterConfig  *pb.ClusterConfig
+}
 
 // check if version is satisfied with standard version
 // checkStandard controls compared method
