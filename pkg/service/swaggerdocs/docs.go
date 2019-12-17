@@ -1383,6 +1383,12 @@ var doc = `{
                 "chart": {
                     "type": "string"
                 },
+                "chartRepo": {
+                    "type": "string"
+                },
+                "chartVersion": {
+                    "type": "string"
+                },
                 "cluster": {
                     "type": "string"
                 },
@@ -1396,18 +1402,12 @@ var doc = `{
                 "namespace": {
                     "type": "string"
                 },
-                "repo": {
-                    "type": "string"
-                },
                 "revision": {
                     "type": "integer"
                 },
                 "values": {
                     "type": "object",
                     "$ref": "#/definitions/api.HelmValues"
-                },
-                "version": {
-                    "type": "string"
                 }
             }
         },

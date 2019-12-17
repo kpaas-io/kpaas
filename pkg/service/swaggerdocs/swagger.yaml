@@ -276,6 +276,10 @@ definitions:
     properties:
       chart:
         type: string
+      chartRepo:
+        type: string
+      chartVersion:
+        type: string
       cluster:
         type: string
       manifest:
@@ -286,15 +290,11 @@ definitions:
         type: string
       namespace:
         type: string
-      repo:
-        type: string
       revision:
         type: integer
       values:
         $ref: '#/definitions/api.HelmValues'
         type: object
-      version:
-        type: string
     type: object
   api.HelmValues:
     additionalProperties:

@@ -47,6 +47,11 @@ func InstallRelease(c *gin.Context) {
 	if err != nil {
 		return
 	}
+	if release.Chart == "" {
+		appErr := h.EParamsError.WithPayload("empty chart")
+		h.E(c, appErr)
+		return
+	}
 	res, err := installRelease(c, &release)
 	if err != nil {
 		h.E(c, err)
@@ -72,6 +77,11 @@ func UpgradeRelease(c *gin.Context) {
 	release := api.HelmRelease{}
 	err := parseRelease(c, &release)
 	if err != nil {
+		return
+	}
+	if release.Chart == "" {
+		appErr := h.EParamsError.WithPayload("empty chart")
+		h.E(c, appErr)
 		return
 	}
 	res, err := upgradeRelease(c, &release)
@@ -125,12 +135,13 @@ func GetRelease(c *gin.Context) {
 	cluster := c.Param(ParamCluster)
 	namespace := c.Param(ParamNamespace)
 	releaseName := c.Param(ParamName)
-	release := api.HelmRelease{
-		Cluster:   cluster,
-		Namespace: namespace,
-		Name:      releaseName,
+
+	res, err := getRelease(c, cluster, namespace, releaseName)
+	if err != nil {
+		h.E(c, err)
+		return
 	}
-	h.R(c, release)
+	h.R(c, res)
 }
 
 // ListRelease list all releases in a namespace.
@@ -147,11 +158,10 @@ func GetRelease(c *gin.Context) {
 func ListRelease(c *gin.Context) {
 	cluster := c.Param(ParamCluster)
 	namespace := c.Param(ParamNamespace)
-	releases := []api.HelmRelease{
-		api.HelmRelease{
-			Cluster:   cluster,
-			Namespace: namespace,
-		},
+	releases, err := listRelease(c, cluster, namespace)
+	if err != nil {
+		h.E(c, err)
+		return
 	}
 	h.R(c, releases)
 }
@@ -196,12 +206,12 @@ func ExportRelease(c *gin.Context) {
 	cluster := c.Param(ParamCluster)
 	namespace := c.Param(ParamNamespace)
 	releaseName := c.Param(ParamName)
-	release := api.HelmRelease{
-		Cluster:   cluster,
-		Namespace: namespace,
-		Name:      releaseName,
+	manifest, err := exportRelease(c, cluster, namespace, releaseName)
+	if err != nil {
+		h.E(c, err)
+		return
 	}
-	c.YAML(200, release)
+	c.Data(200, gin.MIMEYAML, []byte(manifest))
 }
 
 // RenderTemplate render chart templates locally and display the output.
@@ -223,7 +233,17 @@ func RenderTemplate(c *gin.Context) {
 			fmt.Sprintf("failed to parse request body for helm release, error %v", err)))
 		return
 	}
-	c.YAML(201, release)
+	if release.Chart == "" {
+		appErr := h.EParamsError.WithPayload("empty chart")
+		h.E(c, appErr)
+		return
+	}
+	manifest, err := renderTemplate(c, &release)
+	if err != nil {
+		h.E(c, err)
+		return
+	}
+	c.Data(201, gin.MIMEYAML, []byte(manifest))
 }
 
 func parseRelease(c *gin.Context, r *api.HelmRelease) error {
