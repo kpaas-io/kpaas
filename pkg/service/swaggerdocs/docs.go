@@ -146,7 +146,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -334,7 +333,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -422,7 +420,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -714,7 +711,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.SuccessfulOption"
+                            "$ref": "#/definitions/api.HelmRelease"
                         }
                     },
                     "400": {
@@ -924,7 +921,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -997,7 +993,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
@@ -1500,7 +1495,6 @@ var doc = `{
                 "roles": {
                     "description": "machine role, Master and worker roles are mutually exclusive.",
                     "type": "string",
-                    "default": "master",
                     "enum": [
                         "master",
                         "worker",
@@ -1623,7 +1617,6 @@ var doc = `{
                 "roles": {
                     "description": "machine role, Master and worker roles are mutually exclusive.",
                     "type": "string",
-                    "default": "master",
                     "enum": [
                         "master",
                         "worker",

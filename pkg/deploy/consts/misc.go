@@ -17,4 +17,9 @@ package consts
 const (
 	LogFieldTask   string = "task"
 	LogFieldAction string = "action"
+
+	// TODO:
+	// 1. difference between pkg/constant
+	// 2. what const should be placed where
+	DefaultK8sConfigDir = "/etc/kubernetes"
 )
