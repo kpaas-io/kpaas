@@ -23,22 +23,20 @@ import (
 
 func exportRelease(c *gin.Context, cluster string, namespace string, releaseName string) (
 	string, error) {
-	logEntry := log.ReqEntry(c)
+	logEntry := log.ReqEntry(c).
+		WithField("cluster", cluster).WithField("namespace", namespace).WithField("releaseName", releaseName)
 
 	logEntry.Debug("getting action config...")
 	exportReleaseConfig, err := generateHelmActionConfig(cluster, namespace, logEntry)
 	if err != nil {
-		logEntry.WithField("cluster", cluster).
-			Warningf("failed to generate configuration for helm action")
+		logEntry.Warningf("failed to generate configuration for helm action")
 		return "", err
 	}
 
 	exportReleaseAction := action.NewGet(exportReleaseConfig)
 	releaseContent, err := exportReleaseAction.Run(releaseName)
 	if err != nil {
-		logEntry.WithField("cluster", cluster).WithField("namespace", namespace).
-			WithField("releaseName", releaseName).WithField("error", err).
-			Warning("failed to get release")
+		logEntry.WithField("error", err).Warning("failed to run get release action")
 		return "", err
 	}
 	return releaseContent.Manifest, nil

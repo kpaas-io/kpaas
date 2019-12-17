@@ -23,21 +23,20 @@ import (
 )
 
 func listRelease(c *gin.Context, cluster string, namespace string) ([]*api.HelmRelease, error) {
-	logEntry := log.ReqEntry(c)
+	logEntry := log.ReqEntry(c).
+		WithField("cluster", cluster).WithField("namespace", namespace)
 
 	logEntry.Debug("getting action config...")
 	listReleaseConfig, err := generateHelmActionConfig(cluster, namespace, logEntry)
 	if err != nil {
-		logEntry.WithField("cluster", cluster).WithField("error", err).
-			Warning("failed to generate configuration for helm action")
+		logEntry.WithField("error", err).Warning("failed to generate configuration for helm action")
 		return nil, err
 	}
 	// TODO: add more options for listing releases, such as filter, sorting method.
 	listReleaseAction := action.NewList(listReleaseConfig)
 	listResult, err := listReleaseAction.Run()
 	if err != nil {
-		logEntry.WithField("cluster", cluster).WithField("namespace", namespace).
-			WithField("error", err).Warning("failed to run list action")
+		logEntry.Warning("failed to run list action")
 		return nil, err
 	}
 	ret := []*api.HelmRelease{}

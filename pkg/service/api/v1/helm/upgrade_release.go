@@ -27,14 +27,14 @@ import (
 )
 
 func upgradeRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error) {
-	logEntry := log.ReqEntry(c)
+	logEntry := log.ReqEntry(c).
+		WithField("cluster", r.Cluster).WithField("namespace", r.Namespace).WithField("releaseName", r.Name)
 
 	// get helm action config for cluster
 	logEntry.Debug("getting helm action config...")
 	upgradeConfig, err := generateHelmActionConfig(r.Cluster, r.Namespace, logEntry)
 	if err != nil {
-		logEntry.WithField("cluster", r.Cluster).
-			Warningf("failed to generate configuration for helm action")
+		logEntry.WithField("error", err).Warningf("failed to generate configuration for helm action")
 		return nil, err
 	}
 	upgradeAction := action.NewUpgrade(upgradeConfig)
@@ -43,11 +43,11 @@ func upgradeRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error
 
 	// load chart
 	// TODO: allow empty chart in request to use the chart used in current version of release
-	logEntry.WithField("chart", r.Chart).Debug("loading chart..")
+	logEntry = logEntry.WithField("chart", r.Chart)
+	logEntry.Debug("loading chart..")
 	ch, err := loader.Load(r.Chart)
 	if err != nil {
-		logEntry.WithField("chart", r.Chart).WithField("chart", r.Chart).
-			WithField("error", err.Error()).Warningf("failed to load chart")
+		logEntry.WithField("error", err.Error()).Warningf("failed to load chart")
 		appErr := h.ENotFound.WithPayload(fmt.Sprintf("chart '%s' not found", r.Chart))
 		return nil, appErr
 	}
@@ -55,9 +55,7 @@ func upgradeRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error
 	upgradeResult, err := upgradeAction.Run(r.Name, ch, r.Values)
 	if err != nil {
 		// TODO: analyze errors happened in running upgradeAction.Run and return proper AppErr
-		logEntry.WithField("cluster", r.Cluster).WithField("namespace", r.Namespace).
-			WithField("releaseName", r.Name).WithField("chart", r.Chart).WithField("error", err.Error()).
-			Warning("failed to run upgrade action")
+		logEntry.WithField("error", err).Warning("failed to run upgrade action")
 		return nil, fmt.Errorf("failed to run upgrade action")
 	}
 	res := &api.HelmRelease{

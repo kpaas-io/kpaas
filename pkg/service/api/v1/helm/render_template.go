@@ -28,7 +28,7 @@ import (
 
 // renderTemplate is the inner function to render a template of a chart, returning the rendered YAML manifests.
 func renderTemplate(c *gin.Context, r *api.HelmRelease) (string, error) {
-	logEntry := log.ReqEntry(c)
+	logEntry := log.ReqEntry(c).WithField("cluster", r.Cluster).WithField("namspace", r.Namespace)
 
 	logEntry.Debug("getting action config...")
 	installConfig, err := generateHelmActionConfig(r.Cluster, r.Namespace, logEntry)
@@ -41,11 +41,11 @@ func renderTemplate(c *gin.Context, r *api.HelmRelease) (string, error) {
 	// rendering the template is just dry-running the install action and retieving the manifest in the result.
 	installAction := action.NewInstall(installConfig)
 
-	logEntry.WithField("chartPath", r.Chart).Debug("loading chart...")
+	logEntry = logEntry.WithField("chart", r.Chart)
+	logEntry.Debug("loading chart...")
 	ch, err := loader.Load(r.Chart)
 	if err != nil {
-		logEntry.WithField("chart", r.Chart).
-			WithField("error", err.Error()).Warningf("failed to load chart")
+		logEntry.WithField("error", err.Error()).Warningf("failed to load chart")
 		appErr := h.ENotFound.WithPayload(fmt.Sprintf("chart '%s' not found", r.Chart))
 		return "", appErr
 	}
@@ -60,9 +60,7 @@ func renderTemplate(c *gin.Context, r *api.HelmRelease) (string, error) {
 	installAction.ClientOnly = false
 	res, err := installAction.Run(ch, r.Values)
 	if err != nil {
-		logEntry.WithField("cluster", r.Cluster).WithField("namespace", r.Namespace).
-			WithField("chart", r.Chart).WithField("error", err.Error()).
-			Warning("failed to run install action")
+		logEntry.WithField("error", err).Warning("failed to run install action")
 		// TODO: analyze errors happened in running installAction.Run and return proper AppErr
 		return "", fmt.Errorf("failed to run install action")
 	}

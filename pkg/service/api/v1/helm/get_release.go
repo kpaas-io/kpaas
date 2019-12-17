@@ -25,21 +25,19 @@ import (
 // getRelease inner function of calling helm actions to get detailed info of a release
 func getRelease(c *gin.Context, cluster string, namespace string, releaseName string) (
 	*api.HelmRelease, error) {
-	logEntry := log.ReqEntry(c)
+	logEntry := log.ReqEntry(c).
+		WithField("cluster", cluster).WithField("namespace", namespace).WithField("releaseName", releaseName)
 
 	logEntry.Debug("getting action config...")
 	getReleaseConfig, err := generateHelmActionConfig(cluster, namespace, logEntry)
 	if err != nil {
-		logEntry.WithField("cluster", cluster).
-			Warningf("failed to generate configuration for helm action")
+		logEntry.Warningf("failed to generate configuration for helm action")
 		return nil, err
 	}
 	getReleaseAction := action.NewGet(getReleaseConfig)
 	getResult, err := getReleaseAction.Run(releaseName)
 	if err != nil {
-		logEntry.WithField("cluster", cluster).WithField("namespace", namespace).
-			WithField("releaseName", releaseName).WithField("error", err).
-			Warningf("failed to run get release action")
+		logEntry.WithField("error", err).Warningf("failed to run get release action")
 		return nil, err
 	}
 	// TODO: include more information from helm in returned result.

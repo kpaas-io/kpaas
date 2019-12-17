@@ -25,12 +25,13 @@ import (
 
 func uninstallRelease(
 	c *gin.Context, cluster string, namespace string, releaseName string) error {
-	logEntry := log.ReqEntry(c)
+	logEntry := log.ReqEntry(c).
+		WithField("cluster", cluster).WithField("namespace", namespace).WithField("releaseName", releaseName)
 
 	logEntry.Debugf("getting helm action config...")
 	uninstallConfig, err := generateHelmActionConfig(cluster, namespace, logEntry)
 	if err != nil {
-		logEntry.WithField("cluster", cluster).
+		logEntry.WithField("error", err).
 			Warningf("failed to generate configuration for helm action")
 		return err
 	}
@@ -39,9 +40,7 @@ func uninstallRelease(
 	// TODO: analyze response from helm action and give more info in response
 	_, err = uninstallAction.Run(releaseName)
 	if err != nil {
-		logEntry.WithField("cluster", cluster).WithField("namespace", namespace).
-			WithField("releaseName", releaseName).WithField("error", err.Error()).
-			Warning("failed to run uninstall action")
+		logEntry.WithField("error", err).Warning("failed to run uninstall action")
 		// TODO: analyze error and return proper appError
 		return fmt.Errorf("failed to run uninstall action")
 	}

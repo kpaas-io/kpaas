@@ -32,24 +32,24 @@ import (
 
 // installRelease inner function of calling helm actions to install a release
 func installRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error) {
-	logEntry := log.ReqEntry(c)
+	logEntry := log.ReqEntry(c).
+		WithField("cluster", r.Cluster).WithField("namspace", r.Namespace).WithField("releaseName", r.Name)
 
 	// fetch kubeconfig for cluster
 	logEntry.Debug("getting action config...")
 	installConfig, err := generateHelmActionConfig(r.Cluster, r.Namespace, logEntry)
 	if err != nil {
-		logEntry.WithField("cluster", r.Cluster).
-			Warningf("failed to generate configuration for helm action")
+		logEntry.Warningf("failed to generate configuration for helm action")
 		// generateHelmActionConfig returns h.AppErr, so we directly return err here
 		return nil, err
 	}
 	installAction := action.NewInstall(installConfig)
 
-	logEntry.WithField("chartPath", r.Chart).Debug("loading chart...")
+	logEntry = logEntry.WithField("chart", r.Chart)
+	logEntry.Debug("loading chart...")
 	ch, err := loader.Load(r.Chart)
 	if err != nil {
-		logEntry.WithField("chart", r.Chart).
-			WithField("error", err.Error()).Warningf("failed to load chart")
+		logEntry.Warningf("failed to load chart")
 		appErr := h.ENotFound.WithPayload(fmt.Sprintf("chart '%s' not found", r.Chart))
 		return nil, appErr
 	}
@@ -63,9 +63,7 @@ func installRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error
 	logEntry.Debug("running installation...")
 	installResult, err := installAction.Run(ch, r.Values)
 	if err != nil {
-		logEntry.WithField("cluster", r.Cluster).WithField("namespace", r.Namespace).
-			WithField("chart", r.Chart).WithField("error", err.Error()).
-			Warning("failed to run install action")
+		logEntry.WithField("error", err).Warning("failed to run install action")
 		// TODO: analyze errors happened in running installAction.Run and return proper AppErr
 		return nil, fmt.Errorf("failed to run install action")
 	}
