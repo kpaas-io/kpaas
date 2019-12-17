@@ -151,7 +151,6 @@ func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[constant.
 	return roles
 }
 
-<<<<<<< HEAD
 func (p *deployProcessor) createInitSubTask(role constant.MachineRole, parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {
 	switch role {
 	case constant.MachineRoleMaster:
