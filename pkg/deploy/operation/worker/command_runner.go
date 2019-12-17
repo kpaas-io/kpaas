@@ -16,15 +16,36 @@ package worker
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-func RunCommand(command command.Command, errorTitle, doSomeThing string) *pb.Error {
-	var stderr []byte
+type CommandRunner struct {
+	executeLogWriter io.Writer
+}
+
+func NewCommandRunner(executeLogWriter io.Writer) *CommandRunner {
+
+	return &CommandRunner{executeLogWriter: executeLogWriter}
+}
+
+// shellCommand is run at remote command
+// errorTitle is pb.Error.Reason when error happened
+// doSomeThing is describe what the command done
+func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doSomeThing string) *pb.Error {
+
+	var stdout, stderr []byte
 	var err error
-	_, stderr, err = command.Execute()
+	stdout, stderr, err = command.Execute()
+
+	runner.log(stdout)
+	runner.log(stderr)
+	if err != nil {
+		runner.log([]byte(err.Error()))
+	}
+
 	if err != nil {
 		return &pb.Error{
 			Reason:     errorTitle,                                                                                // {$errorTitle}
@@ -42,4 +63,11 @@ func RunCommand(command command.Command, errorTitle, doSomeThing string) *pb.Err
 		}
 	}
 	return nil
+}
+
+func (runner *CommandRunner) log(data []byte) {
+
+	if len(data) > 0 {
+		_, _ = runner.executeLogWriter.Write(data)
+	}
 }
