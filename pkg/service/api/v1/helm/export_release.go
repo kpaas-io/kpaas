@@ -15,34 +15,29 @@
 package helm
 
 import (
-	"fmt"
-
 	"github.com/gin-gonic/gin"
 	"helm.sh/helm/v3/pkg/action"
 
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
-func uninstallRelease(
-	c *gin.Context, cluster string, namespace string, releaseName string) error {
+func exportRelease(c *gin.Context, cluster string, namespace string, releaseName string) (
+	string, error) {
 	logEntry := log.ReqEntry(c).
 		WithField("cluster", cluster).WithField("namespace", namespace).WithField("releaseName", releaseName)
 
-	logEntry.Debugf("getting helm action config...")
-	uninstallConfig, err := generateHelmActionConfig(cluster, namespace, logEntry)
+	logEntry.Debug("getting action config...")
+	exportReleaseConfig, err := generateHelmActionConfig(cluster, namespace, logEntry)
 	if err != nil {
-		logEntry.WithField("error", err).
-			Warningf("failed to generate configuration for helm action")
-		return err
+		logEntry.Warningf("failed to generate configuration for helm action")
+		return "", err
 	}
 
-	uninstallAction := action.NewUninstall(uninstallConfig)
-	// TODO: analyze response from helm action and give more info in response
-	_, err = uninstallAction.Run(releaseName)
+	exportReleaseAction := action.NewGet(exportReleaseConfig)
+	releaseContent, err := exportReleaseAction.Run(releaseName)
 	if err != nil {
-		logEntry.WithField("error", err).Warning("failed to run uninstall action")
-		// TODO: analyze error and return proper appError
-		return fmt.Errorf("failed to run uninstall action")
+		logEntry.WithField("error", err).Warning("failed to run get release action")
+		return "", err
 	}
-	return nil
+	return releaseContent.Manifest, nil
 }
