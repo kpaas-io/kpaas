@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -42,7 +43,7 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 	startExecuteTime := time.Now()
 	stderr, stdout, err = command.Execute()
 
-	runner.log("-----------------------------\n")
+	runner.log(consts.DashLine + "\n")
 	runner.log(fmt.Sprintf("[start time]: %s\n", startExecuteTime.String()))
 	runner.log(fmt.Sprintf("[command]: %s\n", command.GetCommand()))
 
