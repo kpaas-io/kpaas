@@ -53,7 +53,7 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 	}
 
 	if err != nil {
-		runner.log(err.Error())
+		runner.log(fmt.Sprintf("[error]: %s\n", err.Error()))
 	}
 
 	runner.log(fmt.Sprintf("[end]: %s\n", time.Now().String()))
