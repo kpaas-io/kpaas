@@ -1,4 +1,17 @@
 #! /usr/bin/env bash
+## Copyright 2019 Shanghai JingDuo Information Technology co., Ltd.
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##      http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
 
 set -Eeuo pipefail
 
@@ -10,16 +23,6 @@ COMPONENT=
 VERSION=
 IMAGE_REPOSITORY=index-dev.qiniu.io/kelibrary
 DEVICE_MOUNTS=
-
-# docker specific
-DOCKER_INSTALLED=
-DOCKER_THINPOOL_STATE=
-DOCKER_PKG=
-DOCKER_VERSION=
-DOCKER_DEVICE_MAPPER_DEVICE=
-DOCKER_DEVICE_MAPPER_PKGS=
-DOCKER_STORAGE_DRIVER=
-INSECURE_REGS=
 
 # kubelet specific
 KUBELET_VERSION=
@@ -151,9 +154,6 @@ EOF
     cat > $sourcedir/kubernetes.list <<EOF
 deb https://$PKG_MIRROR/kubernetes/apt/ kubernetes-${DIST_VERSION} main
 EOF
-    cat > $sourcedir/ceph.list <<EOF
-deb http://$PKG_MIRROR/ceph/debian-luminous ${DIST_VERSION} main
-EOF
     command::exec apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 6A030B21BA07F4FB E84AC2C0460F3994 7EA0A9C3F273FCD8 F76221572C52609D
     command::exec apt clean
     command::exec apt update
@@ -182,14 +182,6 @@ name = k8s
 baseurl = http://$PKG_MIRROR/kubernetes/yum/repos/kubernetes-el7-x86_64/
 enabled = 1
 gpgcheck = 0
-EOF
-        cat > $repodir/ceph.repo <<EOF
-[ceph]
-name = ceph-luminous
-baseurl = http://$PKG_MIRROR/ceph/rpm-luminous/el7/\$basearch
-enabled = 1
-gpgcheck = 1
-gpgkey = https://download.ceph.com/keys/release.asc
 EOF
     else
         test -d /etc/yum.repos.d/bak || mkdir /etc/yum.repos.d/bak
@@ -220,9 +212,6 @@ deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-backports main restricted uni
 EOF
     cat > $sourcedir/kubernetes.list <<EOF
 deb https://$PKG_MIRROR/kubernetes/apt/ kubernetes-${DIST_VERSION} main
-EOF
-    cat > $sourcedir/ceph.list <<EOF
-deb http://$PKG_MIRROR/ceph/debian-luminous ${DIST_VERSION} main
 EOF
     command::exec apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 6A030B21BA07F4FB E84AC2C0460F3994 7EA0A9C3F273FCD8 F76221572C52609D
     command::exec apt clean
@@ -297,8 +286,6 @@ join() {
         export skip_ca=--discovery-token-unsafe-skip-ca-verification
     fi
 
-    #$PKG_MGR remove -y cri-tools &> /dev/null || true
-
     #kubeadm join --token $TOKEN $MASTERIP --discovery-token-unsafe-skip-ca-verification [--experimental-control-plane]
     command::exec kubeadm join --token $TOKEN $MASTER $skip_ca $JOIN_CONTROL_PLANE
 }
@@ -313,7 +300,7 @@ Usage:
 EOF
 }
 
-main() {;./
+main() {
     [[ -r /etc/os-release ]] && LSB_DIST=$(. /etc/os-release && echo $ID)
     [[ -z $LSB_DIST ]] && log::deploy F "failed to detect linux distro"
 
@@ -323,22 +310,18 @@ main() {;./
         INSTALL_OPTIONS=' -y --allow-unauthenticated'
         VERSION_SYMBOL='='
         DIST_VERSION=$(. /etc/os-release && echo $UBUNTU_CODENAME)
-        DOCKER_DEVICE_MAPPER_PKGS="thin-provisioning-tools lvm2"
     ;;
     centos)
         PKG_MGR=yum
         INSTALL_OPTIONS=' -y --setopt=obsoletes=0 --nogpgcheck'
         VERSION_SYMBOL='-'
         DIST_VERSION=$(. /etc/os-release && echo $VERSION_ID)
-        DOCKER_DEVICE_MAPPER_PKGS="device-mapper-persistent-data lvm2"
     ;;
     rhel)
         PKG_MGR=yum
         INSTALL_OPTIONS=' -y --setopt=obsoletes=0 --nogpgcheck'
         VERSION_SYMBOL='-'
         DIST_VERSION=$(. /etc/os-release && echo $VERSION_ID)
-        DOCKER_DEVICE_MAPPER_PKGS="device-mapper-persistent-data lvm2"
-
     ;;
     *)
         log::deploy F "unrecognized Linux distro: $LSB_DIST, currently only support centos and ubuntu"
@@ -385,14 +368,6 @@ parse() {
                     usage_exit "no master address(IP:PORT) given for --master"
                 }
             ;;
-            --storage-driver)
-                [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
-                    DOCKER_STORAGE_DRIVER="$2"
-                    shift
-                } || {
-                    usage_exit "no docker storage driver given for --storage-driver"
-                }
-            ;;
             --token)
                 [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
                     TOKEN="$2"
@@ -407,14 +382,6 @@ parse() {
                     shift
                 } || {
                     usage_exit "no version given for --version"
-                }
-            ;;
-            --device-mapper-device)
-                [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
-                    DOCKER_DEVICE_MAPPER_DEVICE="$2"
-                    shift
-                } || {
-                    usage_exit "no docker devicemapper device given for --device-mapper-device"
                 }
             ;;
             --image-repository)
@@ -441,44 +408,12 @@ parse() {
                     usage_exit "no etcd ip given for --etcd-ip"
                 }
             ;;
-            --local-repo-addr)
-                [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
-                    LOCALREPO_ADDR="$2"
-                    shift
-                } || {
-                    usage_exit "no local package repository addr given for --local-repo-addr"
-                }
-            ;;
-            --insecure-registries)
-                [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
-                    INSECURE_REGS="$2"
-                    shift
-                } || {
-                    usage_exit "no insecure docker registry given for --insecure-registries"
-                }
-            ;;
-            --extra-pkgs)
-                [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
-                    EXTRAPKGS="$2"
-                    shift
-                } || {
-                    usage_exit "no extra packages given for --extra-pkgs"
-                }
-            ;;
             --pkg-mirror)
                 [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
                     PKG_MIRROR="$2"
                     shift
                 } || {
                     usage_exit "no package mirror given for --pkg-mirror"
-                }
-            ;;
-            --mounts)
-                [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
-                    DEVICE_MOUNTS="$2"
-                    shift
-                } || {
-                    usage_exit "no mount info ip given for --mounts"
                 }
             ;;
             --control-plane)
@@ -503,10 +438,6 @@ parse() {
             case "$COMPONENT" in
                 repos)
                     ACTION=repos::setup
-                ;;
-                docker)
-                    ACTION=docker::setup
-                    DOCKER_VERSION=$VERSION
                 ;;
                 kubelet)
                     ACTION=kubelet::setup
