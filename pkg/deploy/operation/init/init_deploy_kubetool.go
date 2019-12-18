@@ -46,25 +46,21 @@ func (itOps *InitKubeToolOperation) getScriptPath() string {
 }
 
 func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
-	var pkgMirrorUrl string
-	var kubernetesVersion string
+
 	var imageRepository string
 	var clusterDNSIP string
 
-	if pkgMirrorUrl = consts.PkgMirror; consts.PkgMirror != "" {
-		pkgMirrorUrl = fmt.Sprintf("--pkg-mirror %v", consts.PkgMirror)
+	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", consts.PkgMirror)
+	kubernetesVersion := fmt.Sprintf("--version %v", consts.KubeVersion)
+
+	if initAction.ClusterConfig.ServiceSubnet == "" {
+		return nil, fmt.Errorf("service subnet can not be empty")
 	}
 
-	if kubernetesVersion = consts.KubeVersion; kubernetesVersion != "" {
-		kubernetesVersion = fmt.Sprintf("--version %v", consts.KubeVersion)
-	}
+	clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(initAction.ClusterConfig.ServiceSubnet))
 
 	if initAction.ClusterConfig.ImageRepository != "" {
 		imageRepository = fmt.Sprintf("--image-repository %v", initAction.ClusterConfig.ImageRepository)
-	}
-
-	if clusterDNSIP = getDNSIP(initAction.ClusterConfig.ServiceSubnet); clusterDNSIP != "" {
-		clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(initAction.ClusterConfig.ServiceSubnet))
 	}
 
 	ops := &InitKubeToolOperation{}
