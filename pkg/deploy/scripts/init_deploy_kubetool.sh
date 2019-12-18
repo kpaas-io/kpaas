@@ -21,7 +21,7 @@ DIST_VERSION=
 ACTION=
 COMPONENT=
 VERSION=
-IMAGE_REPOSITORY=index-dev.qiniu.io/kelibrary
+IMAGE_REPOSITORY=reg.kpaas.io/kpaas
 DEVICE_MOUNTS=
 
 # kubelet specific
@@ -197,25 +197,40 @@ EOF
 }
 
 repos::setup::rhel() {
-    local sourcedir=/etc/apt/sources.list.d
-    cat > /etc/apt/sources.list <<EOF
-deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION} main restricted universe multiverse
-deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-security main restricted universe multiverse
-deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-updates main restricted universe multiverse
-deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-proposed main restricted universe multiverse
-deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-backports main restricted universe multiverse
-deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION} main restricted universe multiverse
-deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-security main restricted universe multiverse
-deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-updates main restricted universe multiverse
-deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-proposed main restricted universe multiverse
-deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-backports main restricted universe multiverse
+    local repodir=/etc/yum.repos.d
+
+    if [[ -z $LOCALREPO_ADDR ]]; then
+        command::exists yum-config-manager || {
+            command::exec "$PKG_MGR install $INSTALL_OPTIONS yum-utils"
+        }
+
+        cat > $repodir/epel.repo <<EOF
+[epel]
+name=Extra Packages for Enterprise Linux 7 - \$basearch
+baseurl=http://$PKG_MIRROR/epel/7/\$basearch
+failovermethod=priority
+enabled=1
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
 EOF
-    cat > $sourcedir/kubernetes.list <<EOF
-deb https://$PKG_MIRROR/kubernetes/apt/ kubernetes-${DIST_VERSION} main
+        cat > $repodir/k8s.repo <<EOF
+[kubernetes]
+name = k8s
+baseurl = http://$PKG_MIRROR/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled = 1
+gpgcheck = 0
 EOF
-    command::exec apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 6A030B21BA07F4FB E84AC2C0460F3994 7EA0A9C3F273FCD8 F76221572C52609D
-    command::exec apt clean
-    command::exec apt update
+    else
+        test -d /etc/yum.repos.d/bak || mkdir /etc/yum.repos.d/bak
+        mv -f /etc/yum.repos.d/*.repo /etc/yum.repos.d/bak &> /dev/null || true
+        cat > /etc/yum.repos.d/local.repo <<EOF
+[kpaas-deploy]
+name=local-yum
+baseurl=$LOCALREPO_ADDR
+enabled=1
+gpgcheck=0
+EOF
+    fi
 }
 
 kubelet::validate() {
