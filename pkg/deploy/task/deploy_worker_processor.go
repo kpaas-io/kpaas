@@ -53,7 +53,7 @@ func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 		actionCfg := &action.DeployWorkerActionConfig{
 			Node:            node,
 			ClusterConfig:   deployTask.Cluster,
-			LogFileBasePath: deployTask.LogFilePath,
+			LogFileBasePath: deployTask.LogFilePath, // /app/deploy/logs/unknown/deploy-worker
 			MasterNodes:     deployTask.MasterNodes,
 		}
 		act, err := action.NewDeployWorkerAction(actionCfg)

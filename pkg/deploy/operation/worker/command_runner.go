@@ -17,6 +17,7 @@ package worker
 import (
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
@@ -38,13 +39,24 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 
 	var stdout, stderr []byte
 	var err error
-	stdout, stderr, err = command.Execute()
+	startExecuteTime := time.Now()
+	stderr, stdout, err = command.Execute()
 
-	runner.log(stdout)
-	runner.log(stderr)
-	if err != nil {
-		runner.log([]byte(err.Error()))
+	runner.log(fmt.Sprintf("[time]: %s\n", startExecuteTime.String()))
+	runner.log(fmt.Sprintf("[command]: %s\n", command.GetCommand()))
+	if len(stdout) > 0 {
+		runner.log(fmt.Sprintf("[stdout]: %s\n", string(stdout)))
 	}
+
+	if len(stderr) > 0 {
+		runner.log(fmt.Sprintf("[stderr]: %s\n", string(stderr)))
+	}
+
+	if err != nil {
+		runner.log(err.Error())
+	}
+
+	runner.log(fmt.Sprintf("[end]: %s\n", time.Now().String()))
 
 	if err != nil {
 		return &pb.Error{
@@ -65,13 +77,13 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 	return nil
 }
 
-func (runner *CommandRunner) log(data []byte) {
+func (runner *CommandRunner) log(data string) {
 
 	if runner.executeLogWriter == nil {
 		return
 	}
 
 	if len(data) > 0 {
-		_, _ = runner.executeLogWriter.Write(data)
+		_, _ = io.WriteString(runner.executeLogWriter, data)
 	}
 }

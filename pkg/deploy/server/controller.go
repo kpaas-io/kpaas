@@ -94,7 +94,7 @@ func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.Dep
 	taskConfig := &task.DeployTaskConfig{
 		NodeConfigs:     req.NodeConfigs,
 		ClusterConfig:   req.ClusterConfig,
-		LogFileBasePath: c.logFileLoc,
+		LogFileBasePath: c.logFileLoc, // /app/deploy/logs
 	}
 
 	deployTask, err := task.NewDeployTask(taskName, taskConfig)

@@ -15,5 +15,6 @@
 package command
 
 type Command interface {
-	Execute() ([]byte, []byte, error)
+	Execute() (stderr []byte, stdout []byte, err error)
+	GetCommand() string // Get execute command
 }

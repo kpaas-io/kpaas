@@ -240,6 +240,7 @@ func (executor *deployWorkerExecutor) initExecuteLogWriter() {
 	}
 
 	var err error
+	// LogFilePath /app/deploy/logs/unknown/deploy-worker/deploy-worker-{nodeName}.log
 	executor.executeLogWriter, err = os.OpenFile(executor.action.LogFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
 	if err != nil {
 		executor.logger.Errorf("init deploy worker execute log writer error, error message: %v", err)
