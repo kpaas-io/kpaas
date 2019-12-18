@@ -20,6 +20,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
@@ -70,6 +71,13 @@ func ExecuteAction(act Action, wg *sync.WaitGroup) {
 		return
 	}
 
+	logger := logrus.WithFields(logrus.Fields{
+		consts.LogFieldAction:     act.GetName(),
+		consts.LogFieldActionType: act.GetType(),
+	})
+
+	logger.Debug("Start to execute action")
+
 	executor, err := NewExecutor(act.GetType())
 	if err != nil {
 		act.SetStatus(ActionFailed)
@@ -77,6 +85,7 @@ func ExecuteAction(act Action, wg *sync.WaitGroup) {
 			Reason: consts.MsgActionExecutorCreationFailed,
 			Detail: err.Error(),
 		})
+		deploy.PBErrLogger(act.GetErr(), logger).Error()
 		return
 	}
 
@@ -85,10 +94,12 @@ func ExecuteAction(act Action, wg *sync.WaitGroup) {
 	if exeErr := executor.Execute(act); exeErr != nil {
 		act.SetStatus(ActionFailed)
 		act.SetErr(exeErr)
+		deploy.PBErrLogger(act.GetErr(), logger).Error()
 		return
 	}
 
 	act.SetStatus(ActionDone)
+	logger.Debug("Finish to execute action")
 }
 
 func errOfTypeMismatched(expected, actual interface{}) *pb.Error {
