@@ -125,8 +125,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	// init events include firewall, hostalias, hostname, network
 	// route, swap, timezone， kubetool
-	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone,
-		it.HostName, it.HostAlias, it.Haproxy, it.Keepalived, it.KubeTool}
+	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.Haproxy, it.Keepalived, it.KubeTool}
 	for _, item := range itemEnums {
 		wg.Add(1)
 		go InitAsyncExecutor(item, nodeInitAction, &wg)
