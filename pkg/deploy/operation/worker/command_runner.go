@@ -42,21 +42,23 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 	startExecuteTime := time.Now()
 	stderr, stdout, err = command.Execute()
 
-	runner.log(fmt.Sprintf("[time]: %s\n", startExecuteTime.String()))
+	runner.log("-----------------------------\n")
+	runner.log(fmt.Sprintf("[start time]: %s\n", startExecuteTime.String()))
 	runner.log(fmt.Sprintf("[command]: %s\n", command.GetCommand()))
-	if len(stdout) > 0 {
-		runner.log(fmt.Sprintf("[stdout]: %s\n", string(stdout)))
-	}
 
 	if len(stderr) > 0 {
-		runner.log(fmt.Sprintf("[stderr]: %s\n", string(stderr)))
+		runner.log(fmt.Sprintf("[stderr]:\n%s\n", string(stderr)))
+	}
+
+	if len(stdout) > 0 {
+		runner.log(fmt.Sprintf("[stdout]:\n%s\n", string(stdout)))
 	}
 
 	if err != nil {
-		runner.log(fmt.Sprintf("[error]: %s\n", err.Error()))
+		runner.log(fmt.Sprintf("[error]:\n%s\n", err.Error()))
 	}
 
-	runner.log(fmt.Sprintf("[end]: %s\n", time.Now().String()))
+	runner.log(fmt.Sprintf("[end time]: %s\n\n", time.Now().String()))
 
 	if err != nil {
 		return &pb.Error{
