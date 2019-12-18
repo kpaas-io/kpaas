@@ -1,19 +1,4 @@
-#!/usr/bin/env bash
-## Copyright 2019 Shanghai JingDuo Information Technology co., Ltd.
-##
-## Licensed under the Apache License, Version 2.0 (the "License");
-## you may not use this file except in compliance with the License.
-## You may obtain a copy of the License at
-##
-##      http://www.apache.org/licenses/LICENSE-2.0
-##
-## Unless required by applicable law or agreed to in writing, software
-## distributed under the License is distributed on an "AS IS" BASIS,
-## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-## See the License for the specific language governing permissions and
-## limitations under the License.
-
-# This script is aim to deploy kubectl, kubelet, kubeadm
+#! /usr/bin/env bash
 
 set -Eeuo pipefail
 
@@ -25,6 +10,16 @@ COMPONENT=
 VERSION=
 IMAGE_REPOSITORY=index-dev.qiniu.io/kelibrary
 DEVICE_MOUNTS=
+
+# docker specific
+DOCKER_INSTALLED=
+DOCKER_THINPOOL_STATE=
+DOCKER_PKG=
+DOCKER_VERSION=
+DOCKER_DEVICE_MAPPER_DEVICE=
+DOCKER_DEVICE_MAPPER_PKGS=
+DOCKER_STORAGE_DRIVER=
+INSECURE_REGS=
 
 # kubelet specific
 KUBELET_VERSION=
@@ -43,23 +38,13 @@ LOCALREPO_ADDR=
 EXTRAPKGS=
 PKG_MIRROR=mirrors.aliyun.com
 
-# library
-echored() {
-    echo -e "\033[31m$@\033[0m"
-}
+# etcd specific
+ETCD_IP=
+APISERVERYAML=/etc/kubernetes/manifests/kube-apiserver.yaml
+ETCD_YAML=/etc/kubernetes/manifests/etcd.yaml
 
-echogreen() {
-    echo -e "\033[32m$@\033[0m"
-}
-
-echoyellow() {
-    echo -e "\033[33m$@\033[0m"
-}
-
-error_exit() {
-    echored "$@" >&2
-    exit 2
-}
+## source lib.sh
+. lib.sh
 
 command::exists() {
     command -v "$@" > /dev/null 2>&1
@@ -67,28 +52,28 @@ command::exists() {
 
 command::exec() {
     $DEBUG && {
-        log D $@
+        log::deploy D $@
         eval $@
         return
     }
 
-    #log I $@
-    err=$( { eval $@ > /dev/null; } 2>&1) || log E "exec $@ failed, err: $err"
+    #log::deploy I $@
+    err=$( { eval $@ > /dev/null; } 2>&1) || log::deploy E "exec $@ failed, err: $err"
 }
 
 usage_exit() {
-    log I "$@" >&2
+    log::deploy I "$@" >&2
     usage
     exit 1
 }
 
-log() {
+log::deploy() {
     local level=$1
     local step=$2
     local logts=$(date '+%m%d %T')
     local hostname=$(hostname)
 
-    test -z "$level" && error_exit "F$LOGTS [$hostname] log level not specified"
+    test -z "$level" && error_exit "F$LOGTS [$hostname] log::deploy level not specified"
 
     case "$level" in
         D)
@@ -107,7 +92,7 @@ log() {
             error_exit "F$logts [$hostname] ${@:2}"
         ;;
         *)
-            error_exit "F$logts [$hostname] unknown log level $level"
+            error_exit "F$logts [$hostname] unknown log::deploy level $level"
         ;;
     esac
 }
@@ -144,25 +129,9 @@ vercomp() {
     return 0
 }
 
-# setup specific
-# trap unexpected error
-trap 'log F "unexpected error occured at line: $LINENO, command: $BASH_COMMAND"' ERR
-
-clean() {
-    command::exists kubeadm && command::exec kubeadm reset -f
-    command::exec mount -a
-    kubelet::setup::undo
-    repos::setup::undo
-}
-
 repos::setup() {
-    log I "setup package repos and update cache"
+    log::deploy I "setup package repos and update cache"
     repos::setup::${LSB_DIST}
-}
-
-repos::setup::undo() {
-    log I "clean up package repos"
-    repos::setup::${LSB_DIST}::undo
 }
 
 repos::setup::ubuntu() {
@@ -182,17 +151,12 @@ EOF
     cat > $sourcedir/kubernetes.list <<EOF
 deb https://$PKG_MIRROR/kubernetes/apt/ kubernetes-${DIST_VERSION} main
 EOF
+    cat > $sourcedir/ceph.list <<EOF
+deb http://$PKG_MIRROR/ceph/debian-luminous ${DIST_VERSION} main
+EOF
     command::exec apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 6A030B21BA07F4FB E84AC2C0460F3994 7EA0A9C3F273FCD8 F76221572C52609D
     command::exec apt clean
     command::exec apt update
-}
-
-repos::setup::ubuntu::undo() {
-    local sourcedir=/etc/apt/sources.list.d
-    rm -f $sourcedir/{kirk,kubernetes,local}.list
-
-    command::exec apt-key del 6A030B21BA07F4FB E84AC2C0460F3994 7EA0A9C3F273FCD8 F76221572C52609D
-    command::exec apt clean
 }
 
 repos::setup::centos() {
@@ -219,105 +183,78 @@ baseurl = http://$PKG_MIRROR/kubernetes/yum/repos/kubernetes-el7-x86_64/
 enabled = 1
 gpgcheck = 0
 EOF
+        cat > $repodir/ceph.repo <<EOF
+[ceph]
+name = ceph-luminous
+baseurl = http://$PKG_MIRROR/ceph/rpm-luminous/el7/\$basearch
+enabled = 1
+gpgcheck = 1
+gpgkey = https://download.ceph.com/keys/release.asc
+EOF
     else
         test -d /etc/yum.repos.d/bak || mkdir /etc/yum.repos.d/bak
         mv -f /etc/yum.repos.d/*.repo /etc/yum.repos.d/bak &> /dev/null || true
         cat > /etc/yum.repos.d/local.repo <<EOF
-[kirk-poc]
+[kpaas-deploy]
 name=local-yum
 baseurl=$LOCALREPO_ADDR
 enabled=1
 gpgcheck=0
 EOF
     fi
-}
-
-repos::setup::centos::undo() {
-    local repodir=/etc/yum.repos.d
-    command::exec yum clean all
-    rm -f $repodir/{epel,kirk,k8s,local}.repo
-    command::exec rm -rf /var/cache/yum/*
-    # command::exec yum makecache fast
 }
 
 repos::setup::rhel() {
-    local repodir=/etc/yum.repos.d
-
-    if [[ -z $LOCALREPO_ADDR ]]; then
-        command::exists yum-config-manager || {
-            command::exec "$PKG_MGR install $INSTALL_OPTIONS yum-utils"
-        }
-
-        cat > $repodir/epel.repo <<EOF
-[epel]
-name=Extra Packages for Enterprise Linux 7 - \$basearch
-baseurl=http://$PKG_MIRROR/epel/7/\$basearch
-failovermethod=priority
-enabled=1
-gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7
+    local sourcedir=/etc/apt/sources.list.d
+    cat > /etc/apt/sources.list <<EOF
+deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION} main restricted universe multiverse
+deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-security main restricted universe multiverse
+deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-updates main restricted universe multiverse
+deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-proposed main restricted universe multiverse
+deb http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-backports main restricted universe multiverse
+deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION} main restricted universe multiverse
+deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-security main restricted universe multiverse
+deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-updates main restricted universe multiverse
+deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-proposed main restricted universe multiverse
+deb-src http://$PKG_MIRROR/ubuntu/ ${DIST_VERSION}-backports main restricted universe multiverse
 EOF
-        cat > $repodir/k8s.repo <<EOF
-[kubernetes]
-name = k8s
-baseurl = http://$PKG_MIRROR/kubernetes/yum/repos/kubernetes-el7-x86_64/
-enabled = 1
-gpgcheck = 0
+    cat > $sourcedir/kubernetes.list <<EOF
+deb https://$PKG_MIRROR/kubernetes/apt/ kubernetes-${DIST_VERSION} main
 EOF
-    else
-        test -d /etc/yum.repos.d/bak || mkdir /etc/yum.repos.d/bak
-        mv -f /etc/yum.repos.d/*.repo /etc/yum.repos.d/bak &> /dev/null || true
-        cat > /etc/yum.repos.d/local.repo <<EOF
-[kirk-poc]
-name=local-yum
-baseurl=$LOCALREPO_ADDR
-enabled=1
-gpgcheck=0
+    cat > $sourcedir/ceph.list <<EOF
+deb http://$PKG_MIRROR/ceph/debian-luminous ${DIST_VERSION} main
 EOF
-    fi
-}
-
-repos::setup::rhel::undo() {
-    local repodir=/etc/yum.repos.d
-    command::exec yum clean all
-    rm -f $repodir/{epel,kirk,k8s,local}.repo
-    command::exec rm -rf /var/cache/yum/*
-    # command::exec yum makecache fast
+    command::exec apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 6A030B21BA07F4FB E84AC2C0460F3994 7EA0A9C3F273FCD8 F76221572C52609D
+    command::exec apt clean
+    command::exec apt update
 }
 
 kubelet::validate() {
-    log I "validate kubelet installation"
+    log::deploy I "validate kubelet installation"
     local kubelet_version=
     KUBELET_INSTALLED=false
 
     command::exists kubelet && {
         kubelet_version=$(kubelet --version | sed 's/-/_/' | awk -Fv '{print $2}')
 
-        [[ $KUBELET_VERSION != $kubelet_version ]] && log E "a different version kubelet already installed on host, please uninstall it and try again" || KUBELET_INSTALLED=true
+        [[ $KUBELET_VERSION != $kubelet_version ]] && log::deploy E "a different version kubelet already installed on host, please uninstall it and try again" || KUBELET_INSTALLED=true
     } || true
 }
 
 kubelet::install() {
-    log I "installing kubelet${VERSION_SYMBOL}${KUBELET_VERSION}"
+    log::deploy I "installing kubelet${VERSION_SYMBOL}${KUBELET_VERSION}"
     local kubeadm_version=$(echo $KUBELET_VERSION | awk -F'[_-]' '{print $1}')
 
     $KUBELET_INSTALLED || {
         command::exec "$PKG_MGR install ${INSTALL_OPTIONS} kubelet${VERSION_SYMBOL}${KUBELET_VERSION}*"
 
-        $DEBUG && log D "installing kubectl${VERSION_SYMBOL}${kubeadm_version} and kubeadm${VERSION_SYMBOL}${kubeadm_version}"
+        $DEBUG && log::deploy D "installing kubectl${VERSION_SYMBOL}${kubeadm_version} and kubeadm${VERSION_SYMBOL}${kubeadm_version}"
         command::exec "$PKG_MGR install ${INSTALL_OPTIONS} kubectl${VERSION_SYMBOL}${kubeadm_version}* kubeadm${VERSION_SYMBOL}${kubeadm_version}*"
     }
 }
 
-kubelet::install::undo() {
-    log I "uninstall kubelet kubectl kubeadm"
-    if command::exists kubelet; then command::exec "$PKG_MGR autoremove ${INSTALL_OPTIONS} kubelet"; fi
-    if command::exists kubectl; then command::exec "$PKG_MGR autoremove ${INSTALL_OPTIONS} kubectl"; fi
-    if command::exists kubeadm; then command::exec "$PKG_MGR autoremove ${INSTALL_OPTIONS} kubeadm"; fi
-}
-
 kubelet::config() {
-    log I "generate config for kubelet${VERSION_SYMBOL}${KUBELET_VERSION}"
+    log::deploy I "generate config for kubelet${VERSION_SYMBOL}${KUBELET_VERSION}"
     [[ -d /etc/systemd/system/kubelet.service.d/ ]] || mkdir /etc/systemd/system/kubelet.service.d/
 
     echo '[Service]
@@ -337,25 +274,11 @@ kubelet::config() {
     ' > /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 }
 
-kubelet::config::undo() {
-    log I "remove config of kubelet"
-    command::exec rm -rf /etc/systemd/system/kubelet.service.d
-    command::exec rm -rf /var/lib/kubelet/*
-}
-
 kubelet::run() {
-    log I "run kubelet"
+    log::deploy I "run kubelet"
     command::exec systemctl daemon-reload
     command::exec systemctl enable -f kubelet
     command::exec systemctl restart kubelet
-}
-
-kubelet::run::undo() {
-    log I "stop kubelet"
-    if systemctl list-unit-files --type=service | grep -q kubelet; then
-        command::exec systemctl stop kubelet
-        command::exec systemctl disable kubelet
-    fi
 }
 
 kubelet::setup() {
@@ -365,132 +288,19 @@ kubelet::setup() {
     kubelet::run
 }
 
-kubelet::setup::undo() {
-    kubelet::run::undo
-    kubelet::config::undo
-    kubelet::install::undo
-}
+join() {
+    log::deploy I "join node to cluster"
+    local skip_ca=
 
-init() {
-    log I "init master"
+    if kubeadm join --help | grep -q '^\s*--discovery-token-unsafe-skip-ca-verification'
+    then
+        export skip_ca=--discovery-token-unsafe-skip-ca-verification
+    fi
+
     #$PKG_MGR remove -y cri-tools &> /dev/null || true
-    command::exec "kubeadm init --config $INIT_CONFIG"
-    init::postrun
-}
 
-init::postrun() {
-    local protocol=
-    [[ -f $ETCD_YAML ]] || err_exit "etcd yaml not found"
-    # update etcd to listen at lan ip
-    [[ -z $ETCD_IP ]] && log E "etcd ip is empty"
-
-    grep -q 'listen-client-urls=http://' $ETCD_YAML && protocol=http || protocol=https
-    grep -q "listen-client-urls=.*$ETCD_IP:2379" $ETCD_YAML || \
-    sed -i "s#listen-client-urls=$protocol://.*#&,$protocol://$ETCD_IP:2379#" $ETCD_YAML
-}
-
-package::install() {
-    log I "installing $EXTRAPKGS"
-    local pkgs=$(echo $EXTRAPKGS | tr ',' ' ')
-    echo $pkgs | grep -q ceph-common && pip uninstall -y urllib3 &> /dev/null || true
-
-    command::exec "$PKG_MGR install $INSTALL_OPTIONS $pkgs"
-}
-
-device::mounted() {
-    local device=$1
-
-    if df | grep -q "^$device\s"; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-path::mounted() {
-    local path=$1
-
-    if df | grep -q "\s$path$"; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-device::is_lvm() {
-    IS_LVM=$(lvdisplay | grep -w "$1" -c || true)
-    if [[ ${IS_LVM} == 1 ]]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
-device::mount::writefstab() {
-    local uuid=
-    local mntops=defaults,noatime
-    local freq=0
-    local passno=2
-    local fstab=/etc/fstab
-
-    uuid=$(blkid $device | cut -d ' ' -f 2 | tr -d '"')
-
-    if ! grep -q "$uuid.*$mountPath" $fstab; then
-        $DEBUG && log D "write fstab $uuid\t$mountPath\t$fs\t$mntops\t$freq\t$passno"
-        echo -e "$uuid\t$mountPath\t$fs\t$mntops\t$freq\t$passno" >> $fstab
-    fi
-}
-
-device::mount() {
-    log I "mount $DEVICE_MOUNTS"
-    local currentPath=
-    local currentDevice=
-    local currentFs=
-    local device=
-    local mountPath=
-    local fs=
-
-    for dmp in $DEVICE_MOUNTS; do
-        read device mountPath fs<<<$(echo $dmp | tr ':' ' ')
-
-        [[ -z $device ]] && log F "device to mount should be specified"
-        [[ -z $mountPath ]] && log F "mount path should be specified"
-        [[ -z $fs ]] && log F "disk file system type not specified"
-
-        [[ -b $device ]] || log F "invalid block device: $device"
-        [[ -d $mountPath ]] || {
-            log I "$mountPath do not exist, creating ..."
-            mkdir -p $mountPath
-        }
-
-        if device::mounted $device; then
-            currentPath=$(df | grep -w "$device" | awk '{print $NF}' | xargs)
-            if [[ $mountPath != $currentPath ]]; then
-                log F "$device already mounted to $currentPath"
-            fi
-        elif path::mounted $mountPath; then
-
-            if device::is_lvm $device; then
-                currentMountPathMapper=$(df | grep -w "$mountPath" | awk '{print $1}' | xargs -I '{}' ls -l '{}' | awk '{print $11}' | xargs)
-                currentDeviceMapper=$(ls -l "$device" |awk '{print $11}')
-                if [[ $currentDeviceMapper != $currentMountPathMapper ]]; then
-                    currentDevice=$(df | grep -w "$mountPath" | awk '{print $1}' | xargs)
-                    log F "$currentDevice already mounted to $mountPath"
-                fi
-            else
-                currentDevice=$(df | grep -w "$mountPath" | awk '{print $1}' | xargs)
-                if [[ $currentDevice != $device ]]; then
-                    log F "$currentDevice already mounted to $mountPath"
-                fi
-            fi
-        else
-            $DEBUG && log D "mount $device to $mountPath"
-            currentFs=$(lsblk -nf $device | cut -d' ' -f 2)
-            [[ $currentFs != $fs ]] && log F "filesystem type of $device is: $currentFs, which is not the same as configured: $fs"
-            mount -t $fs $device $mountPath
-            device::mount::writefstab
-        fi
-    done
+    #kubeadm join --token $TOKEN $MASTERIP --discovery-token-unsafe-skip-ca-verification [--experimental-control-plane]
+    command::exec kubeadm join --token $TOKEN $MASTER $skip_ca $JOIN_CONTROL_PLANE
 }
 
 usage() {
@@ -498,17 +308,14 @@ cat <<EOF
 Usage:
     $0 setup repos [--local-repo-addr http://10.10.0.1:8880/localrepo --pkg-mirror mirrors.aliyun.com] [--debug]
     $0 setup kubelet --cluster-dns 169.169.0.10 --version 1.11.0 --image-repository index.qiniu.com/library [--debug]
-    $0 install --extra-pkgs pkg1,pkg2 [--debug]
-    $0 mount --mounts "/dev/sda1:/var/lib/etcd:xfs /dev/sdb2:/var/lib/kubelet:xfs" [--debug]
-    $0 init --config kubeadm_config.yaml --etcd-ip 10.10.0.1 [--debug]
     $0 join --token 845e36.bc466480ab621387 --master 10.10.0.1:6443 [--control-plane] [--debug]
     $0 clean [--debug]
 EOF
 }
 
-main() {
+main() {;./
     [[ -r /etc/os-release ]] && LSB_DIST=$(. /etc/os-release && echo $ID)
-    [[ -z $LSB_DIST ]] && log F "failed to detect linux distro"
+    [[ -z $LSB_DIST ]] && log::deploy F "failed to detect linux distro"
 
     case $LSB_DIST in
     ubuntu)
@@ -516,26 +323,31 @@ main() {
         INSTALL_OPTIONS=' -y --allow-unauthenticated'
         VERSION_SYMBOL='='
         DIST_VERSION=$(. /etc/os-release && echo $UBUNTU_CODENAME)
+        DOCKER_DEVICE_MAPPER_PKGS="thin-provisioning-tools lvm2"
     ;;
     centos)
         PKG_MGR=yum
         INSTALL_OPTIONS=' -y --setopt=obsoletes=0 --nogpgcheck'
         VERSION_SYMBOL='-'
         DIST_VERSION=$(. /etc/os-release && echo $VERSION_ID)
+        DOCKER_DEVICE_MAPPER_PKGS="device-mapper-persistent-data lvm2"
     ;;
     rhel)
         PKG_MGR=yum
         INSTALL_OPTIONS=' -y --setopt=obsoletes=0 --nogpgcheck'
         VERSION_SYMBOL='-'
         DIST_VERSION=$(. /etc/os-release && echo $VERSION_ID)
+        DOCKER_DEVICE_MAPPER_PKGS="device-mapper-persistent-data lvm2"
+
+    ;;
     *)
-        log F "unrecognized Linux distro: $LSB_DIST, currently only support centos and ubuntu"
+        log::deploy F "unrecognized Linux distro: $LSB_DIST, currently only support centos and ubuntu"
     ;;
     esac
 
     parse "$@"
 
-    $DEBUG && log D "Linux distro: $LSB_DIST $DIST_VERSION detected"
+    $DEBUG && log::deploy D "Linux distro: $LSB_DIST $DIST_VERSION detected"
     $ACTION
 }
 
@@ -545,20 +357,11 @@ parse() {
             setup)
                 ACTION=setup
             ;;
-            init)
-                ACTION=init
-            ;;
             join)
                 ACTION=join
             ;;
-            mount)
-                ACTION=mount
-            ;;
             clean)
                 ACTION=clean
-            ;;
-            install)
-                ACTION=install
             ;;
             repos)
                 COMPONENT=repos
@@ -630,6 +433,14 @@ parse() {
                     usage_exit "no kubeadm init config given for --config"
                 }
             ;;
+            --etcd-ip)
+                [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
+                    ETCD_IP="$2"
+                    shift
+                } || {
+                    usage_exit "no etcd ip given for --etcd-ip"
+                }
+            ;;
             --local-repo-addr)
                 [[ -n ${2+x} ]] && ! echo $2 | grep -q ^- && {
                     LOCALREPO_ADDR="$2"
@@ -693,6 +504,10 @@ parse() {
                 repos)
                     ACTION=repos::setup
                 ;;
+                docker)
+                    ACTION=docker::setup
+                    DOCKER_VERSION=$VERSION
+                ;;
                 kubelet)
                     ACTION=kubelet::setup
                     KUBELET_VERSION=$VERSION
@@ -701,12 +516,6 @@ parse() {
                     usage_exit "invalid component"
                 ;;
             esac
-        ;;
-        install)
-            ACTION=package::install
-        ;;
-        mount)
-            ACTION=device::mount
         ;;
         init|join|clean)
         ;;

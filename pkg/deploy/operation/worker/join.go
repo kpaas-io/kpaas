@@ -27,10 +27,6 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	RemoteScriptPathSetup = "/usr/local/bin/setup.sh"
-)
-
 type JoinClusterConfig struct {
 	Machine     *deployMachine.Machine
 	Logger      *logrus.Entry
@@ -64,7 +60,7 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 	return RunCommand(
 		command.NewShellCommand(
 			operation.config.Machine,
-			fmt.Sprintf("/bin/bash %s", RemoteScriptPathSetup),
+			fmt.Sprintf("/bin/bash %s", consts.KubeToolScript),
 			"join",
 			"--token="+consts.KubernetesToken,
 			"--master="+controlPlaneEndpoint,

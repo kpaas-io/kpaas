@@ -22,15 +22,10 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-)
-
-const (
-	pkgMirror      = "mirrors.aliyun.com"
-	kubeToolScript = "/scripts/init_deploy_kubetool.sh"
-	kubeVersion    = "1.16.3"
 )
 
 type InitKubeToolOperation struct {
@@ -41,7 +36,7 @@ type InitKubeToolOperation struct {
 }
 
 func (itOps *InitKubeToolOperation) getScript() string {
-	itOps.Script = kubeToolScript
+	itOps.Script = consts.KubeToolScript
 	return itOps.Script
 }
 
@@ -51,14 +46,26 @@ func (itOps *InitKubeToolOperation) getScriptPath() string {
 }
 
 func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+	var pkgMirrorUrl string
+	var kubernetesVersion string
+	var imageRepository string
+	var clusterDNSIP string
 
-	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", pkgMirror)
+	if pkgMirrorUrl = consts.PkgMirror; consts.PkgMirror != "" {
+		pkgMirrorUrl = fmt.Sprintf("--pkg-mirror %v", consts.PkgMirror)
+	}
 
-	kubernetesVersion := fmt.Sprintf("--version %v", kubeVersion)
+	if kubernetesVersion = consts.KubeVersion; kubernetesVersion != "" {
+		kubernetesVersion = fmt.Sprintf("--version %v", consts.KubeVersion)
+	}
 
-	imageRepository := fmt.Sprintf("--image-repository %v", initAction.ClusterConfig.ImageRepository)
+	if initAction.ClusterConfig.ImageRepository != "" {
+		imageRepository = fmt.Sprintf("--image-repository %v", initAction.ClusterConfig.ImageRepository)
+	}
 
-	clusterDNSIP := fmt.Sprintf("--cluster-dns %v", getDNSIP(initAction.ClusterConfig.ServiceSubnet))
+	if clusterDNSIP = getDNSIP(initAction.ClusterConfig.ServiceSubnet); clusterDNSIP != "" {
+		clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(initAction.ClusterConfig.ServiceSubnet))
+	}
 
 	ops := &InitKubeToolOperation{}
 	m, err := machine.NewMachine(node)
@@ -93,15 +100,17 @@ func (itOps *InitKubeToolOperation) CloseSSH() {
 	itOps.Machine.Close()
 }
 
+// get dns IP from subnet
 func getDNSIP(serviceSubnet string) string {
-	dnsIP, err := GetDNSIP(serviceSubnet)
+	dnsIP, err := parseServiceSubnet(serviceSubnet)
 	if err == nil {
 		return fmt.Sprintf("--cluster-dns %v", dnsIP.String())
 	}
 	return ""
 }
 
-func GetDNSIP(serviceSubnet string) (net.IP, error) {
+// parse dns ip from service subnet
+func parseServiceSubnet(serviceSubnet string) (net.IP, error) {
 	// Get the service subnet CIDR
 	_, svcSubnetCIDR, err := net.ParseCIDR(serviceSubnet)
 	if err != nil {
