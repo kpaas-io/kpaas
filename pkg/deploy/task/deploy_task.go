@@ -85,7 +85,7 @@ func NewDeployTask(taskName string, taskConfig *DeployTaskConfig) (Task, error) 
 			Name:              taskName,
 			TaskType:          TaskTypeDeploy,
 			Status:            TaskPending,
-			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown
 			CreationTimestamp: time.Now(),
 			Priority:          taskConfig.Priority,
 		},

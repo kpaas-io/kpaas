@@ -43,13 +43,12 @@ func NewDeployWorkerAction(config *DeployWorkerActionConfig) (Action, error) {
 		return nil, fmt.Errorf("invalid node check config: node is nil")
 	}
 
-	actionName := getDeployWorkerActionName(config)
 	return &DeployWorkerAction{
 		Base: Base{
-			Name:              actionName,
+			Name:              getDeployWorkerActionName(config),
 			ActionType:        ActionTypeDeployWorker,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, getDeployWorkerActionLogName(config)), // /app/deploy/logs/unknown/deploy-worker/deploy-worker-{nodeName}.log
 			CreationTimestamp: time.Now(),
 			Node:              config.Node.GetNode(),
 		},
@@ -59,5 +58,10 @@ func NewDeployWorkerAction(config *DeployWorkerActionConfig) (Action, error) {
 
 func getDeployWorkerActionName(config *DeployWorkerActionConfig) string {
 
-	return fmt.Sprintf("worker-%s", config.Node.GetNode().GetName())
+	return fmt.Sprintf("deploy-worker-%s", config.Node.GetNode().GetName())
+}
+
+func getDeployWorkerActionLogName(config *DeployWorkerActionConfig) string {
+
+	return fmt.Sprintf("deploy-worker-%s.log", config.Node.GetNode().GetName())
 }

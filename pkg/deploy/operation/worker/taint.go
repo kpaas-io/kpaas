@@ -16,6 +16,7 @@ package worker
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -28,43 +29,42 @@ import (
 )
 
 type AppendTaintConfig struct {
-	Machine *deployMachine.Machine
-	Logger  *logrus.Entry
-	Node    *pb.NodeDeployConfig
-	Cluster *pb.ClusterConfig
+	Machine          *deployMachine.Machine
+	Logger           *logrus.Entry
+	Node             *pb.NodeDeployConfig
+	Cluster          *pb.ClusterConfig
+	ExecuteLogWriter io.Writer
 }
 
 type AppendTaint struct {
 	operation.BaseOperation
-	logger  *logrus.Entry
-	node    *pb.NodeDeployConfig
-	cluster *pb.ClusterConfig
-	machine *deployMachine.Machine
+	config *AppendTaintConfig
 }
 
 func NewAppendTaint(config *AppendTaintConfig) *AppendTaint {
 	return &AppendTaint{
-		machine: config.Machine,
-		logger:  config.Logger,
-		node:    config.Node,
-		cluster: config.Cluster,
+		config: config,
 	}
 }
 
 func (operation *AppendTaint) append() *pb.Error {
 
-	taints := make([]string, len(operation.node.GetTaints()))
-	for _, taint := range operation.node.GetTaints() {
+	taints := make([]string, len(operation.config.Node.GetTaints()))
+	for _, taint := range operation.config.Node.GetTaints() {
 		taints = append(taints, fmt.Sprintf("%s=%s:%s", taint.GetKey(), taint.GetValue(), taint.GetEffect()))
 	}
 
-	return RunCommand(
-		command.NewKubectlCommand(operation.machine, consts.KubeConfigPath, "",
-			"taint", "node", operation.node.GetNode().GetName(),
+	operation.config.Logger.
+		WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName(), "taints": taints}).
+		Debug("append taints")
+
+	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
+		command.NewKubectlCommand(operation.config.Machine, consts.KubeConfigPath, "",
+			"taint", "node", operation.config.Node.GetNode().GetName(),
 			strings.Join(taints, " "),
 		),
 		"Append taint to node error", // 节点添加Taint错误
-		fmt.Sprintf("append taint to node: %s", operation.node.GetNode().GetName()), // 添加Taint到 %s 节点
+		fmt.Sprintf("append taint to node: %s", operation.config.Node.GetNode().GetName()), // 添加Taint到 %s 节点
 	)
 }
 
