@@ -15,6 +15,7 @@
 package action
 
 import (
+	"bytes"
 	"fmt"
 	"math/rand"
 	"os"
@@ -115,16 +116,18 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 	logger := logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: act.GetName(),
 	})
-	executeLogWriter, err := os.OpenFile(
-		connectivityCheckAction.LogFilePath, os.O_CREATE|os.O_RDWR, 0644)
-	if err != nil {
-		logger.Errorf("failed to open execute log file %s, error %v",
-			connectivityCheckAction.LogFilePath, err)
-		logger.Warning("output from stdout/stderr of executing commands on remotes nodes are lost!!!")
-		// continue to run action even openning log file failed
-	}
+
+	buf := &bytes.Buffer{}
 	defer func() {
+		executeLogWriter, err := os.OpenFile(
+			connectivityCheckAction.LogFilePath, os.O_CREATE|os.O_RDWR, 0644)
+		if err != nil {
+			logger.Errorf("failed to open execute log file %s, error %v",
+				connectivityCheckAction.LogFilePath, err)
+			logger.Warning("output from stdout/stderr of executing commands on remotes nodes are lost!!!")
+		}
 		if executeLogWriter != nil {
+			executeLogWriter.Write(buf.Bytes())
 			executeLogWriter.Close()
 		}
 	}()
@@ -219,7 +222,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			}
 		}
 		sendEndTime := time.Now()
-		utils.WriteExecuteLog(executeLogWriter, &utils.ExecuteLogItem{
+		utils.WriteExecuteLog(buf, &utils.ExecuteLogItem{
 			StartTime:   sendStartTime,
 			EndTime:     sendEndTime,
 			Command:     strings.Join(sendCommand, " "),
@@ -231,7 +234,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 
 		dstErr := <-captureChan
 		captureEndTime := time.Now()
-		utils.WriteExecuteLog(executeLogWriter, &utils.ExecuteLogItem{
+		utils.WriteExecuteLog(buf, &utils.ExecuteLogItem{
 			StartTime:   captureStartTime,
 			EndTime:     captureEndTime,
 			Command:     strings.Join(captureCommand, " "),
