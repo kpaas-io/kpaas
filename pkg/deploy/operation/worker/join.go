@@ -16,6 +16,7 @@ package worker
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/sirupsen/logrus"
 
@@ -28,11 +29,12 @@ import (
 )
 
 type JoinClusterConfig struct {
-	Machine     *deployMachine.Machine
-	Logger      *logrus.Entry
-	Node        *pb.NodeDeployConfig
-	Cluster     *pb.ClusterConfig
-	MasterNodes []*pb.Node
+	Machine          *deployMachine.Machine
+	Node             *pb.NodeDeployConfig
+	Logger           *logrus.Entry
+	Cluster          *pb.ClusterConfig
+	MasterNodes      []*pb.Node
+	ExecuteLogWriter io.Writer
 }
 
 type JoinCluster struct {
@@ -48,6 +50,7 @@ func NewJoinCluster(config *JoinClusterConfig) *JoinCluster {
 
 func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 
+	operation.config.Logger.Debug("Start to compute control panel endpoint")
 	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(operation.config.Cluster, operation.config.MasterNodes)
 	if err != nil {
 		return &pb.Error{
@@ -56,8 +59,11 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 			FixMethods: "Please create issues for us.",
 		}
 	}
+	operation.config.Logger.
+		WithField("node", operation.config.Node.GetNode().GetName()).
+		Debugf("control panel endpoint: %s", controlPlaneEndpoint)
 
-	return RunCommand(
+	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(
 			operation.config.Machine,
 			fmt.Sprintf("/bin/bash %s", consts.KubeToolScript),

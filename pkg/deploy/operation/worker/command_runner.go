@@ -16,15 +16,51 @@ package worker
 
 import (
 	"fmt"
+	"io"
+	"time"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-func RunCommand(command command.Command, errorTitle, doSomeThing string) *pb.Error {
-	var stderr []byte
+type CommandRunner struct {
+	executeLogWriter io.Writer
+}
+
+func NewCommandRunner(executeLogWriter io.Writer) *CommandRunner {
+
+	return &CommandRunner{executeLogWriter: executeLogWriter}
+}
+
+// shellCommand is run at remote command
+// errorTitle is pb.Error.Reason when error happened
+// doSomeThing is describe what the command done
+func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doSomeThing string) *pb.Error {
+
+	var stdout, stderr []byte
 	var err error
-	_, stderr, err = command.Execute()
+	startExecuteTime := time.Now()
+	stderr, stdout, err = command.Execute()
+
+	runner.log(consts.DashLine + "\n")
+	runner.log(fmt.Sprintf("[start time]: %s\n", startExecuteTime.String()))
+	runner.log(fmt.Sprintf("[command]: %s\n", command.GetCommand()))
+
+	if len(stderr) > 0 {
+		runner.log(fmt.Sprintf("[stderr]:\n%s\n", string(stderr)))
+	}
+
+	if len(stdout) > 0 {
+		runner.log(fmt.Sprintf("[stdout]:\n%s\n", string(stdout)))
+	}
+
+	if err != nil {
+		runner.log(fmt.Sprintf("[error]:\n%s\n", err.Error()))
+	}
+
+	runner.log(fmt.Sprintf("[end time]: %s\n\n", time.Now().String()))
+
 	if err != nil {
 		return &pb.Error{
 			Reason:     errorTitle,                                                                                // {$errorTitle}
@@ -42,4 +78,15 @@ func RunCommand(command command.Command, errorTitle, doSomeThing string) *pb.Err
 		}
 	}
 	return nil
+}
+
+func (runner *CommandRunner) log(data string) {
+
+	if runner.executeLogWriter == nil {
+		return
+	}
+
+	if len(data) > 0 {
+		_, _ = io.WriteString(runner.executeLogWriter, data)
+	}
 }

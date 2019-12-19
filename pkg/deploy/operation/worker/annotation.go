@@ -16,6 +16,7 @@ package worker
 
 import (
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -28,43 +29,42 @@ import (
 )
 
 type AppendAnnotationConfig struct {
-	Machine *deployMachine.Machine
-	Logger  *logrus.Entry
-	Node    *pb.NodeDeployConfig
-	Cluster *pb.ClusterConfig
+	Machine          *deployMachine.Machine
+	Logger           *logrus.Entry
+	Node             *pb.NodeDeployConfig
+	Cluster          *pb.ClusterConfig
+	ExecuteLogWriter io.Writer
 }
 
 type AppendAnnotation struct {
 	operation.BaseOperation
-	logger  *logrus.Entry
-	node    *pb.NodeDeployConfig
-	cluster *pb.ClusterConfig
-	machine *deployMachine.Machine
+	config *AppendAnnotationConfig
 }
 
 func NewAppendAnnotation(config *AppendAnnotationConfig) *AppendAnnotation {
 	return &AppendAnnotation{
-		machine: config.Machine,
-		logger:  config.Logger,
-		node:    config.Node,
-		cluster: config.Cluster,
+		config: config,
 	}
 }
 
 func (operation *AppendAnnotation) append() *pb.Error {
 
-	annotations := make([]string, len(operation.cluster.GetNodeAnnotations()))
-	for annotationKey, annotationValue := range operation.cluster.GetNodeAnnotations() {
+	annotations := make([]string, len(operation.config.Cluster.GetNodeAnnotations()))
+	for annotationKey, annotationValue := range operation.config.Cluster.GetNodeAnnotations() {
 		annotations = append(annotations, fmt.Sprintf("%s='%s'", annotationKey, annotationValue))
 	}
 
-	return RunCommand(
-		command.NewKubectlCommand(operation.machine, consts.KubeConfigPath, "",
-			"annotation", "node", operation.node.GetNode().GetName(),
+	operation.config.Logger.
+		WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName(), "annotations": annotations}).
+		Debug("append annotation")
+
+	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
+		command.NewKubectlCommand(operation.config.Machine, consts.KubeConfigPath, "",
+			"annotation", "node", operation.config.Node.GetNode().GetName(),
 			strings.Join(annotations, " "),
 		),
-		"Append annotation to node error",                                                // 节点添加Annotation错误
-		fmt.Sprintf("append annotation to node: %s", operation.node.GetNode().GetName()), // 添加Annotation到 %s 节点
+		"Append annotation to node error", // 节点添加Annotation错误
+		fmt.Sprintf("append annotation to node: %s", operation.config.Node.GetNode().GetName()), // 添加Annotation到 %s 节点
 	)
 }
 

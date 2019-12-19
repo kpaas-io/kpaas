@@ -37,15 +37,16 @@ func NewShellCommand(machine *machine.Machine, cmd string, args ...string) *Shel
 
 func (c *ShellCommand) Execute() (stderr, stdout []byte, err error) {
 
+	return c.machine.Run(c.GetCommand())
+}
+
+func (c *ShellCommand) GetCommand() string {
+
 	cmds := make([]string, 0, len(c.args)+1)
 	cmds = append(cmds, c.cmd)
 	cmds = append(cmds, c.args...)
 
-	cmd := strings.Join(cmds, " ")
-
-	stderr, stdout, err = c.machine.Run(cmd)
-
-	return
+	return strings.Join(cmds, " ")
 }
 
 func (c *ShellCommand) Exists() (isExist bool, err error) {

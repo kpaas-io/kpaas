@@ -15,8 +15,10 @@
 package command
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os/exec"
+	"strings"
 )
 
 type LocalShellCommand struct {
@@ -55,6 +57,11 @@ func (c *LocalShellCommand) Execute() (stderr, stdout []byte, err error) {
 	}
 
 	return
+}
+
+func (c *LocalShellCommand) GetCommand() string {
+
+	return fmt.Sprint(c.cmd, strings.Join(c.args, " "))
 }
 
 func (c *LocalShellCommand) Exists() (isExist bool, err error) {
