@@ -77,22 +77,18 @@ func NewNodeInitAction(cfg *NodeInitActionConfig) (Action, error) {
 		return nil, err
 	}
 
-	actionName := getNodeInitActionName(cfg)
+	actionName := GenActionName(ActionTypeNodeInit)
 	return &NodeInitAction{
 		Base: Base{
 			Name:              actionName,
 			ActionType:        ActionTypeNodeInit,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.NodeInitConfig.Node.Name),
 			CreationTimestamp: time.Now(),
+			Node:              cfg.NodeInitConfig.Node,
 		},
 		NodeInitConfig: cfg.NodeInitConfig,
 		NodesConfig:    cfg.NodesConfig,
 		ClusterConfig:  cfg.ClusterConfig,
 	}, nil
-}
-
-// return node name as the action name, temporarily
-func getNodeInitActionName(cfg *NodeInitActionConfig) string {
-	return cfg.NodeInitConfig.Node.GetName()
 }

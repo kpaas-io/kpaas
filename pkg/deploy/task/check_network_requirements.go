@@ -54,7 +54,7 @@ func NewCheckNetworkRequirementsTask(
 			Name:              name,
 			TaskType:          TaskTypeCheckNetworkRequirements,
 			Status:            TaskPending,
-			LogFilePath:       GenTaskLogFilePath(config.LogFileBasePath, name),
+			LogFileDir:        GenTaskLogFileDir(config.LogFileBasePath, name),
 			CreationTimestamp: time.Now(),
 		},
 		Nodes:          config.Nodes,

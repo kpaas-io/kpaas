@@ -24,7 +24,7 @@ import (
 const ActionTypeDeployWorker Type = "DeployWorker"
 
 type DeployWorkerActionConfig struct {
-	Node            *pb.NodeDeployConfig
+	NodeCfg         *pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig
 	MasterNodes     []*pb.Node
 	LogFileBasePath string
@@ -39,29 +39,24 @@ func NewDeployWorkerAction(config *DeployWorkerActionConfig) (Action, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("action config is nil")
-	} else if config.Node == nil {
-		return nil, fmt.Errorf("invalid node check config: node is nil")
+	}
+	if config.NodeCfg == nil {
+		return nil, fmt.Errorf("invalid node check config: NodeCfg is nil")
+	}
+	if config.NodeCfg.Node == nil {
+		return nil, fmt.Errorf("invalid node check config: NodeCfg.Node is nil")
 	}
 
+	actionName := GenActionName(ActionTypeDeployWorker)
 	return &DeployWorkerAction{
 		Base: Base{
-			Name:              getDeployWorkerActionName(config),
+			Name:              actionName,
 			ActionType:        ActionTypeDeployWorker,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, getDeployWorkerActionLogName(config)), // /app/deploy/logs/unknown/deploy-worker/deploy-worker-{nodeName}.log
+			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName, config.NodeCfg.Node.Name),
 			CreationTimestamp: time.Now(),
-			Node:              config.Node.GetNode(),
+			Node:              config.NodeCfg.Node,
 		},
 		config: config,
 	}, nil
-}
-
-func getDeployWorkerActionName(config *DeployWorkerActionConfig) string {
-
-	return fmt.Sprintf("deploy-worker-%s", config.Node.GetNode().GetName())
-}
-
-func getDeployWorkerActionLogName(config *DeployWorkerActionConfig) string {
-
-	return fmt.Sprintf("deploy-worker-%s.log", config.Node.GetNode().GetName())
 }

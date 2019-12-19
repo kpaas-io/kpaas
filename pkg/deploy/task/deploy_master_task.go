@@ -66,7 +66,7 @@ func NewDeployMasterTask(taskName string, taskConfig *DeployMasterTaskConfig) (T
 			Name:              taskName,
 			TaskType:          TaskTypeDeployMaster,
 			Status:            TaskPending,
-			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			LogFileDir:        GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName),
 			CreationTimestamp: time.Now(),
 			Priority:          taskConfig.Priority,
 			Parent:            taskConfig.Parent,

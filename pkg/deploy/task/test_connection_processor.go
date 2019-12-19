@@ -47,7 +47,7 @@ func (p *testConnectionProcessor) SplitTask(t Task) error {
 	// split the task into one action
 	actionCfg := &action.TestConnectionActionConfig{
 		Node:            testConnTask.Node,
-		LogFileBasePath: testConnTask.LogFilePath,
+		LogFileBasePath: testConnTask.LogFileDir,
 	}
 	act, err := action.NewTestConnectionAction(actionCfg)
 	if err != nil {

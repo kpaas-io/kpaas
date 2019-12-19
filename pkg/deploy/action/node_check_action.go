@@ -66,20 +66,16 @@ func NewNodeCheckAction(cfg *NodeCheckActionConfig) (Action, error) {
 		return nil, err
 	}
 
-	actionName := getNodeCheckActionName(cfg)
+	actionName := GenActionName(ActionTypeNodeCheck)
 	return &NodeCheckAction{
 		Base: Base{
 			Name:              actionName,
 			ActionType:        ActionTypeNodeCheck,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.NodeCheckConfig.Node.Name),
 			CreationTimestamp: time.Now(),
+			Node:              cfg.NodeCheckConfig.Node,
 		},
 		NodeCheckConfig: cfg.NodeCheckConfig,
 	}, nil
-}
-
-func getNodeCheckActionName(cfg *NodeCheckActionConfig) string {
-	// now we used the node name as the the action name, this may be changed in the future.
-	return cfg.NodeCheckConfig.Node.GetName()
 }

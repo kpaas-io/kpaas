@@ -49,7 +49,7 @@ func (p *fetchKubeConfigProcessor) SplitTask(t Task) error {
 	// split task into an actions
 	act, err := action.NewFetchKubeConfigAction(&action.FetchKubeConfigActionConfig{
 		Node:            kubeCfgTask.Node,
-		LogFileBasePath: kubeCfgTask.LogFilePath,
+		LogFileBasePath: kubeCfgTask.LogFileDir,
 	})
 	if err != nil {
 		return err

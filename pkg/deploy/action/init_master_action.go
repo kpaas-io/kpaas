@@ -39,10 +39,14 @@ type InitMasterAction struct {
 }
 
 func NewInitMasterAction(cfg *InitMasterActionConfig) (Action, error) {
-	actionName, err := GenActionName(ActionTypeInitMaster)
-	if err != nil {
-		return nil, fmt.Errorf("failed to go generate action name for:%v, error: %v", ActionTypeInitMaster, err)
+	if cfg == nil {
+		return nil, fmt.Errorf("action config is nil")
 	}
+	if cfg.Node == nil {
+		return nil, fmt.Errorf("invalid action config: node is nil")
+	}
+
+	actionName := GenActionName(ActionTypeInitMaster)
 
 	return &InitMasterAction{
 		Base: Base{
@@ -50,7 +54,7 @@ func NewInitMasterAction(cfg *InitMasterActionConfig) (Action, error) {
 			Node:              cfg.Node,
 			ActionType:        ActionTypeInitMaster,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.Node.Name),
 			CreationTimestamp: time.Now(),
 		},
 

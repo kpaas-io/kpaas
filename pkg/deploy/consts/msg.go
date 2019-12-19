@@ -14,12 +14,6 @@
 
 package consts
 
-import (
-	"fmt"
-
-	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-)
-
 const (
 	MsgRequestFailed string = "the request was failed"
 
@@ -41,15 +35,5 @@ const (
 	MsgActionTypeMismatchedDetail    string = "the action type is not match: should be %T, but is %T"
 	MsgActionInvalidConfig           string = "the action config is invalid"
 	MsgActionInvalidConfigNodeNotSet string = "the action's target node is not set"
-)
-
-var (
-	ErrEmptyTask error = fmt.Errorf(MsgEmptyTask)
-)
-
-var (
-	PBErrActionNodeEmpty *pb.Error = &pb.Error{
-		Reason: MsgActionInvalidConfig,
-		Detail: MsgActionInvalidConfigNodeNotSet,
-	}
+	MsgEmptyAction                   string = "empty action"
 )

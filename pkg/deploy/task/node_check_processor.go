@@ -54,7 +54,7 @@ func (p *nodeCheckProcessor) SplitTask(t Task) error {
 	for _, subConfig := range checkTask.NodeConfigs {
 		actionCfg := &action.NodeCheckActionConfig{
 			NodeCheckConfig: subConfig,
-			LogFileBasePath: checkTask.LogFilePath,
+			LogFileBasePath: checkTask.LogFileDir,
 		}
 		act, err := action.NewNodeCheckAction(actionCfg)
 		if err != nil {

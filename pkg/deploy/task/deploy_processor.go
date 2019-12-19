@@ -157,7 +157,7 @@ func (p *deployProcessor) createInitSubTask(role constant.MachineRole, parent *D
 
 		config := &NodeInitTaskConfig{
 			NodeConfigs:     parent.NodeConfigs,
-			LogFileBasePath: parent.GetLogFilePath(),
+			LogFileBasePath: parent.GetLogFileDir(),
 			Priority:        int(initPriority),
 			Parent:          parent.GetName(),
 			ClusterConfig:   parent.ClusterConfig,
@@ -173,7 +173,7 @@ EXTRA:
 	// common init task
 	config := &NodeInitTaskConfig{
 		NodeConfigs:     parent.NodeConfigs,
-		LogFileBasePath: parent.GetLogFilePath(),
+		LogFileBasePath: parent.GetLogFileDir(),
 		Priority:        int(initPriority),
 		Parent:          parent.GetName(),
 		ClusterConfig:   parent.ClusterConfig,
@@ -188,7 +188,7 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 	case constant.MachineRoleEtcd:
 		config := &DeployEtcdTaskConfig{
 			Nodes:           p.unwrapNodes(rn[role]),
-			LogFileBasePath: parent.GetLogFilePath(),
+			LogFileBasePath: parent.GetLogFileDir(),
 			Priority:        int(Priorities[role]),
 			Parent:          parent.GetName(),
 		}
@@ -200,7 +200,7 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 			etcdNodes:       p.unwrapNodes(rn[constant.MachineRoleEtcd]),
 			Nodes:           p.unwrapNodes(rn[role]),
 			ClusterConfig:   parent.ClusterConfig,
-			LogFileBasePath: parent.GetLogFilePath(),
+			LogFileBasePath: parent.GetLogFileDir(),
 			Priority:        int(Priorities[role]),
 			Parent:          parent.GetName(),
 		}
@@ -212,7 +212,7 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 		config := &DeployWorkerTaskConfig{
 			Nodes:           rn[constant.MachineRoleWorker],
 			ClusterConfig:   parent.ClusterConfig,
-			LogFileBasePath: parent.GetLogFilePath(), // /app/deploy/logs/unknown
+			LogFileBasePath: parent.GetLogFileDir(), // /app/deploy/logs/unknown
 			Priority:        int(Priorities[role]),
 			Parent:          parent.GetName(),
 			MasterNodes:     p.unwrapNodes(rn[constant.MachineRoleMaster]),

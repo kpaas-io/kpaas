@@ -72,13 +72,13 @@ func NewConnectivityCheckAction(cfg *ConnectivityCheckActionConfig) (Action, err
 		err = fmt.Errorf("destination node in config is nil")
 		return nil, err
 	}
-	actionName := "connectivity-" + cfg.SourceNode.Name + "-" + cfg.DestinationNode.Name
+	actionName := GenActionName(ActionTypeConnectivityCheck)
 	return &ConnectivityCheckAction{
 		Base: Base{
 			Name:              actionName,
 			ActionType:        ActionTypeConnectivityCheck,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.SourceNode.GetName()),
 			CreationTimestamp: time.Now(),
 			Node:              cfg.SourceNode,
 		},

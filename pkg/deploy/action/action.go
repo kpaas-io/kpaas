@@ -103,18 +103,15 @@ func (b *Base) GetNode() *pb.Node {
 }
 
 // GenActionLogFilePath is a helper to return a file path based on the base path and aciton name
-func GenActionLogFilePath(basePath, actionName string) string {
-	if basePath == "" || actionName == "" {
+func GenActionLogFilePath(basePath, actionName string, nodeName string) string {
+	if basePath == "" || actionName == "" || nodeName == "" {
 		return ""
 	}
-	return filepath.Join(basePath, actionName)
+	fileName := fmt.Sprintf("%s-%s.log", nodeName, actionName)
+	return filepath.Join(basePath, fileName)
 }
 
 // GenActionName generates a unique action name with the action type as prefix.
-func GenActionName(actionType Type) (string, error) {
-	str, err := idcreator.NextString()
-	if err != nil {
-		return "", fmt.Errorf("failed to generate action name: %s", err)
-	}
-	return fmt.Sprintf("%s-%s", actionType, str), nil
+func GenActionName(actionType Type) string {
+	return fmt.Sprintf("%s-%s", actionType, idcreator.NextString())
 }

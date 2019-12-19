@@ -30,8 +30,8 @@ type Task interface {
 	SetStatus(Status)
 	GetErr() *pb.Error
 	SetErr(*pb.Error)
-	GetLogFilePath() string
-	SetLogFilePath(string)
+	GetLogFileDir() string
+	SetLogFileDir(string)
 	GetActions() []action.Action
 	GetCreationTimestamp() time.Time
 	// Sub tasks are Task too.
@@ -64,8 +64,7 @@ type Base struct {
 	Actions           []action.Action
 	Status            Status
 	Err               *pb.Error
-	LogFileBasePath   string
-	LogFilePath       string
+	LogFileDir        string
 	CreationTimestamp time.Time
 	SubTasks          []Task
 	Priority          int
@@ -96,12 +95,12 @@ func (b *Base) SetErr(err *pb.Error) {
 	b.Err = err
 }
 
-func (b *Base) GetLogFilePath() string {
-	return b.LogFilePath
+func (b *Base) GetLogFileDir() string {
+	return b.LogFileDir
 }
 
-func (b *Base) SetLogFilePath(path string) {
-	b.LogFilePath = path
+func (b *Base) SetLogFileDir(path string) {
+	b.LogFileDir = path
 }
 
 func (b *Base) GetActions() []action.Action {
@@ -124,8 +123,8 @@ func (b *Base) GetParent() string {
 	return b.Parent
 }
 
-// GenTaskLogFilePath is a helper to return the log file path based on base path and task name
-func GenTaskLogFilePath(basePath, taskName string) string {
+// GenTaskLogFileDir is a helper to return the log file dir based on base path and task name
+func GenTaskLogFileDir(basePath, taskName string) string {
 	if basePath == "" || taskName == "" {
 		return ""
 	}

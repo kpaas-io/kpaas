@@ -65,7 +65,7 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 			Name:              actionName,
 			ActionType:        ActionTypeDeployEtcd,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.Node.GetName()),
 			CreationTimestamp: time.Now(),
 			Node:              cfg.Node,
 		},
