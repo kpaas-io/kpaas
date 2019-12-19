@@ -15,7 +15,6 @@
 package check
 
 import (
-	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -50,16 +49,7 @@ func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (opera
 	}
 	ckops.Machine = m
 
-	scriptFile, err := assets.Assets.Open(ckops.getScript())
-	if err != nil {
-		return nil, err
-	}
-
-	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
-		return nil, err
-	}
-
-	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "cat", "/proc/cpuinfo | grep -w 'processor' | awk '{print $NF}' | wc -l"))
 	return ops, nil
 }
 
