@@ -30,8 +30,41 @@ type controller struct {
 	logFileLoc string
 }
 
-func (c *controller) TestConnection(context.Context, *pb.TestConnectionRequest) (*pb.TestConnectionReply, error) {
-	return nil, nil
+func (c *controller) TestConnection(ctx context.Context, req *pb.TestConnectionRequest) (*pb.TestConnectionReply, error) {
+	logrus.Info("Begins TestConnection request")
+
+	taskName := getTestConnectionTaskName()
+	taskConfig := &task.TestConnectionTaskConfig{
+		Node:            req.Node,
+		LogFileBasePath: c.logFileLoc,
+	}
+
+	testConnTask, err := task.NewTestConnectionTask(taskName, taskConfig)
+	if err != nil {
+		logrus.Errorf("request failed: %s", err)
+		return nil, err
+	}
+
+	if err = c.storeAndExecuteTask(testConnTask); err != nil {
+		logrus.Errorf("request failed: %s", err)
+		return nil, err
+	}
+
+	taskErr := testConnTask.GetErr()
+	if taskErr != nil {
+		err = fmt.Errorf(taskErr.String())
+		logrus.Errorf("request failed: %s", err)
+		return &pb.TestConnectionReply{
+			Passed: false,
+			Err:    taskErr,
+		}, err
+	}
+
+	logrus.Info("Ends TestConnection request: succeeded")
+	return &pb.TestConnectionReply{
+		Passed: true,
+		Err:    nil,
+	}, nil
 }
 
 func (c *controller) CheckNodes(ctx context.Context, req *pb.CheckNodesRequest) (*pb.CheckNodesReply, error) {
@@ -275,4 +308,9 @@ func getDeployTaskName() string {
 func getFetchKubeConfigTaskName(req *pb.FetchKubeConfigRequest) string {
 	// use a fixed name for now, it may be changed in the future
 	return "fetch-kube-config"
+}
+
+func getTestConnectionTaskName() string {
+	// use a fixed name for now, it may be changed in the future
+	return "test-connection"
 }
