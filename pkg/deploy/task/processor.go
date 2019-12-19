@@ -414,8 +414,9 @@ func setup(t Task) error {
 	if logFileDir == "" {
 		logger.Warn("The 'LogFileDir' field is empty")
 	} else {
-		err := os.MkdirAll(logFileDir, os.FileMode(0755))
-		logger.Warnf("Failed to create the log dir: %s", err)
+		if err := os.MkdirAll(logFileDir, os.FileMode(0755)); err != nil {
+			logger.Warnf("Failed to create the log dir: %s", err)
+		}
 	}
 
 	return nil
