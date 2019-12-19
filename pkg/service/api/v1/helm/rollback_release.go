@@ -24,22 +24,20 @@ import (
 
 // rollbackRelease inner function of running actions to rollback a helm release.
 func rollbackRelease(c *gin.Context, r *api.HelmRelease) error {
-	logEntry := log.ReqEntry(c)
+	logEntry := log.ReqEntry(c).
+		WithField("cluster", r.Cluster).WithField("namespace", r.Namespace).WithField("releaseName", r.Name)
 
 	logEntry.Debugf("getting helm action config...")
 	rollbackConfig, err := generateHelmActionConfig(r.Cluster, r.Namespace, logEntry)
 	if err != nil {
-		logEntry.WithField("cluster", r.Cluster).
-			Warningf("failed to generate configuration for helm action")
+		logEntry.WithField("error", err).Warningf("failed to generate configuration for helm action")
 		return err
 	}
 	rollbackAction := action.NewRollback(rollbackConfig)
 	rollbackAction.Version = int(r.Revision)
 	err = rollbackAction.Run(r.Name)
 	if err != nil {
-		logEntry.WithField("cluster", r.Cluster).WithField("namespace", r.Namespace).
-			WithField("releaseName", r.Name).WithField("error", err.Error()).
-			Warningf("failed to run rollback action")
+		logEntry.WithField("error", err).Warningf("failed to run rollback action")
 	}
 	return nil
 }

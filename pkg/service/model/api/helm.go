@@ -23,8 +23,8 @@ type (
 		Name         string     `json:"name,omitempty"`
 		Namespace    string     `json:"namespace"`
 		Chart        string     `json:"chart,omitempty"`
-		ChartRepo    string     `json:"repo,omitempty"`
-		ChartVersion string     `json:"version,omitempty"`
+		ChartRepo    string     `json:"chartRepo,omitempty"`
+		ChartVersion string     `json:"chartVersion,omitempty"`
 		Values       HelmValues `json:"values,omitempty"`
 		Revision     uint32     `json:"revision,omitempty"`
 		Manifest     string     `json:"manifest,omitempty"`

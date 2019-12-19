@@ -124,15 +124,12 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	logger.Debug("Start to execute node init action")
 
 	// init events include firewall, hostalias, hostname, network
-	// route, swap, timezone
-	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.Haproxy, it.Keepalived}
+	// route, swap, timezone， kubetool
+	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.Haproxy, it.Keepalived, it.KubeTool}
 	for _, item := range itemEnums {
 		wg.Add(1)
 		go InitAsyncExecutor(item, nodeInitAction, &wg)
 	}
-
-	// TODO Other Init Items
-	// 9. Install kubeadm kubectl kubelet
 
 	wg.Wait()
 

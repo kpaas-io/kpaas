@@ -15,13 +15,8 @@
 package consts
 
 const (
-	LogFieldTask       string = "task"
-	LogFieldAction     string = "action"
-	LogFieldActionType string = "action-type"
-	LogFieldNode       string = "node"
-
-	// TODO:
-	// 1. difference between pkg/constant
-	// 2. what const should be placed where
-	DefaultK8sConfigDir = "/etc/kubernetes"
+	KubeToolScript = "/scripts/init_deploy_kubetool.sh"
+	PkgMirror      = "mirrors.aliyun.com"
+	KubeVersion    = "1.16.3"
+	// TODO local-repo-dir, docker registry in the future
 )
