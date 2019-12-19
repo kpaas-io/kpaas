@@ -49,6 +49,7 @@ const (
 	TimeZone
 	Haproxy
 	Keepalived
+	KubeTool
 )
 
 func NewInitOperations() *OperationsGenerator {
@@ -75,7 +76,8 @@ func (og *OperationsGenerator) CreateOperations(item ItemEnum, action *operation
 		return &InitHaproxyOperation{}
 	case Keepalived:
 		return &InitKeepalivedOperation{}
-	// TODO setup.sh for init kubeadm kubectl kubelet @yangruiray
+	case KubeTool:
+		return &InitKubeToolOperation{}
 	default:
 		return nil
 	}
