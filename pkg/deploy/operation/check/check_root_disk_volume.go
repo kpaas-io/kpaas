@@ -49,7 +49,7 @@ func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "disk", "-B1 / | awk '/\\//{print $2}'"))
+	ops.AddCommands(command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'"))
 	return ops, nil
 }
 
