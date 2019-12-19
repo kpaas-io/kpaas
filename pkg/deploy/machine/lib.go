@@ -85,28 +85,36 @@ func (m *Machine) PutFile(content io.Reader, remotePath string) error {
 	return nil
 }
 
-func (m *Machine) FetchFile(localPath, remotePath string) error {
-	remoteFile, err := m.SFTPClient.Open(remotePath)
-	if err != nil {
-		return fmt.Errorf("open remote file %v failed, error: %v", remotePath, err)
-	}
-	defer remoteFile.Close()
+func (m *Machine) FetchFileToLocalPath(localPath, remotePath string) error {
+	logrus.Debugf("Begin to fetch file from %s on %s to %s", remotePath, m.Name, localPath)
 
 	// create parent dir if not exists
 	localDir := path.Dir(localPath)
 	if err := os.MkdirAll(localDir, 0755); err != nil {
 		return fmt.Errorf("mkdirall %v failed, error: %v", localDir, err)
 	}
-
 	localFile, err := os.Create(localPath)
 	if err != nil {
 		return fmt.Errorf("create local file %v failed, error: %v", localPath, err)
 	}
 	defer localFile.Close()
 
-	deploy.MustCopy(localFile, remoteFile)
+	return m.FetchFile(localFile, remotePath)
+}
 
-	logrus.Debugf("fetch file from %s on %s to %s", remotePath, m.Name, localPath)
+func (m *Machine) FetchFile(dst io.Writer, remotePath string) error {
+	if dst == nil {
+		return fmt.Errorf("the destination is nil")
+	}
+	remoteFile, err := m.SFTPClient.Open(remotePath)
+	if err != nil {
+		return fmt.Errorf("open remote file %v failed, error: %v", remotePath, err)
+	}
+	defer remoteFile.Close()
+
+	deploy.MustCopy(dst, remoteFile)
+
+	logrus.Debugf("fetch file from %s on %s", remotePath, m.Name)
 
 	return nil
 }
@@ -153,7 +161,7 @@ func (m *Machine) FetchDir(localDir, remoteDir string, fileNeeded func(path stri
 
 		logrus.Debugf("fetch %v:%v to %v", m.Name, remotePath, localPath)
 
-		if err := m.FetchFile(localPath, remotePath); err != nil {
+		if err := m.FetchFileToLocalPath(localPath, remotePath); err != nil {
 			return fmt.Errorf("failed to fetch file from: %v:%v to %v, error: %v", m.Name, remotePath, localPath, err)
 		}
 	}

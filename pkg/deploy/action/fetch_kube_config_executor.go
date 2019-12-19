@@ -15,9 +15,13 @@
 package action
 
 import (
+	"bytes"
+
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -38,12 +42,37 @@ func (a *fetchKubeConfigExecutor) Execute(act Action) *pb.Error {
 		consts.LogFieldAction: act.GetName(),
 	})
 
+	var pbErr *pb.Error
+
+	defer func() {
+		deploy.PBErrLogger(pbErr, logger).Debug()
+
+		// TODO: write some information to action log file.
+	}()
+
 	logger.Debug("Start to execute action")
 
-	// TODO: ssh to fetch kube config file from kubeCfgAction.node
+	m, err := machine.NewMachine(kubeCfgAction.Node)
+	if err != nil {
+		pbErr = &pb.Error{
+			Reason: "failed to connect to target node",
+			Detail: err.Error(),
+		}
+		return pbErr
+	}
+	defer m.Close()
+
+	var buf bytes.Buffer
+	if err = m.FetchFile(&buf, consts.KubeConfigPath); err != nil {
+		pbErr = &pb.Error{
+			Reason: "failed to fetch kube config",
+			Detail: err.Error(),
+		}
+		return pbErr
+	}
 
 	// Update action
-	kubeCfgAction.KubeConfig = []byte("todo: the content of kube config file")
+	kubeCfgAction.KubeConfig = buf.Bytes()
 
 	logger.Debug("Finsih to execute action")
 	return nil
