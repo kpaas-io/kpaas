@@ -17,7 +17,6 @@ package init
 import (
 	"fmt"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -54,18 +53,12 @@ func (itOps *InitHostNameOperation) GetOperations(node *pb.Node, initAction *ope
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
-	if err != nil {
-		return nil, err
-	}
-
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
-		return nil, err
-	}
-
 	currentName := node.Name
+	if currentName == "" {
+		return ops, fmt.Errorf("node name can not be empty")
+	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", itOps.getScriptPath()+itOps.getScript(), currentName)))
+	ops.AddCommands(command.NewShellCommand(m, "hostnamectl", fmt.Sprintf("set-hostname %v", currentName)))
 	return ops, nil
 }
 

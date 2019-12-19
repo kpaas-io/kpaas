@@ -19,7 +19,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -57,16 +56,7 @@ func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfi
 	}
 	ckops.Machine = m
 
-	scriptFile, err := assets.Assets.Open(ckops.getScript())
-	if err != nil {
-		return nil, err
-	}
-
-	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
-		return nil, err
-	}
-
-	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "cat", fmt.Sprintf("%v", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'")))
 	return ops, nil
 }
 

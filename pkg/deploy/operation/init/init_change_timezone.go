@@ -15,7 +15,7 @@
 package init
 
 import (
-	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
+	"fmt"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -23,7 +23,8 @@ import (
 )
 
 const (
-	timeZoneScript = "/scripts/init_change_timezone.sh"
+	timeZoneScript  = "/scripts/init_change_timezone.sh"
+	defaultTimeZone = "Asia/Shanghai"
 )
 
 type InitTimeZoneOperation struct {
@@ -52,16 +53,7 @@ func (itOps *InitTimeZoneOperation) GetOperations(node *pb.Node, initAction *ope
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
-	if err != nil {
-		return nil, err
-	}
-
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
-		return nil, err
-	}
-
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
 	return ops, nil
 }
 
