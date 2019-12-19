@@ -56,9 +56,9 @@ func NewNodeCheckAction(cfg *NodeCheckActionConfig) (Action, error) {
 	if cfg == nil {
 		err = fmt.Errorf("action config is nil")
 	} else if cfg.NodeCheckConfig == nil {
-		err = fmt.Errorf("Invalid config: node check config is nil")
+		err = fmt.Errorf("invalid action config: NodeCheckConfig field is nil")
 	} else if cfg.NodeCheckConfig.Node == nil {
-		err = fmt.Errorf("Invalid node check config: node is nil")
+		err = fmt.Errorf("invalid action config: NodeCheckConfig.Node field is nil")
 	}
 
 	if err != nil {

@@ -41,10 +41,10 @@ func NewDeployWorkerAction(config *DeployWorkerActionConfig) (Action, error) {
 		return nil, fmt.Errorf("action config is nil")
 	}
 	if config.NodeCfg == nil {
-		return nil, fmt.Errorf("invalid node check config: NodeCfg is nil")
+		return nil, fmt.Errorf("invalid action config: NodeCfg is nil")
 	}
 	if config.NodeCfg.Node == nil {
-		return nil, fmt.Errorf("invalid node check config: NodeCfg.Node is nil")
+		return nil, fmt.Errorf("invalid action config: NodeCfg.Node is nil")
 	}
 
 	actionName := GenActionName(ActionTypeDeployWorker)

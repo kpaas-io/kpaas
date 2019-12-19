@@ -51,7 +51,7 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 	if cfg == nil {
 		err = fmt.Errorf("action config is nil")
 	} else if cfg.Node == nil {
-		err = fmt.Errorf("invalid node check config: node is nil")
+		err = fmt.Errorf("invalid action config: Node field is nil")
 	}
 
 	if err != nil {
