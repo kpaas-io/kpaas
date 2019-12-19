@@ -26,6 +26,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/deploy/utils"
 )
 
 const ActionTypeConnectivityCheck Type = "ConnectivityCheck"
@@ -122,14 +123,17 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 		logger.Warning("output from stdout/stderr of executing commands on remotes nodes are lost!!!")
 		// continue to run action even openning log file failed
 	}
-	defer executeLogWriter.Close()
+	defer func() {
+		if executeLogWriter != nil {
+			executeLogWriter.Close()
+		}
+	}()
 
 	dstNode := connectivityCheckAction.DestinationNode
 	srcNode := connectivityCheckAction.SourceNode
 	logger.Infof("check network connectiviy from %s to %s", srcNode.Name, dstNode.Name)
 	// make a executor client for destination node to capture packets
 	dstMachine, err := machine.NewMachine(dstNode)
-	defer dstMachine.Close()
 	if err != nil {
 		return &pb.Error{
 			Reason: "failed to start SSH client",
@@ -138,10 +142,10 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			FixMethods: "configure no-password ssh login from deploy node",
 		}
 	}
+	defer dstMachine.Close()
 
 	// make a executor client for source node to send packets
 	srcMachine, err := machine.NewMachine(srcNode)
-	defer srcMachine.Close()
 	if err != nil {
 		return &pb.Error{
 			Reason: "failed to start SSH client",
@@ -150,6 +154,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			FixMethods: "configure no-password ssh login from deploy node",
 		}
 	}
+	defer srcMachine.Close()
 
 	for _, checkItem := range connectivityCheckAction.CheckItems {
 		randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -210,11 +215,11 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			if checkItem.CheckResult != nil {
 				checkItem.CheckResult.Status = ItemActionFailed
 				checkItem.CheckResult.Err = checkErr
-				continue // is it safe to leave a channel here?
+				continue
 			}
 		}
 		sendEndTime := time.Now()
-		WriteExecuteLog(executeLogWriter, &ExecuteLogItem{
+		utils.WriteExecuteLog(executeLogWriter, &utils.ExecuteLogItem{
 			StartTime:   sendStartTime,
 			EndTime:     sendEndTime,
 			Command:     strings.Join(sendCommand, " "),
@@ -226,7 +231,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 
 		dstErr := <-captureChan
 		captureEndTime := time.Now()
-		WriteExecuteLog(executeLogWriter, &ExecuteLogItem{
+		utils.WriteExecuteLog(executeLogWriter, &utils.ExecuteLogItem{
 			StartTime:   captureStartTime,
 			EndTime:     captureEndTime,
 			Command:     strings.Join(captureCommand, " "),
