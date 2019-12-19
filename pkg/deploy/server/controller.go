@@ -50,21 +50,22 @@ func (c *controller) TestConnection(ctx context.Context, req *pb.TestConnectionR
 		return nil, err
 	}
 
+	var reply *pb.TestConnectionReply
 	taskErr := testConnTask.GetErr()
 	if taskErr != nil {
-		err = fmt.Errorf(taskErr.String())
-		logrus.Errorf("request failed: %s", err)
-		return &pb.TestConnectionReply{
+		reply = &pb.TestConnectionReply{
 			Passed: false,
 			Err:    taskErr,
-		}, err
+		}
+	} else {
+		reply = &pb.TestConnectionReply{
+			Passed: true,
+			Err:    nil,
+		}
 	}
 
-	logrus.Info("Ends TestConnection request: succeeded")
-	return &pb.TestConnectionReply{
-		Passed: true,
-		Err:    nil,
-	}, nil
+	logrus.Infof("Ends TestConnection request, test result: %v", reply.Passed)
+	return reply, nil
 }
 
 func (c *controller) CheckNodes(ctx context.Context, req *pb.CheckNodesRequest) (*pb.CheckNodesReply, error) {
