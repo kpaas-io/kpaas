@@ -15,8 +15,6 @@
 package check
 
 import (
-	"fmt"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -51,7 +49,7 @@ func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (op
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "docker", fmt.Sprintf(" %v", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'")))
+	ops.AddCommands(command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'"))
 	return ops, nil
 }
 

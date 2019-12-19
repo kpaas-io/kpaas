@@ -49,6 +49,7 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 
 	var imageRepository string
 	var clusterDNSIP string
+	var nodeIP string
 
 	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", consts.PkgMirror)
 	kubernetesVersion := fmt.Sprintf("--version %v", consts.KubeVersion)
@@ -58,6 +59,12 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	}
 
 	clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(initAction.ClusterConfig.ServiceSubnet))
+
+	if initAction.NodeInitConfig.Node.Ip == "" {
+		return nil, fmt.Errorf("current node %v ip can not be empty", initAction.NodeInitConfig.Node.Name)
+	}
+
+	nodeIP = fmt.Sprintf("--node-ip %v", initAction.NodeInitConfig.Node.Ip)
 
 	if initAction.ClusterConfig.ImageRepository != "" {
 		imageRepository = fmt.Sprintf("--image-repository %v", initAction.ClusterConfig.ImageRepository)
@@ -85,8 +92,8 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 		pkgMirrorUrl)))
 
 	// install kubelet, kubeadm, kubectl
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v", itOps.getScriptPath()+itOps.getScript(),
-		kubernetesVersion, imageRepository, clusterDNSIP)))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", itOps.getScriptPath()+itOps.getScript(),
+		kubernetesVersion, nodeIP, imageRepository, clusterDNSIP)))
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
 	return ops, nil

@@ -56,7 +56,7 @@ func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfi
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "cat", fmt.Sprintf("%v", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'")))
+	ops.AddCommands(command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'"))
 	return ops, nil
 }
 

@@ -15,8 +15,6 @@
 package check
 
 import (
-	"fmt"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -51,7 +49,7 @@ func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (opera
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "cat", fmt.Sprintf(" %v", "/proc/cpuinfo | grep -w 'processor' | awk '{print $NF}' | wc -l")))
+	ops.AddCommands(command.NewShellCommand(m, "cat", "/proc/cpuinfo | grep -w 'processor' | awk '{print $NF}' | wc -l"))
 	return ops, nil
 }
 
