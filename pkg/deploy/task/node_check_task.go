@@ -61,7 +61,7 @@ func NewNodeCheckTask(taskName string, taskConfig *NodeCheckTaskConfig) (Task, e
 			Name:              taskName,
 			TaskType:          TaskTypeNodeCheck,
 			Status:            TaskPending,
-			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			LogFileDir:        GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName),
 			CreationTimestamp: time.Now(),
 			Priority:          taskConfig.Priority,
 		},

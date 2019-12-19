@@ -57,7 +57,7 @@ func NewFetchKubeConfigTask(taskName string, taskConfig *FetchKubeConfigTaskConf
 			Name:              taskName,
 			TaskType:          TaskTypeFetchKubeConfig,
 			Status:            TaskPending,
-			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			LogFileDir:        GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName),
 			CreationTimestamp: time.Now(),
 			Priority:          taskConfig.Priority,
 		},

@@ -60,7 +60,7 @@ func NewNodeInitTask(taskName string, taskConfig *NodeInitTaskConfig) (Task, err
 			Name:              taskName,
 			TaskType:          TaskTypeNodeInit,
 			Status:            TaskPending,
-			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName),
+			LogFileDir:        GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName),
 			CreationTimestamp: time.Now(),
 			Priority:          taskConfig.Priority,
 			Parent:            taskConfig.Parent,

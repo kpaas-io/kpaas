@@ -51,9 +51,9 @@ func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 	actions := make([]action.Action, 0, len(deployTask.Nodes))
 	for _, node := range deployTask.Nodes {
 		actionCfg := &action.DeployWorkerActionConfig{
-			Node:            node,
+			NodeCfg:         node,
 			ClusterConfig:   deployTask.Cluster,
-			LogFileBasePath: deployTask.LogFilePath, // /app/deploy/logs/unknown/deploy-worker
+			LogFileBasePath: deployTask.LogFileDir, // /app/deploy/logs/unknown/deploy-worker
 			MasterNodes:     deployTask.MasterNodes,
 		}
 		act, err := action.NewDeployWorkerAction(actionCfg)

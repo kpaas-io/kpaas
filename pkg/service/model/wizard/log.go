@@ -37,21 +37,14 @@ func init() {
 
 func SetLogByReader(reader io.Reader) (logId uint64, err error) {
 
-	logId, err = newLogId()
-	if err != nil {
-		return
-	}
+	logId = newLogId()
 	logs[logId], err = ioutil.ReadAll(reader)
 	return
 }
 
 func SetLogByString(content string) (logId uint64, err error) {
 
-	logId, err = newLogId()
-	if err != nil {
-		return
-	}
-
+	logId = newLogId()
 	logs[logId] = []byte(content)
 	return
 }
@@ -81,7 +74,7 @@ func InitLogs() {
 	logs = make(map[uint64][]byte)
 }
 
-func newLogId() (uint64, error) {
+func newLogId() uint64 {
 
 	return idcreator.NextID()
 }

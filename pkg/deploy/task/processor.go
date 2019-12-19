@@ -16,6 +16,7 @@ package task
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"sync"
 
@@ -106,33 +107,39 @@ func ExecuteTask(t Task) error {
 
 	logger.Debug("Start to execute Task")
 
-	logger.Debug("Step 1: Split Task")
+	logger.Debug("Step 1: Setup")
+	if err := setup(t); err != nil {
+		logger.Errorf("Failed in Step 1: %v", err)
+		return err
+	}
+
+	logger.Debug("Step 2: Split Task")
 	if err := splitTask(t); err != nil {
-		logger.Error("Failed in Step 1")
+		logger.Errorf("Failed in Step 2: %v", err)
 		return err
 	}
 
-	logger.Debug("Step 2: Execute Sub Tasks")
+	logger.Debug("Step 3: Execute Sub Tasks")
 	if err := executeSubTasks(t); err != nil {
-		logger.Error("Failed in Step 2")
+		logger.Errorf("Failed in Step 3: %v", err)
 		return err
 	}
 
-	logger.Debug("Step 3: Execute Actions")
+	logger.Debug("Step 4: Execute Actions")
 	if err := executeActions(t); err != nil {
-		logger.Error("Failed in Step 3")
+		logger.Errorf("Failed in Step 4: %v", err)
 		return err
 	}
 
-	logger.Debug("Step 4: Stat Task")
+	logger.Debug("Step 5: Stat Task")
 	if err := statTask(t); err != nil {
-		logger.Error("Failed in Step 4")
+		logger.Errorf("Failed in Step 5: %v", err)
 		return err
 	}
 
-	logger.Debug("Step 5: Process Extra Result")
+	logger.Debug("Step 6: Process Extra Result")
 	if err := processExtraResult(t); err != nil {
-		logger.Error("Failed in Step 5")
+		logger.Errorf("Failed in Step 6: %v", err)
 		return err
 	}
 
@@ -389,4 +396,28 @@ func processExtraResult(t Task) error {
 		return nil
 	}
 	return extraResult.ProcessExtraResult(t)
+}
+
+// Do some setup work before execut the task, like check and create log dir...
+func setup(t Task) error {
+	if t == nil {
+		return consts.ErrEmptyTask
+	}
+
+	logger := logrus.WithFields(logrus.Fields{
+		consts.LogFieldTask: t.GetName(),
+	})
+
+	// Create the log file dir. If failed to create the dir, just
+	// log a warning and go on.
+	logFileDir := t.GetLogFileDir()
+	if logFileDir == "" {
+		logger.Warn("The 'LogFileDir' field is empty")
+	} else {
+		if err := os.MkdirAll(logFileDir, os.FileMode(0755)); err != nil {
+			logger.Warnf("Failed to create the log dir: %s", err)
+		}
+	}
+
+	return nil
 }

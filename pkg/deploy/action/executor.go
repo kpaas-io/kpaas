@@ -16,6 +16,7 @@ package action
 
 import (
 	"fmt"
+	"os"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -91,6 +92,16 @@ func ExecuteAction(act Action, wg *sync.WaitGroup) {
 
 	act.SetStatus(ActionDoing)
 
+	if err := setup(act); err != nil {
+		act.SetStatus(ActionFailed)
+		act.SetErr(&pb.Error{
+			Reason: "failed to setup",
+			Detail: err.Error(),
+		})
+		deploy.PBErrLogger(act.GetErr(), logger).Error()
+		return
+	}
+
 	if exeErr := executor.Execute(act); exeErr != nil {
 		act.SetStatus(ActionFailed)
 		act.SetErr(exeErr)
@@ -107,4 +118,79 @@ func errOfTypeMismatched(expected, actual interface{}) *pb.Error {
 		Reason: consts.MsgActionTypeMismatched,
 		Detail: fmt.Sprintf(consts.MsgActionTypeMismatchedDetail, expected, actual),
 	}
+}
+
+// Do some setup work before execut the action, like check and create log file...
+func setup(act Action) error {
+	if act == nil {
+		return consts.ErrEmptyAction
+	}
+
+	logger := logrus.WithFields(logrus.Fields{
+		consts.LogFieldAction: act.GetName(),
+	})
+
+	// Create the log file. If failed to create the log file, just
+	// log a warning and go on.
+	logFilePath := act.GetLogFilePath()
+	if logFilePath == "" {
+		logger.Warn("The 'LogFilePath' field is empty")
+	} else {
+		file, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
+		if err != nil {
+			logger.Warnf("Failed to create the log file: %s", err)
+		} else {
+			// Write the header info into the log file
+			if err = writeActionLogHeader(file, act); err != nil {
+				logger.Warnf("Failed to write log header: %s", err)
+			}
+			// Close the file
+			if err = file.Close(); err != nil {
+				logger.Warnf("Failed to close the log file: %s", err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// Write action information into the log file
+func writeActionLogHeader(file *os.File, act Action) error {
+	if file == nil {
+		return fmt.Errorf("invalid file descriptor")
+	}
+	if act == nil {
+		return consts.ErrEmptyAction
+	}
+
+	_, err := file.WriteString("# action logs \n")
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(fmt.Sprintf("# action type: %v\n", act.GetType()))
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(fmt.Sprintf("# action name: %v\n", act.GetName()))
+	if err != nil {
+		return err
+	}
+	var nodeName string
+	if node := act.GetNode(); node != nil {
+		nodeName = node.GetName()
+	}
+	_, err = file.WriteString(fmt.Sprintf("# action node: %v\n", nodeName))
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(fmt.Sprintf("# action creation timestamp: %v\n", act.GetCreationTimestamp()))
+	if err != nil {
+		return err
+	}
+	_, err = file.WriteString(fmt.Sprintf("# action log file path: %v\n", act.GetLogFilePath()))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

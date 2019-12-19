@@ -52,18 +52,13 @@ func NewFetchKubeConfigAction(cfg *FetchKubeConfigActionConfig) (Action, error) 
 		return nil, err
 	}
 
-	actionName, err := GenActionName(ActionTypeFetchKubeConfig)
-	if err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-
+	actionName := GenActionName(ActionTypeFetchKubeConfig)
 	return &FetchKubeConfigAction{
 		Base: Base{
 			Name:              actionName,
 			ActionType:        ActionTypeFetchKubeConfig,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.Node.Name),
 			CreationTimestamp: time.Now(),
 			Node:              cfg.Node,
 		},

@@ -49,7 +49,7 @@ func (p *initMasterProcessor) SplitTask(t Task) error {
 		EtcdNodes:       task.EtcdNodes,
 		MasterNodes:     task.MasterNodes,
 		ClusterConfig:   task.ClusterConfig,
-		LogFileBasePath: task.LogFilePath,
+		LogFileBasePath: task.LogFileDir,
 	}
 	act, err := action.NewInitMasterAction(actionCfg)
 	if err != nil {
