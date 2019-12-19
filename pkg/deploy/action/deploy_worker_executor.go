@@ -18,7 +18,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 
@@ -263,9 +262,7 @@ func (executor *deployWorkerExecutor) closeExecuteLogWriter() {
 			executor.logger.Errorf("close deploy worker execute log writer error, error message: %v", err)
 		}
 	case *bytes.Buffer:
-		err := ioutil.WriteFile(executor.action.LogFilePath, writer.Bytes(), os.FileMode(0644))
-		if err != nil {
-			executor.logger.Errorf("write deploy worker execute log error, error message: %v", err)
-		}
+		// Open executed log file handle error, so write to logrus(at least we can find the log)
+		logrus.Infof("%s\n", writer.String())
 	}
 }
