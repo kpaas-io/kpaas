@@ -204,6 +204,11 @@ func writeActionLogHeader(file *os.File, act Action) error {
 }
 
 func writeExecuteLogs(act Action) {
+
+	if act == nil {
+		logrus.Warning(consts.ErrEmptyAction)
+		return
+	}
 	logger := logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: act.GetName(),
 	})
