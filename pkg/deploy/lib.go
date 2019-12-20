@@ -19,8 +19,9 @@ import (
 	"io"
 	"os"
 
-	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/sirupsen/logrus"
+
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 const (
@@ -41,10 +42,13 @@ func FileExist(path string) bool {
 	return true
 }
 
-func MustCopy(dst io.Writer, src io.Reader) {
+func MustCopy(dst io.Writer, src io.Reader) error {
 	if _, err := io.Copy(dst, src); err != nil {
-		panic(err)
+		logrus.Errorf("Copy failed: %v", err)
+		return err
 	}
+
+	return nil
 }
 
 // GetControlPlaneEndpoint return control plane endpoint address

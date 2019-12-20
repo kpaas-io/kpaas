@@ -78,7 +78,9 @@ func (m *Machine) PutFile(content io.Reader, remotePath string) error {
 	}
 	defer remoteFile.Close()
 
-	deploy.MustCopy(remoteFile, content)
+	if err = deploy.MustCopy(remoteFile, content); err != nil {
+		return fmt.Errorf("copy content to remote file %v failed: %v", remotePath, err)
+	}
 
 	logrus.Debugf("put file to: %v", remotePath)
 
@@ -112,7 +114,9 @@ func (m *Machine) FetchFile(dst io.Writer, remotePath string) error {
 	}
 	defer remoteFile.Close()
 
-	deploy.MustCopy(dst, remoteFile)
+	if err = deploy.MustCopy(dst, remoteFile); err != nil {
+		return fmt.Errorf("copy from remote file %v failed, error: %v", remotePath, err)
+	}
 
 	logrus.Debugf("fetch file from %s on %s", remotePath, m.Name)
 
