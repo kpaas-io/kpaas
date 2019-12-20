@@ -17,17 +17,16 @@ package action
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"math/rand"
-	"os"
-	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-	"github.com/kpaas-io/kpaas/pkg/deploy/utils"
 )
 
 const ActionTypeConnectivityCheck Type = "ConnectivityCheck"
@@ -117,21 +116,6 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 		consts.LogFieldAction: act.GetName(),
 	})
 
-	buf := &bytes.Buffer{}
-	defer func() {
-		executeLogWriter, err := os.OpenFile(
-			connectivityCheckAction.LogFilePath, os.O_CREATE|os.O_RDWR, 0644)
-		if err != nil {
-			logger.Errorf("failed to open execute log file %s, error %v",
-				connectivityCheckAction.LogFilePath, err)
-			logger.Warning("output from stdout/stderr of executing commands on remotes nodes are lost!!!")
-		}
-		if executeLogWriter != nil {
-			executeLogWriter.Write(buf.Bytes())
-			executeLogWriter.Close()
-		}
-	}()
-
 	dstNode := connectivityCheckAction.DestinationNode
 	srcNode := connectivityCheckAction.SourceNode
 	logger.Infof("check network connectiviy from %s to %s", srcNode.Name, dstNode.Name)
@@ -193,20 +177,31 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			checkItem.CheckResult.Status = ItemActionDoing
 		}
 
+		executeLogBuf := act.GetExecuteLogBuffer()
+
 		captureChan := make(chan error)
-		dstStdout := []byte{}
-		dstStderr := []byte{}
-		captureStartTime := time.Now()
+		dstExecuteLogBuf := &bytes.Buffer{}
 		go func(errCh chan error) {
 			var e error
-			dstStdout, dstStderr, e = dstMachine.Run(strings.Join(captureCommand, " "))
+			dstCommand := command.NewShellCommand(dstMachine,
+				captureCommand[0], captureCommand[1:]...).
+				WithDescription("capture test packet on " + dstNode.Name).
+				WithExecuteLogWriter(dstExecuteLogBuf)
+
+			_, _, e = dstCommand.Execute()
 			errCh <- e
 		}(captureChan)
 
 		// sleep one second to make sure that the packet is sent after capturing started
 		time.Sleep(time.Second)
-		sendStartTime := time.Now()
-		srcStdout, srcStderr, srcErr := srcMachine.Run(strings.Join(sendCommand, " "))
+		srcExecuteLogBuf := &bytes.Buffer{}
+		srcCommand := command.NewShellCommand(srcMachine, sendCommand[0], sendCommand[1:]...).
+			WithDescription("send test packet").
+			WithExecuteLogWriter(srcExecuteLogBuf)
+		_, srcStderr, srcErr := srcCommand.Execute()
+		if executeLogBuf != nil {
+			io.Copy(executeLogBuf, srcExecuteLogBuf)
+		}
 		if srcErr != nil {
 			checkErr := &pb.Error{
 				Reason: reasonFailedToSendPacket,
@@ -221,29 +216,12 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 				continue
 			}
 		}
-		sendEndTime := time.Now()
-		utils.WriteExecuteLog(buf, &utils.ExecuteLogItem{
-			StartTime:   sendStartTime,
-			EndTime:     sendEndTime,
-			Command:     strings.Join(sendCommand, " "),
-			Stdout:      srcStdout,
-			Stderr:      srcStderr,
-			Err:         srcErr,
-			Description: "send test packet",
-		})
 
+		// wait for capture command to terminate
 		dstErr := <-captureChan
-		captureEndTime := time.Now()
-		utils.WriteExecuteLog(buf, &utils.ExecuteLogItem{
-			StartTime:   captureStartTime,
-			EndTime:     captureEndTime,
-			Command:     strings.Join(captureCommand, " "),
-			Stdout:      dstStdout,
-			Stderr:      dstStderr,
-			Err:         dstErr,
-			Description: "capture test packet",
-		})
-
+		if executeLogBuf != nil {
+			io.Copy(act.GetExecuteLogBuffer(), dstExecuteLogBuf)
+		}
 		if dstErr != nil {
 			checkErr := &pb.Error{
 				Reason: "check connectivity failed",

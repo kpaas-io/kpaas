@@ -15,7 +15,9 @@ package action
 // limitations under the License.
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"sync"
 
@@ -102,6 +104,8 @@ func ExecuteAction(act Action, wg *sync.WaitGroup) {
 		return
 	}
 
+	defer writeExecuteLogs(act)
+
 	if exeErr := executor.Execute(act); exeErr != nil {
 		act.SetStatus(ActionFailed)
 		act.SetErr(exeErr)
@@ -151,6 +155,10 @@ func setup(act Action) error {
 		}
 	}
 
+	// TODO: setup exeute log buffer with a thread safe ReadWriter.
+	if act.GetExecuteLogBuffer() == nil {
+		act.SetExecuteLogBuffer(&bytes.Buffer{})
+	}
 	return nil
 }
 
@@ -193,4 +201,42 @@ func writeActionLogHeader(file *os.File, act Action) error {
 	}
 
 	return nil
+}
+
+func writeExecuteLogs(act Action) {
+
+	if act == nil {
+		logrus.Warning(consts.ErrEmptyAction)
+		return
+	}
+	logger := logrus.WithFields(logrus.Fields{
+		consts.LogFieldAction: act.GetName(),
+	})
+	logFilePath := act.GetLogFilePath()
+	if logFilePath == "" {
+		logger.Warning("action log file not specified")
+		return
+	}
+	file, err := os.OpenFile(
+		logFilePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, os.FileMode(0644))
+	if err != nil {
+		logger.WithField("error", err).WithField("file", logFilePath).
+			Warningf("failed to open log file %s", logFilePath)
+		return
+	}
+	defer file.Close()
+	buf := act.GetExecuteLogBuffer()
+
+	_, err = file.WriteString("# action execute logs: \n")
+	if err != nil {
+		logger.WithField("error", err).WithField("file", logFilePath).
+			Warningf("failed to write to log files %s", logFilePath)
+		return
+	}
+	_, err = io.Copy(file, buf)
+	if err != nil {
+		logger.WithField("error", err).WithField("file", logFilePath).
+			Warningf("failed to write to log files %s", logFilePath)
+		return
+	}
 }

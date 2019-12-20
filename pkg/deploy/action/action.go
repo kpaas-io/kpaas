@@ -16,6 +16,7 @@ package action
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
 	"time"
 
@@ -49,6 +50,8 @@ type Action interface {
 	SetLogFilePath(string)
 	GetCreationTimestamp() time.Time
 	GetNode() *pb.Node
+	GetExecuteLogBuffer() io.ReadWriter
+	SetExecuteLogBuffer(io.ReadWriter)
 }
 
 // Base is the basic metadata of an action
@@ -60,6 +63,7 @@ type Base struct {
 	LogFilePath       string
 	CreationTimestamp time.Time
 	Node              *pb.Node
+	ExecuteLogBuffer  io.ReadWriter
 }
 
 func (b *Base) GetName() string {
@@ -100,6 +104,14 @@ func (b *Base) GetCreationTimestamp() time.Time {
 
 func (b *Base) GetNode() *pb.Node {
 	return b.Node
+}
+
+func (b *Base) GetExecuteLogBuffer() io.ReadWriter {
+	return b.ExecuteLogBuffer
+}
+
+func (b *Base) SetExecuteLogBuffer(buf io.ReadWriter) {
+	b.ExecuteLogBuffer = buf
 }
 
 // GenActionLogFilePath is a helper to return a file path based on the base path and aciton name

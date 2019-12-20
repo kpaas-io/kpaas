@@ -15,16 +15,21 @@
 package command
 
 import (
+	"io"
 	"strings"
+	"time"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
+	"github.com/kpaas-io/kpaas/pkg/deploy/utils"
 )
 
 // ShellCommand is a command execute by shell
 type ShellCommand struct {
-	machine *machine.Machine
-	cmd     string
-	args    []string
+	machine          *machine.Machine
+	cmd              string
+	args             []string
+	executeLogWriter io.Writer
+	description      string
 }
 
 func NewShellCommand(machine *machine.Machine, cmd string, args ...string) *ShellCommand {
@@ -35,9 +40,33 @@ func NewShellCommand(machine *machine.Machine, cmd string, args ...string) *Shel
 	}
 }
 
-func (c *ShellCommand) Execute() (stderr, stdout []byte, err error) {
+func (c *ShellCommand) WithDescription(desc string) *ShellCommand {
+	c.description = desc
+	return c
+}
 
-	return c.machine.Run(c.GetCommand())
+func (c *ShellCommand) WithExecuteLogWriter(w io.Writer) *ShellCommand {
+	c.executeLogWriter = w
+	return c
+}
+
+func (c *ShellCommand) Execute() (stderr, stdout []byte, err error) {
+	startTime := time.Now()
+	stdout, stderr, err = c.machine.Run(c.GetCommand())
+	endTime := time.Now()
+	if c.executeLogWriter != nil {
+		executeLogItem := &utils.ExecuteLogItem{
+			StartTime:   startTime,
+			EndTime:     endTime,
+			Command:     c.cmd + " " + strings.Join(c.args, " "),
+			Stdout:      stdout,
+			Stderr:      stderr,
+			Err:         err,
+			Description: c.description,
+		}
+		utils.WriteExecuteLog(c.executeLogWriter, executeLogItem)
+	}
+	return
 }
 
 func (c *ShellCommand) GetCommand() string {
