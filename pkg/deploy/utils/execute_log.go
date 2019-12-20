@@ -15,6 +15,7 @@
 package utils
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"time"
@@ -38,36 +39,38 @@ func WriteExecuteLog(w io.Writer, item *ExecuteLogItem) {
 	if w == nil || item == nil {
 		return
 	}
-	w.Write([]byte(consts.DashLine + "\n"))
+	buf := &bytes.Buffer{}
+	buf.Write([]byte(consts.DashLine + "\n"))
 	// write description
 	if item.Description != "" {
-		w.Write([]byte("[description] "))
-		w.Write([]byte(item.Description + "\n"))
+		buf.Write([]byte("[description] "))
+		buf.Write([]byte(item.Description + "\n"))
 	}
 	// write start time
 	startTimeMsg := fmt.Sprintf("[start time] %s\n", item.StartTime.Format(
 		"2006-01-02 15:04:05"))
-	w.Write([]byte(startTimeMsg))
+	buf.Write([]byte(startTimeMsg))
 	// write command
-	w.Write([]byte(fmt.Sprintf("[command] %s\n", item.Command)))
+	buf.Write([]byte(fmt.Sprintf("[command] %s\n", item.Command)))
 	// write stderr
-	w.Write([]byte("[stderr]\n"))
-	w.Write(item.Stderr)
-	w.Write([]byte("\n"))
+	buf.Write([]byte("[stderr]\n"))
+	buf.Write(item.Stderr)
+	buf.Write([]byte("\n"))
 	// write stdout
-	w.Write([]byte("[stdout]\n"))
-	w.Write(item.Stdout)
-	w.Write([]byte("\n"))
+	buf.Write([]byte("[stdout]\n"))
+	buf.Write(item.Stdout)
+	buf.Write([]byte("\n"))
 	// write error message
 	if item.Err != nil {
-		w.Write([]byte("[error]\n"))
-		w.Write([]byte(item.Err.Error()))
-		w.Write([]byte("\n"))
+		buf.Write([]byte("[error]\n"))
+		buf.Write([]byte(item.Err.Error()))
+		buf.Write([]byte("\n"))
 	}
 	// write end time
 	endTimeMsg := fmt.Sprintf("[end time] %s\n", item.EndTime.Format(
 		"2006-01-02 15:04:05"))
-	w.Write([]byte(endTimeMsg))
+	buf.Write([]byte(endTimeMsg))
 	// write an extra empty line
-	w.Write([]byte("\n"))
+	buf.Write([]byte("\n"))
+	w.Write(buf.Bytes())
 }
