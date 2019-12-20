@@ -15,6 +15,7 @@
 package task
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -24,15 +25,23 @@ import (
 )
 
 func init() {
-	RegisterProcessor(TaskTypeDeployWorker, new(DeployWorkerProcessor))
+	RegisterProcessor(TaskTypeDeployNode, new(DeployNodeProcessor))
 }
 
-type DeployWorkerProcessor struct {
+type DeployNodeProcessor struct {
 }
 
-// Spilt the task into one or more node deploy worker actions
-func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
+var errOfNodesEmpty = errors.New("nodes is empty")
+
+// Spilt the task into one or more node deploy node actions
+func (processor *DeployNodeProcessor) SplitTask(task Task) error {
 	if err := processor.verifyTask(task); err != nil {
+
+		// No need to do something when nodes empty
+		if err == errOfNodesEmpty {
+			return nil
+		}
+
 		logrus.Errorf("Invalid task: %s", err)
 		return err
 	}
@@ -41,22 +50,22 @@ func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 		consts.LogFieldTask: task.GetName(),
 	})
 
-	logger.Debug("Start to split deploy worker task")
+	logger.Debug("Start to split deploy node task")
 
-	deployTask := task.(*deployWorkerTask)
+	deployTask := task.(*deployNodeTask)
 
 	// split task into actions: will create a action for every node, the action type
-	// is ActionTypeDeployWorker
+	// is ActionTypeDeployNode
 
-	actions := make([]action.Action, 0, len(deployTask.Nodes))
-	for _, node := range deployTask.Nodes {
-		actionCfg := &action.DeployWorkerActionConfig{
+	actions := make([]action.Action, 0, len(deployTask.Config.Nodes))
+	for _, node := range deployTask.Config.Nodes {
+		actionCfg := &action.DeployNodeActionConfig{
 			NodeCfg:         node,
-			ClusterConfig:   deployTask.Cluster,
-			LogFileBasePath: deployTask.LogFileDir, // /app/deploy/logs/unknown/deploy-worker
-			MasterNodes:     deployTask.MasterNodes,
+			ClusterConfig:   deployTask.Config.ClusterConfig,
+			LogFileBasePath: deployTask.LogFileDir, // /app/deploy/logs/unknown/deploy-{role}
+			MasterNodes:     deployTask.Config.MasterNodes,
 		}
-		act, err := action.NewDeployWorkerAction(actionCfg)
+		act, err := action.NewDeployNodeAction(actionCfg)
 		if err != nil {
 			return err
 		}
@@ -64,24 +73,24 @@ func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 	}
 	deployTask.Actions = actions
 
-	logger.Debugf("Finish to split deploy worker task: %d actions", len(actions))
+	logger.Debugf("Finish to split deploy node task: %d actions", len(actions))
 
 	return nil
 }
 
 // Verify if the task is valid.
-func (processor *DeployWorkerProcessor) verifyTask(task Task) error {
+func (processor *DeployNodeProcessor) verifyTask(task Task) error {
 	if task == nil {
 		return consts.ErrEmptyTask
 	}
 
-	deployTask, ok := task.(*deployWorkerTask)
+	deployTask, ok := task.(*deployNodeTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, task)
 	}
 
-	if len(deployTask.Nodes) == 0 {
-		return fmt.Errorf("nodes is empty")
+	if len(deployTask.Config.Nodes) == 0 {
+		return errOfNodesEmpty
 	}
 
 	return nil

@@ -188,17 +188,39 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 
 	case constant.MachineRoleWorker:
 
-		config := &DeployWorkerTaskConfig{
-			Nodes:           rn[constant.MachineRoleWorker],
-			ClusterConfig:   parent.ClusterConfig,
-			LogFileBasePath: parent.GetLogFileDir(), // /app/deploy/logs/unknown
-			Priority:        int(Priorities[role]),
-			Parent:          parent.GetName(),
-			MasterNodes:     p.unwrapNodes(rn[constant.MachineRoleMaster]),
-		}
+		// Use the role name as the task name for now.
+		return NewDeployNodeTask(fmt.Sprintf("deploy-%s", role),
+			&DeployNodeTaskConfig{
+				BaseTaskConfig: BaseTaskConfig{
+					LogFileBasePath: parent.GetLogFileDir(), // /app/deploy/logs/unknown
+					Priority:        int(Priorities[role]),
+					Parent:          parent.GetName(),
+				},
+				Nodes:         rn[constant.MachineRoleWorker],
+				ClusterConfig: parent.ClusterConfig,
+				MasterNodes:   p.unwrapNodes(rn[constant.MachineRoleMaster]),
+			},
+		)
+
+	case constant.MachineRoleIngress:
+
+		// Ingress is a worker too. Just one label more than a normal node
+		p.addIngressMarks(rn[constant.MachineRoleIngress])
 
 		// Use the role name as the task name for now.
-		return NewDeployWorkerTask(fmt.Sprintf("deploy-%s", role), config)
+		return NewDeployNodeTask(fmt.Sprintf("deploy-%s", role),
+			&DeployNodeTaskConfig{
+				BaseTaskConfig: BaseTaskConfig{
+					LogFileBasePath: parent.GetLogFileDir(), // /app/deploy/logs/unknown
+					Priority:        int(Priorities[role]),
+					Parent:          parent.GetName(),
+				},
+				Nodes:         rn[constant.MachineRoleIngress],
+				ClusterConfig: parent.ClusterConfig,
+				MasterNodes:   p.unwrapNodes(rn[constant.MachineRoleMaster]),
+			},
+		)
+
 	default:
 		err = fmt.Errorf("unrecognized role:%v", role)
 	}
@@ -217,4 +239,16 @@ func (p deployProcessor) unwrapNodes(nodeConfigs []*pb.NodeDeployConfig) []*pb.N
 		nodes = append(nodes, p.unwrapNode(nodeConfig))
 	}
 	return nodes
+}
+
+func (p deployProcessor) addIngressMarks(nodes []*pb.NodeDeployConfig) {
+
+	if len(nodes) <= 0 {
+		return
+	}
+
+	for _, node := range nodes {
+
+		node.Labels["node-role.kubernetes.io/ingress"] = "envoy"
+	}
 }

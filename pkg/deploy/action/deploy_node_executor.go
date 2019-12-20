@@ -30,22 +30,22 @@ import (
 )
 
 func init() {
-	RegisterExecutor(ActionTypeDeployWorker, new(deployWorkerExecutor))
+	RegisterExecutor(ActionTypeDeployNode, new(deployNodeExecutor))
 }
 
-type deployWorkerExecutor struct {
+type deployNodeExecutor struct {
 	logger           *logrus.Entry
 	machine          deployMachine.IMachine
 	masterMachine    deployMachine.IMachine
-	action           *DeployWorkerAction
+	action           *DeployNodeAction
 	executeLogWriter io.Writer
 }
 
-func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
+func (executor *deployNodeExecutor) Execute(act Action) *protos.Error {
 
-	action, ok := act.(*DeployWorkerAction)
+	action, ok := act.(*DeployNodeAction)
 	if !ok {
-		return errOfTypeMismatched(new(DeployWorkerAction), act)
+		return errOfTypeMismatched(new(DeployNodeAction), act)
 	}
 
 	executor.action = action
@@ -54,7 +54,7 @@ func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
 	executor.initExecuteLogWriter()
 	defer executor.closeExecuteLogWriter()
 
-	executor.logger.Info("start to execute deploy worker executor")
+	executor.logger.Info("start to execute deploy node executor")
 
 	if err := executor.connectSSH(); err != nil {
 
@@ -82,12 +82,12 @@ func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
 		}
 	}
 
-	executor.logger.Info("deploy worker finished")
+	executor.logger.Info("deploy node finished")
 
 	return nil
 }
 
-func (executor *deployWorkerExecutor) connectSSH() *protos.Error {
+func (executor *deployNodeExecutor) connectSSH() *protos.Error {
 
 	executor.logger.Debug("Start to connect ssh")
 
@@ -107,7 +107,7 @@ func (executor *deployWorkerExecutor) connectSSH() *protos.Error {
 	return nil
 }
 
-func (executor *deployWorkerExecutor) connectMasterNode() *protos.Error {
+func (executor *deployNodeExecutor) connectMasterNode() *protos.Error {
 	var err error
 	executor.masterMachine, err = deployMachine.NewMachine(executor.action.config.MasterNodes[0])
 	if err != nil {
@@ -121,13 +121,13 @@ func (executor *deployWorkerExecutor) connectMasterNode() *protos.Error {
 	return nil
 }
 
-func (executor *deployWorkerExecutor) disconnectMasterNode() {
+func (executor *deployNodeExecutor) disconnectMasterNode() {
 	if executor.masterMachine != nil {
 		executor.masterMachine.Close()
 	}
 }
 
-func (executor *deployWorkerExecutor) initLogger() {
+func (executor *deployNodeExecutor) initLogger() {
 	executor.logger = logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: executor.action.GetName(),
 		"nodeName":            executor.action.config.NodeCfg.GetNode().GetName(),
@@ -135,7 +135,7 @@ func (executor *deployWorkerExecutor) initLogger() {
 	})
 }
 
-func (executor *deployWorkerExecutor) startKubelet() *protos.Error {
+func (executor *deployNodeExecutor) startKubelet() *protos.Error {
 
 	executor.logger.Debug("Start to install kubelet")
 
@@ -157,7 +157,7 @@ func (executor *deployWorkerExecutor) startKubelet() *protos.Error {
 	return nil
 }
 
-func (executor *deployWorkerExecutor) joinCluster() *protos.Error {
+func (executor *deployNodeExecutor) joinCluster() *protos.Error {
 
 	executor.logger.Debug("Start to join cluster")
 
@@ -181,7 +181,7 @@ func (executor *deployWorkerExecutor) joinCluster() *protos.Error {
 	return nil
 }
 
-func (executor *deployWorkerExecutor) appendLabel() *protos.Error {
+func (executor *deployNodeExecutor) appendLabel() *protos.Error {
 
 	executor.logger.Debug("Start to append label")
 
@@ -204,7 +204,7 @@ func (executor *deployWorkerExecutor) appendLabel() *protos.Error {
 	return nil
 }
 
-func (executor *deployWorkerExecutor) appendAnnotation() *protos.Error {
+func (executor *deployNodeExecutor) appendAnnotation() *protos.Error {
 
 	executor.logger.Debug("Start to append annotation")
 
@@ -227,7 +227,7 @@ func (executor *deployWorkerExecutor) appendAnnotation() *protos.Error {
 	return nil
 }
 
-func (executor *deployWorkerExecutor) appendTaint() *protos.Error {
+func (executor *deployNodeExecutor) appendTaint() *protos.Error {
 
 	executor.logger.Debug("Start to append taint")
 
@@ -250,7 +250,7 @@ func (executor *deployWorkerExecutor) appendTaint() *protos.Error {
 	return nil
 }
 
-func (executor *deployWorkerExecutor) disconnectSSH() {
+func (executor *deployNodeExecutor) disconnectSSH() {
 
 	executor.logger.Debug("Start to disconnect ssh")
 
@@ -259,33 +259,33 @@ func (executor *deployWorkerExecutor) disconnectSSH() {
 	executor.logger.Debug("ssh disconnected")
 }
 
-func (executor *deployWorkerExecutor) initExecuteLogWriter() {
+func (executor *deployNodeExecutor) initExecuteLogWriter() {
 
 	if executor.action.LogFilePath == "" {
 		return
 	}
 
 	var err error
-	// LogFilePath /app/deploy/logs/unknown/deploy-worker/deploy-worker-{nodeName}.log
+	// LogFilePath /app/deploy/logs/unknown/deploy-{role}/{node}-DeployNode-{randomUint64}.log
 	err = os.MkdirAll(filepath.Dir(executor.action.LogFilePath), os.FileMode(0755))
 	if err != nil {
 		return
 	}
 	executor.executeLogWriter, err = os.OpenFile(executor.action.LogFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
 	if err != nil {
-		executor.logger.Errorf("init deploy worker execute log writer error, error message: %v", err)
+		executor.logger.Errorf("init deploy node execute log writer error, error message: %v", err)
 		executor.executeLogWriter = bytes.NewBuffer([]byte{})
 		return
 	}
 }
 
-func (executor *deployWorkerExecutor) closeExecuteLogWriter() {
+func (executor *deployNodeExecutor) closeExecuteLogWriter() {
 
 	switch writer := executor.executeLogWriter.(type) {
 	case *os.File:
 		err := writer.Close()
 		if err != nil {
-			executor.logger.Errorf("close deploy worker execute log writer error, error message: %v", err)
+			executor.logger.Errorf("close deploy node execute log writer error, error message: %v", err)
 		}
 	case *bytes.Buffer:
 		// Open executed log file handle error, so write to logrus(at least we can find the log)

@@ -21,27 +21,23 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const TaskTypeDeployWorker Type = "DeployWorker"
+const TaskTypeDeployNode Type = "DeployNode"
 
-type DeployWorkerTaskConfig struct {
-	MasterNodes     []*protos.Node
-	Nodes           []*protos.NodeDeployConfig
-	ClusterConfig   *protos.ClusterConfig
-	LogFileBasePath string
-	Priority        int
-	Parent          string
+type DeployNodeTaskConfig struct {
+	BaseTaskConfig
+	MasterNodes   []*protos.Node
+	Nodes         []*protos.NodeDeployConfig
+	ClusterConfig *protos.ClusterConfig
 }
 
-type deployWorkerTask struct {
+type deployNodeTask struct {
 	Base
-	MasterNodes []*protos.Node
-	Nodes       []*protos.NodeDeployConfig
-	Cluster     *protos.ClusterConfig
+	Config *DeployNodeTaskConfig
 }
 
-// NewDeployWorkerTask returns a deploy k8s worker task based on the config.
+// NewDeployNodeTask returns a deploy k8s worker task based on the config.
 // User should use this function to create a deploy worker task.
-func NewDeployWorkerTask(taskName string, taskConfig *DeployWorkerTaskConfig) (Task, error) {
+func NewDeployNodeTask(taskName string, taskConfig *DeployNodeTaskConfig) (Task, error) {
 
 	if taskConfig == nil {
 
@@ -53,20 +49,18 @@ func NewDeployWorkerTask(taskName string, taskConfig *DeployWorkerTaskConfig) (T
 		return nil, fmt.Errorf("invalid task config: nodes is empty")
 	}
 
-	task := &deployWorkerTask{
+	task := &deployNodeTask{
 		Base: Base{
 			Name:                taskName,
-			TaskType:            TaskTypeDeployWorker,
+			TaskType:            TaskTypeDeployNode,
 			Status:              TaskPending,
-			LogFileDir:          GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown/deploy-worker
+			LogFileDir:          GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown/deploy-{role}
 			CreationTimestamp:   time.Now(),
 			Priority:            taskConfig.Priority,
 			Parent:              taskConfig.Parent,
 			FailureCanBeIgnored: true,
 		},
-		Nodes:       taskConfig.Nodes,
-		Cluster:     taskConfig.ClusterConfig,
-		MasterNodes: taskConfig.MasterNodes,
+		Config: taskConfig,
 	}
 
 	return task, nil
