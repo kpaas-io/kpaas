@@ -221,10 +221,6 @@ func writeExecuteLogs(act Action) {
 	}
 	defer file.Close()
 	buf := act.GetExecuteLogBuffer()
-	if buf == nil {
-		logger.Warning("action did not write any execute log")
-		return
-	}
 
 	_, err = file.WriteString("# action execute logs: \n")
 	if err != nil {
@@ -238,6 +234,4 @@ func writeExecuteLogs(act Action) {
 			Warningf("failed to write to log files %s", logFilePath)
 		return
 	}
-	// TODO: run buf.Flush() here?
-	return
 }

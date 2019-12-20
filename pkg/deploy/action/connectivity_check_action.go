@@ -15,7 +15,9 @@
 package action
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"math/rand"
 	"time"
 
@@ -175,13 +177,16 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			checkItem.CheckResult.Status = ItemActionDoing
 		}
 
+		executeLogBuf := act.GetExecuteLogBuffer()
+
 		captureChan := make(chan error)
+		dstExecuteLogBuf := &bytes.Buffer{}
 		go func(errCh chan error) {
 			var e error
 			dstCommand := command.NewShellCommand(dstMachine,
 				captureCommand[0], captureCommand[1:]...).
-				WithDescription("capture test packet").
-				WithExecuteLogWriter(act.GetExecuteLogBuffer())
+				WithDescription("capture test packet on " + dstNode.Name).
+				WithExecuteLogWriter(dstExecuteLogBuf)
 
 			_, _, e = dstCommand.Execute()
 			errCh <- e
@@ -189,10 +194,14 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 
 		// sleep one second to make sure that the packet is sent after capturing started
 		time.Sleep(time.Second)
+		srcExecuteLogBuf := &bytes.Buffer{}
 		srcCommand := command.NewShellCommand(srcMachine, sendCommand[0], sendCommand[1:]...).
 			WithDescription("send test packet").
-			WithExecuteLogWriter(act.GetExecuteLogBuffer())
+			WithExecuteLogWriter(srcExecuteLogBuf)
 		_, srcStderr, srcErr := srcCommand.Execute()
+		if executeLogBuf != nil {
+			io.Copy(executeLogBuf, srcExecuteLogBuf)
+		}
 		if srcErr != nil {
 			checkErr := &pb.Error{
 				Reason: reasonFailedToSendPacket,
@@ -208,8 +217,11 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			}
 		}
 
+		// wait for capture command to terminate
 		dstErr := <-captureChan
-
+		if executeLogBuf != nil {
+			io.Copy(act.GetExecuteLogBuffer(), dstExecuteLogBuf)
+		}
 		if dstErr != nil {
 			checkErr := &pb.Error{
 				Reason: "check connectivity failed",
