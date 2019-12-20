@@ -84,7 +84,7 @@ func (p *deployMasterProcessor) createDeployMasterSubTask(index int, parent *dep
 			etcdNodes:       parent.EtcdNodes,
 			MasterNodes:     parent.Nodes,
 			clusterConfig:   parent.ClusterConfig,
-			logFileBasePath: parent.GetLogFilePath(),
+			logFileBasePath: parent.GetLogFileDir(),
 			Priority:        int(InitMasterPriority),
 			parent:          parent.GetName(),
 		}
@@ -95,7 +95,7 @@ func (p *deployMasterProcessor) createDeployMasterSubTask(index int, parent *dep
 		config := &JoinMasterTaskConfig{
 			node:            parent.Nodes[index],
 			masterNodes:     parent.Nodes,
-			logFileBasePath: parent.GetLogFilePath(),
+			logFileBasePath: parent.GetLogFileDir(),
 			priority:        int(JoinMasterPriority),
 			parent:          parent.GetName(),
 		}

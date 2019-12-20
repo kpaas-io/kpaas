@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -98,11 +96,7 @@ func (cluster *Cluster) init() {
 	cluster.Nodes = make([]*Node, 0, 0)
 	cluster.Wizard = NewWizardData()
 	cluster.lock = &sync.RWMutex{}
-	var err error
-	cluster.ClusterId, err = idcreator.NextID()
-	if err != nil {
-		logrus.Error(err)
-	}
+	cluster.ClusterId = idcreator.NextID()
 	cluster.KubeConfig = new(string)
 }
 

@@ -86,12 +86,12 @@ func (executor *deployWorkerExecutor) connectSSH() *protos.Error {
 	executor.logger.Debug("Start to connect ssh")
 
 	var err error
-	executor.machine, err = deployMachine.NewMachine(executor.action.config.Node.GetNode())
+	executor.machine, err = deployMachine.NewMachine(executor.action.config.NodeCfg.GetNode())
 	if err != nil {
 		pbError := &protos.Error{
-			Reason:     "Connect ssh error",                                                                                                                                           // 连接SSH失败。
-			Detail:     fmt.Sprintf("SSH connect to %s(%s) failed , error: %v.", executor.action.config.Node.GetNode().GetName(), executor.action.config.Node.GetNode().GetIp(), err), // 连接%s(%s)失败，失败原因：%v。
-			FixMethods: "Please check node reliability, make SSH service is available.",                                                                                               // 请检查节点的可用性，确保SSH服务可用。
+			Reason:     "Connect ssh error",                                                                                                                                                 // 连接SSH失败。
+			Detail:     fmt.Sprintf("SSH connect to %s(%s) failed , error: %v.", executor.action.config.NodeCfg.GetNode().GetName(), executor.action.config.NodeCfg.GetNode().GetIp(), err), // 连接%s(%s)失败，失败原因：%v。
+			FixMethods: "Please check node reliability, make SSH service is available.",                                                                                                     // 请检查节点的可用性，确保SSH服务可用。
 		}
 		executor.logger.WithField("error", pbError).Error("connect ssh error")
 		return pbError
@@ -104,8 +104,8 @@ func (executor *deployWorkerExecutor) connectSSH() *protos.Error {
 func (executor *deployWorkerExecutor) initLogger() {
 	executor.logger = logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: executor.action.GetName(),
-		"nodeName":            executor.action.config.Node.GetNode().GetName(),
-		"nodeIP":              executor.action.config.Node.GetNode().GetIp(),
+		"nodeName":            executor.action.config.NodeCfg.GetNode().GetName(),
+		"nodeIP":              executor.action.config.NodeCfg.GetNode().GetIp(),
 	})
 }
 
@@ -116,7 +116,7 @@ func (executor *deployWorkerExecutor) startKubelet() *protos.Error {
 	operation := worker.NewStartKubelet(
 		&worker.StartKubeletConfig{
 			Machine:          executor.machine,
-			Node:             executor.action.config.Node,
+			Node:             executor.action.config.NodeCfg,
 			Logger:           executor.logger,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},
@@ -138,7 +138,7 @@ func (executor *deployWorkerExecutor) joinCluster() *protos.Error {
 	operation := worker.NewJoinCluster(
 		&worker.JoinClusterConfig{
 			Machine:          executor.machine,
-			Node:             executor.action.config.Node,
+			Node:             executor.action.config.NodeCfg,
 			Logger:           executor.logger,
 			Cluster:          executor.action.config.ClusterConfig,
 			MasterNodes:      executor.action.config.MasterNodes,
@@ -163,7 +163,7 @@ func (executor *deployWorkerExecutor) appendLabel() *protos.Error {
 		&worker.AppendLabelConfig{
 			Machine:          executor.machine,
 			Logger:           executor.logger,
-			Node:             executor.action.config.Node,
+			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},
@@ -186,7 +186,7 @@ func (executor *deployWorkerExecutor) appendAnnotation() *protos.Error {
 		&worker.AppendAnnotationConfig{
 			Machine:          executor.machine,
 			Logger:           executor.logger,
-			Node:             executor.action.config.Node,
+			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},
@@ -209,7 +209,7 @@ func (executor *deployWorkerExecutor) appendTaint() *protos.Error {
 		&worker.AppendTaintConfig{
 			Machine:          executor.machine,
 			Logger:           executor.logger,
-			Node:             executor.action.config.Node,
+			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},

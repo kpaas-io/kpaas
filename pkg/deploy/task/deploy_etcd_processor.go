@@ -63,7 +63,7 @@ func (p *deployEtcdProcessor) SplitTask(t Task) error {
 			CaKey:           cakey,
 			Node:            node,
 			ClusterNodes:    etcdTask.Nodes,
-			LogFileBasePath: etcdTask.LogFilePath,
+			LogFileBasePath: etcdTask.LogFileDir,
 		}
 		act, err := action.NewDeployEtcdAction(actionCfg)
 		if err != nil {

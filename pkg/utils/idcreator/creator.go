@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/sony/sonyflake"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -43,13 +44,18 @@ func InitCreator(serviceId uint16) {
 		})
 }
 
-func NextID() (uint64, error) {
+func NextID() uint64 {
+	id, err := idCreator.NextID()
+	if err != nil {
+		// Based on the readme from Sonyflake: NextID can continue to generate IDs for about 174 years from StartTime.
+		// After that time, an error will return. In our case, we can ingore this error. 
+		// So we eat the error here.
+		logrus.Error(err)
+	}
 
-	return idCreator.NextID()
+	return id
 }
 
-func NextString() (string, error) {
-
-	uid, err := idCreator.NextID()
-	return fmt.Sprintf("%x", uid), err
+func NextString() string {
+	return fmt.Sprintf("%x", NextID())
 }

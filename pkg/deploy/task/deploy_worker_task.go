@@ -58,7 +58,7 @@ func NewDeployWorkerTask(taskName string, taskConfig *DeployWorkerTaskConfig) (T
 			Name:              taskName,
 			TaskType:          TaskTypeDeployWorker,
 			Status:            TaskPending,
-			LogFilePath:       GenTaskLogFilePath(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown/deploy-worker
+			LogFileDir:        GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown/deploy-worker
 			CreationTimestamp: time.Now(),
 			Priority:          taskConfig.Priority,
 			Parent:            taskConfig.Parent,

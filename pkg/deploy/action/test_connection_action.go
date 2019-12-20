@@ -49,18 +49,13 @@ func NewTestConnectionAction(cfg *TestConnectionActionConfig) (Action, error) {
 		return nil, err
 	}
 
-	actionName, err := GenActionName(ActionTypeTestConnection)
-	if err != nil {
-		logrus.Error(err)
-		return nil, err
-	}
-
+	actionName := GenActionName(ActionTypeTestConnection)
 	return &TestConnectionAction{
 		Base: Base{
 			Name:              actionName,
 			ActionType:        ActionTypeTestConnection,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.Node.Name),
 			CreationTimestamp: time.Now(),
 			Node:              cfg.Node,
 		},

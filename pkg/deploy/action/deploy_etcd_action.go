@@ -51,7 +51,7 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 	if cfg == nil {
 		err = fmt.Errorf("action config is nil")
 	} else if cfg.Node == nil {
-		err = fmt.Errorf("invalid node check config: node is nil")
+		err = fmt.Errorf("invalid action config: Node field is nil")
 	}
 
 	if err != nil {
@@ -65,7 +65,7 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 			Name:              actionName,
 			ActionType:        ActionTypeDeployEtcd,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.Node.GetName()),
 			CreationTimestamp: time.Now(),
 			Node:              cfg.Node,
 		},

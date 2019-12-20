@@ -39,18 +39,21 @@ type JoinMasterTask struct {
 }
 
 func NewJoinMasterTask(cfg *JoinMasterActionConfig) (Action, error) {
-	actionName, err := GenActionName(ActionTypeJoinMaster)
-	if err != nil {
-		return nil, fmt.Errorf("failed go generate action name for:%v, error: %v", ActionTypeJoinMaster, err)
+	if cfg == nil {
+		return nil, fmt.Errorf("action config is nil")
+	}
+	if cfg.Node == nil {
+		return nil, fmt.Errorf("invalid action config: node is nil")
 	}
 
+	actionName := GenActionName(ActionTypeJoinMaster)
 	return &JoinMasterTask{
 		Base: Base{
 			Name:              actionName,
 			Node:              cfg.Node,
 			ActionType:        ActionTypeJoinMaster,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName),
+			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.Node.Name),
 			CreationTimestamp: time.Now(),
 		},
 		MasterNodes:   cfg.MasterNodes,
