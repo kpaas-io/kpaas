@@ -23,6 +23,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/task"
+	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
 )
 
 type controller struct {
@@ -33,7 +34,14 @@ type controller struct {
 func (c *controller) TestConnection(ctx context.Context, req *pb.TestConnectionRequest) (*pb.TestConnectionReply, error) {
 	logrus.Info("Begins TestConnection request")
 
-	taskName := getTestConnectionTaskName()
+	if req == nil {
+		return nil, fmt.Errorf("invalid request: request paramter is nil")
+	}
+	if req.Node == nil {
+		return nil, fmt.Errorf("invalid request: 'Node' in request paramter is nil")
+	}
+
+	taskName := getTestConnectionTaskName(req.Node.Name)
 	taskConfig := &task.TestConnectionTaskConfig{
 		Node:            req.Node,
 		LogFileBasePath: c.logFileLoc,
@@ -311,7 +319,8 @@ func getFetchKubeConfigTaskName(req *pb.FetchKubeConfigRequest) string {
 	return "fetch-kube-config"
 }
 
-func getTestConnectionTaskName() string {
-	// use a fixed name for now, it may be changed in the future
-	return "test-connection"
+func getTestConnectionTaskName(nodeName string) string {
+	// User may test a node's connection repeatly, so create a unique task name
+	// for each request
+	return fmt.Sprintf("testconnection-%v-%v", nodeName, idcreator.NextString())
 }
