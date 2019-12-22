@@ -42,14 +42,13 @@ func (p *joinMasterProcessor) SplitTask(t Task) error {
 
 	logger.Debug("Start to split init master task into action")
 
-	//task := t.(*joinMasterTask)
-	actions := make([]action.Action, 1)
+	var actions []action.Action
 	actionCfg := &action.JoinMasterActionConfig{
 		Node:            task.Node,
 		MasterNodes:     task.MasterNodes,
 		LogFileBasePath: task.LogFileDir,
 	}
-	act, err := action.NewJoinMasterTask(actionCfg)
+	act, err := action.NewJoinMasterAction(actionCfg)
 	if err != nil {
 		return err
 	}

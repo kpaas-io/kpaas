@@ -100,7 +100,7 @@ func (p *deployMasterProcessor) createDeployMasterSubTask(index int, parent *dep
 			parent:          parent.GetName(),
 		}
 		// Use the role name as the task name for now.
-		taskName := "joinMaster"
+		taskName := fmt.Sprintf("%v-%v", "joinMaster", config.node.GetName())
 		return NewJoinMasterTask(taskName, config)
 	}
 }
