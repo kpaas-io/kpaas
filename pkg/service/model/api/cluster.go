@@ -138,13 +138,13 @@ func (annotation *Annotation) Validate() error {
 		validator.ValidateString(annotation.Key, "key", validator.ItemNotEmptyLimit, AnnotationKeyLengthLimit),
 		keyLimitFunction(annotation.Key, AnnotationKeySegmentLengthLimit),
 		validator.ValidateString(annotation.Value, "value", validator.ItemNotEmptyLimit, validator.ItemNoLimit),
-		validator.ValidateRegexp(regexp.MustCompile(`^[\w]([\w\-_.]+\w)?$`), annotation.Value, "annotation.value"),
+		validator.ValidateRegexp(regexp.MustCompile(`^[A-Za-z0-9](([\w\-.]+)?[A-Za-z0-9])?$`), annotation.Value, "annotation.value"),
 	).Validate()
 }
 
 func keyLimitFunction(key string, limit int) validator.ValidateFunc {
 	return func() error {
-		re := regexp.MustCompile(`^(?P<prefix>\w[\w\-_]+\.[a-zA-Z]{2,11}?/)?(?P<name>\w([\w\-_.]+\w)?)$`)
+		re := regexp.MustCompile(`^(?P<prefix>[A-Za-z0-9][\w\-]+\.[A-Za-z]{2,11}?/)?(?P<name>[A-Za-z0-9]([\w\-.]+[A-Za-z0-9])?)$`)
 		match := re.FindStringSubmatch(key)
 		if len(match) <= 0 {
 			return fmt.Errorf("label key can not empty")

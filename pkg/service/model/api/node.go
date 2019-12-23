@@ -82,11 +82,11 @@ const (
 
 	NodeNameLengthLimit           = 64
 	NodeDescriptionLengthLimit    = 100
-	TaintKeyLengthLimit           = 63
+	TaintKeyLengthLimit           = 253
 	TaintValueLengthLimit         = 63
-	TaintKeyRegularExpression     = `[a-zA-Z](\w+)?`
-	TaintValueRegularExpression   = `[a-zA-Z](\w+)?`
-	NodeUsernameRegularExpression = `[A-Za-z][\w._\-]+`
+	TaintKeyRegularExpression     = `^(?P<prefix>[A-Za-z0-9][\w\-]+\.[A-Za-z]{2,11}?/)?(?P<name>[A-Za-z0-9]([\w\-.]*[A-Za-z0-9])?)$`
+	TaintValueRegularExpression   = `^[A-Za-z]([\w\-.]+)?$`
+	NodeUsernameRegularExpression = `^[A-Za-z]([\w\-.]+)?$`
 
 	NodeSSHPortMinimum = 1
 	NodeSSHPortMaximum = 65535
@@ -102,7 +102,7 @@ func (node *NodeBaseData) Validate() error {
 
 	wrapper := validator.NewWrapper(
 		validator.ValidateString(node.Name, "name", validator.ItemNotEmptyLimit, NodeNameLengthLimit),
-		validator.ValidateRegexp(regexp.MustCompile(`[a-zA-Z][\w_-]*\w?`), node.Name, "name"),
+		validator.ValidateRegexp(regexp.MustCompile(`[A-Za-z][\w\-]*\w?`), node.Name, "name"),
 		validator.ValidateString(node.Description, "description", validator.ItemNoLimit, NodeDescriptionLengthLimit),
 		validator.ValidateStringArrayOptions(rolesNames, "role", []string{string(constant.MachineRoleMaster), string(constant.MachineRoleWorker), string(constant.MachineRoleEtcd)}),
 	)
