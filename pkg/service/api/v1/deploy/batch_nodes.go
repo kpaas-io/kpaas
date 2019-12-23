@@ -209,14 +209,14 @@ func splitInputRoles(matchMap map[string]string) []constant.MachineRole {
 
 func tryToMatchBatchNodes(data []byte) ([][]string, []string) {
 	re := regexp.MustCompile(`(?m)^\s*` +
-		`(?P<nodeName>[\w_\-]+)\s+` +
-		`(?P<username>[\w_\-]+)\s+` +
+		`(?P<nodeName>[\w\-]+)\s+` +
+		`(?P<username>[\w\-]+)\s+` +
 		`(?P<roles>[\w,]+)\s+` +
 		`(?P<ip>[\d.]+)\s+` +
 		`(?P<port>[\d]+)\s+` +
-		`(?P<password>[\w` + "`" + `~!@#$%^&*()_\-+=\\|\[\]{};:'", ./<>?]+)\s+` +
+		`(?P<password>[\w` + "`" + `~!@#$%^&*()\-+=\\|\[\]{};:'", ./<>?]+)\s+` +
 		`(?P<privateKeyName>[\-\w]+)\s+` +
-		`(?P<dockerPath>[\w\-_\/]+)`,
+		`(?P<dockerPath>[\w\-\/]+)`,
 	)
 	return re.FindAllStringSubmatch(string(data), -1), re.SubexpNames()
 }
