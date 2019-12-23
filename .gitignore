@@ -1,4 +1,8 @@
 # Created by .ignore support plugin (hsz.mobi)
+
+# Operating System
+.DS_Store
+
 ### VisualStudioCode template
 .vscode/*
 # !.vscode/settings.json
