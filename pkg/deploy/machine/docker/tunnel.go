@@ -62,15 +62,15 @@ func (t *Tunnel) Start() (err error) {
 
 		}
 
-		localConn, ea := listener.Accept()
-		if ea != nil {
-			logrus.Errorf("failed to accept local connection, error: %v", ea)
+		localConn, errAccept := listener.Accept()
+		if errAccept != nil {
+			logrus.Errorf("failed to accept local connection, error: %v", errAccept)
 			continue
 		}
 
-		dstConn, ed := t.sshClient.Dial("unix", remoteDockerSocket)
-		if ed != nil {
-			logrus.Errorf("failed to dial %v:%v, error: %v", t.remoteHostName, remoteDockerSocket, ed)
+		dstConn, errDial := t.sshClient.Dial("unix", remoteDockerSocket)
+		if errDial != nil {
+			logrus.Errorf("failed to dial %v:%v, error: %v", t.remoteHostName, remoteDockerSocket, errDial)
 			continue
 		}
 
