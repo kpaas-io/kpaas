@@ -212,7 +212,7 @@ func tryToMatchBatchNodes(data []byte) ([][]string, []string) {
 		`(?P<nodeName>[\w_\-]+)\s+` +
 		`(?P<username>[\w_\-]+)\s+` +
 		`(?P<roles>[\w,]+)\s+` +
-		`(?P<ip>[\d.a-f:]+)\s+` +
+		`(?P<ip>[\d.]+)\s+` +
 		`(?P<port>[\d]+)\s+` +
 		`(?P<password>[\w` + "`" + `~!@#$%^&*()_\-+=\\|\[\]{};:'", ./<>?]+)\s+` +
 		`(?P<privateKeyName>[\-\w]+)\s+` +
