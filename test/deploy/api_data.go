@@ -22,7 +22,7 @@ import (
 // Don't set _skip to true when commit for PR, otherwise it will break the UT.
 
 var (
-	_skip = true // set it to ture if you want to run/debug the test locally.
+	_skip = true // set it to true if you want to run/debug the test locally.
 
 	_launchLocalServer   = true           // launch a local deploy server and connect to it to test
 	_remoteServerAddress = "0.0.0.0:8081" // connect to the remote deploy server
