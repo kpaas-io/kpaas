@@ -16,7 +16,9 @@ package api
 
 import (
 	"fmt"
-	"regexp"
+	"strings"
+
+	"k8s.io/apimachinery/pkg/util/validation"
 
 	"github.com/kpaas-io/kpaas/pkg/utils/validator"
 )
@@ -126,9 +128,9 @@ func (label *Label) Validate() error {
 
 	return validator.NewWrapper(
 		validator.ValidateString(label.Key, "key", validator.ItemNotEmptyLimit, LabelKeyLengthLimit),
-		keyLimitFunction(label.Key, LabelKeySegmentLengthLimit),
+		ValidateStringFunctionReturnErrorMessages(validation.IsQualifiedName, label.Key, "label.key"),
 		validator.ValidateString(label.Value, "value", validator.ItemNotEmptyLimit, validator.ItemNoLimit),
-		validator.ValidateRegexp(regexp.MustCompile(`^[\w]([\w\-_.]+\w)?$`), label.Value, "label.value"),
+		ValidateStringFunctionReturnErrorMessages(validation.IsValidLabelValue, label.Value, "label.value"),
 	).Validate()
 }
 
@@ -136,29 +138,20 @@ func (annotation *Annotation) Validate() error {
 
 	return validator.NewWrapper(
 		validator.ValidateString(annotation.Key, "key", validator.ItemNotEmptyLimit, AnnotationKeyLengthLimit),
-		keyLimitFunction(annotation.Key, AnnotationKeySegmentLengthLimit),
+		ValidateStringFunctionReturnErrorMessages(validation.IsQualifiedName, annotation.Key, "annotation.key"),
 		validator.ValidateString(annotation.Value, "value", validator.ItemNotEmptyLimit, validator.ItemNoLimit),
-		validator.ValidateRegexp(regexp.MustCompile(`^[\w]([\w\-_.]+\w)?$`), annotation.Value, "annotation.value"),
 	).Validate()
 }
 
-func keyLimitFunction(key string, limit int) validator.ValidateFunc {
+func ValidateStringFunctionReturnErrorMessages(function func(string) []string, value, keyName string) validator.ValidateFunc {
+
 	return func() error {
-		re := regexp.MustCompile(`^(?P<prefix>\w[\w\-_]+\.[a-zA-Z]{2,11}?/)?(?P<name>\w([\w\-_.]+\w)?)$`)
-		match := re.FindStringSubmatch(key)
-		if len(match) <= 0 {
-			return fmt.Errorf("label key can not empty")
+		errorMessages := validation.IsQualifiedName(value)
+
+		if len(errorMessages) > 0 {
+			return fmt.Errorf("%s %s", keyName, strings.Join(errorMessages, ", "))
 		}
 
-		keyMatchMap := make(map[string]string)
-		for i, groupName := range re.SubexpNames() {
-
-			if i > 0 && i <= len(match) {
-				keyMatchMap[groupName] = match[i]
-			}
-		}
-
-		function := validator.ValidateString(keyMatchMap["name"], "key segment of label key", validator.ItemNotEmptyLimit, limit)
-		return function()
+		return nil
 	}
 }
