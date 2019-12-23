@@ -16,6 +16,7 @@ package docker
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"strings"
@@ -83,8 +84,17 @@ func (t *Tunnel) forward(dst, src net.Conn) {
 		src.Close()
 	}()
 
-	go deploy.MustCopy(src, dst)
-	go deploy.MustCopy(dst, src)
+	connCopy := func(dst io.Writer, src io.Reader) error {
+		if _, err := io.Copy(dst, src); err != nil {
+			logrus.Errorf("connection copy failed: %v", err)
+			return err
+		}
+
+		return nil
+	}
+
+	go connCopy(src, dst)
+	go connCopy(dst, src)
 
 	<-t.done
 }
