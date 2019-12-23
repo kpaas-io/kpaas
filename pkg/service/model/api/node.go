@@ -17,6 +17,8 @@ package api
 import (
 	"regexp"
 
+	"k8s.io/apimachinery/pkg/util/validation"
+
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/utils/validator"
 )
@@ -84,8 +86,6 @@ const (
 	NodeDescriptionLengthLimit    = 100
 	TaintKeyLengthLimit           = 253
 	TaintValueLengthLimit         = 63
-	TaintKeyRegularExpression     = `^(?P<prefix>[A-Za-z0-9][\w\-]+\.[A-Za-z]{2,11}?/)?(?P<name>[A-Za-z0-9]([\w\-.]*[A-Za-z0-9])?)$`
-	TaintValueRegularExpression   = `^[A-Za-z]([\w\-.]+)?$`
 	NodeUsernameRegularExpression = `^[A-Za-z]([\w\-.]+)?$`
 
 	NodeSSHPortMinimum = 1
@@ -178,8 +178,8 @@ func (taint *Taint) Validate() error {
 	return validator.NewWrapper(
 		validator.ValidateString(taint.Key, "key", validator.ItemNotEmptyLimit, TaintKeyLengthLimit),
 		validator.ValidateString(taint.Value, "value", validator.ItemNotEmptyLimit, TaintValueLengthLimit),
-		validator.ValidateRegexp(regexp.MustCompile(TaintKeyRegularExpression), taint.Key, "taint.key"),
-		validator.ValidateRegexp(regexp.MustCompile(TaintValueRegularExpression), taint.Value, "taint.value"),
+		ValidateStringFunctionReturnErrorMessages(validation.IsQualifiedName, taint.Key, "taint.key"),
+		ValidateStringFunctionReturnErrorMessages(validation.IsValidLabelValue, taint.Value, "taint.value"),
 		validator.ValidateStringOptions(string(taint.Effect), "taint.effect",
 			[]string{string(TaintEffectNoExecute), string(TaintEffectNoSchedule), string(TaintEffectPreferNoSchedule)}),
 	).Validate()
