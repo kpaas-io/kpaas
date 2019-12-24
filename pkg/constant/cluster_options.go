@@ -12,11 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package constant
 
 const (
-	KubeToolScript = "/scripts/init_deploy_kubetool.sh"
-	PkgMirror      = "mirrors.aliyun.com"
-	KubeVersion    = "1.16.3"
+	KubeVersion     = "1.16.3"
+	ServiceSubnet   = "10.112.0.0/16"
+	PodSubnet       = "10.120.0.0/16"
+	PkgMirror       = "mirrors.aliyun.com"
+	ImageRepository = "reg.kpaas.io/library"
+	KubeToolScript  = "/scripts/init_deploy_kubetool.sh"
+
 	// TODO local-repo-dir, docker registry in the future
 )
