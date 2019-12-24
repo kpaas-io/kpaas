@@ -23,7 +23,7 @@ import (
 // Don't set _skip to true when commit for PR, otherwise it will break the UT.
 
 var (
-	_skip = false // set it to false if you want to run/debug the test locally.
+	_skip = true // set it to false if you want to run/debug the test locally.
 
 	_launchLocalServer   = true           // launch a local deploy server and connect to it to test
 	_remoteServerAddress = "0.0.0.0:8081" // connect to the remote deploy server
@@ -43,46 +43,46 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
+				Credential: "placeholder", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},
-	//&pb.Node{
-	//	Name: "g1-node1",
-	//	Ip:   "47.102.126.233",
-	//	Ssh: &pb.SSH{
-	//		Port: 22,
-	//		Auth: &pb.Auth{
-	//			Type:       "password",
-	//			Username:   "root",
-	//			Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
-	//		},
-	//	},
-	//},
-	//&pb.Node{
-	//	Name: "g1-node2",
-	//	Ip:   "106.14.187.43",
-	//	Ssh: &pb.SSH{
-	//		Port: 22,
-	//		Auth: &pb.Auth{
-	//			Type:       "password",
-	//			Username:   "root",
-	//			Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
-	//		},
-	//	},
-	//},
-	//&pb.Node{
-	//	Name: "g1-node3",
-	//	Ip:   "47.103.15.20",
-	//	Ssh: &pb.SSH{
-	//		Port: 22,
-	//		Auth: &pb.Auth{
-	//			Type:       "password",
-	//			Username:   "root",
-	//			Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
-	//		},
-	//	},
-	//},
+	&pb.Node{
+		Name: "g1-node1",
+		Ip:   "47.102.126.233",
+		Ssh: &pb.SSH{
+			Port: 22,
+			Auth: &pb.Auth{
+				Type:       "password",
+				Username:   "root",
+				Credential: "placeholder", // replace it with the correct password when run/debug testing.
+			},
+		},
+	},
+	&pb.Node{
+		Name: "g1-node2",
+		Ip:   "106.14.187.43",
+		Ssh: &pb.SSH{
+			Port: 22,
+			Auth: &pb.Auth{
+				Type:       "password",
+				Username:   "root",
+				Credential: "placeholder", // replace it with the correct password when run/debug testing.
+			},
+		},
+	},
+	&pb.Node{
+		Name: "g1-node3",
+		Ip:   "47.103.15.20",
+		Ssh: &pb.SSH{
+			Port: 22,
+			Auth: &pb.Auth{
+				Type:       "password",
+				Username:   "root",
+				Credential: "placeholder", // replace it with the correct password when run/debug testing.
+			},
+		},
+	},
 }
 
 var testConnectionData = &ApiParams{
@@ -101,18 +101,18 @@ var checkNodesData = &ApiParams{
 				Node:  nodes[0],
 				Roles: []string{"etcd", "master"},
 			},
-			//&pb.NodeCheckConfig{
-			//	Node:  nodes[1],
-			//	Roles: []string{"etcd", "master"},
-			//},
-			//&pb.NodeCheckConfig{
-			//	Node:  nodes[2],
-			//	Roles: []string{"etcd", "master"},
-			//},
-			//&pb.NodeCheckConfig{
-			//	Node:  nodes[3],
-			//	Roles: []string{"worker"},
-			//},
+			&pb.NodeCheckConfig{
+				Node:  nodes[1],
+				Roles: []string{"etcd", "master"},
+			},
+			&pb.NodeCheckConfig{
+				Node:  nodes[2],
+				Roles: []string{"etcd", "master"},
+			},
+			&pb.NodeCheckConfig{
+				Node:  nodes[3],
+				Roles: []string{"worker"},
+			},
 		},
 		// TODO NetWork Check
 		// NetworkOptions: &pb.NetworkOptions{
