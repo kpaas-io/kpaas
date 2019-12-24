@@ -113,6 +113,8 @@ func getUploadBatchNodesRequestData(c *gin.Context) (nodeList []*api.NodeData, e
 
 	nodeList = make([]*api.NodeData, 0, len(matches))
 
+	log.ReqEntry(c).Tracef("match node count: %d", len(matches))
+
 	ipList := make(map[string]bool)
 	nameList := make(map[string]bool)
 
@@ -152,8 +154,6 @@ func getUploadBatchNodesRequestData(c *gin.Context) (nodeList []*api.NodeData, e
 			NodeBaseData: api.NodeBaseData{
 				Name:                matchMap["nodeName"],
 				MachineRoles:        roles,
-				Labels:              nil,
-				Taints:              nil,
 				DockerRootDirectory: matchMap["dockerPath"],
 			},
 			ConnectionData: api.ConnectionData{
@@ -187,6 +187,8 @@ func getUploadBatchNodesRequestData(c *gin.Context) (nodeList []*api.NodeData, e
 		nodeList = append(nodeList, node)
 	}
 
+	log.ReqEntry(c).WithField("inputNodeList", nodeList).Trace("input node list")
+
 	return
 }
 
@@ -214,7 +216,7 @@ func tryToMatchBatchNodes(data []byte) ([][]string, []string) {
 		`(?P<roles>[\w,]+)\s+` +
 		`(?P<ip>[\d.]+)\s+` +
 		`(?P<port>[\d]+)\s+` +
-		`(?P<password>[\w` + "`" + `~!@#$%^&*()\-+=\\|\[\]{};:'", ./<>?]+)\s+` +
+		`(?P<password>[\w` + "`" + `~!@#$%^&*()\-+=\\|\[\]{};:'",./<>?]+)\s+` +
 		`(?P<privateKeyName>[\-\w]+)\s+` +
 		`(?P<dockerPath>[\w\-\/]+)`,
 	)
