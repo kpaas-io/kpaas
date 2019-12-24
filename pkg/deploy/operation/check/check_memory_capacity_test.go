@@ -53,12 +53,12 @@ func TestCheckMemoryCapacity(t *testing.T) {
 		{
 			comparedMemory: "1626123214",
 			desiredMemory:  desiredMemory,
-			want:           fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 1626123214", desiredMemory),
+			want:           fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 1626123214", desiredMemory),
 		},
 		{
 			comparedMemory: "-1241211",
 			desiredMemory:  desiredMemory,
-			want:           fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.1f", desiredMemory),
+			want:           fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.0f", desiredMemory),
 		},
 	}
 

@@ -50,12 +50,12 @@ func TestCheckCPUNums(t *testing.T) {
 		{
 			cpuCore:     "7",
 			desiredCore: desiredCPUCore,
-			want:        fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 7", desiredCPUCore),
+			want:        fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 7", desiredCPUCore),
 		},
 		{
 			cpuCore:     "-100",
 			desiredCore: desiredCPUCore,
-			want:        fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.1f", desiredCPUCore),
+			want:        fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.0f", desiredCPUCore),
 		},
 	}
 

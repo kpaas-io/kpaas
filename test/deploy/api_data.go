@@ -43,7 +43,7 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "placehold", // replace it with the correct password when run/debug testing.
+				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},
@@ -55,7 +55,7 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "placehold", // replace it with the correct password when run/debug testing.
+				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},
@@ -67,7 +67,7 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "placehold", // replace it with the correct password when run/debug testing.
+				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},
@@ -79,7 +79,7 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "placehold", // replace it with the correct password when run/debug testing.
+				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},

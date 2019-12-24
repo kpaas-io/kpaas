@@ -48,12 +48,12 @@ func TestCheckRootDiskVolume(t *testing.T) {
 		{
 			rootDiskVolume:    "51473368953",
 			desiredDiskVolume: diskStandard,
-			want:              fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 51473368953", diskStandard),
+			want:              fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 51473368953", diskStandard),
 		},
 		{
 			rootDiskVolume:    "-1",
 			desiredDiskVolume: diskStandard,
-			want:              fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.1f", diskStandard),
+			want:              fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.0f", diskStandard),
 		},
 	}
 
