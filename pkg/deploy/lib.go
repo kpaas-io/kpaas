@@ -16,7 +16,6 @@ package deploy
 
 import (
 	"fmt"
-	"io"
 	"os"
 
 	"github.com/sirupsen/logrus"
@@ -40,15 +39,6 @@ func FileExist(path string) bool {
 		return false
 	}
 	return true
-}
-
-func MustCopy(dst io.Writer, src io.Reader) error {
-	if _, err := io.Copy(dst, src); err != nil {
-		logrus.Errorf("Copy failed: %v", err)
-		return err
-	}
-
-	return nil
 }
 
 // GetControlPlaneEndpoint return control plane endpoint address

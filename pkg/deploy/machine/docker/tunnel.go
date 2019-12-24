@@ -16,6 +16,7 @@ package docker
 
 import (
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"strings"
@@ -61,15 +62,15 @@ func (t *Tunnel) Start() (err error) {
 
 		}
 
-		localConn, err := listener.Accept()
-		if err != nil {
-			logrus.Errorf("failed to accept local connection, error: %v", err)
+		localConn, errAccept := listener.Accept()
+		if errAccept != nil {
+			logrus.Errorf("failed to accept local connection, error: %v", errAccept)
 			continue
 		}
 
-		dstConn, err := t.sshClient.Dial("unix", remoteDockerSocket)
-		if err != nil {
-			logrus.Errorf("failed to dial %v:%v, error: %v", t.remoteHostName, remoteDockerSocket, err)
+		dstConn, errDial := t.sshClient.Dial("unix", remoteDockerSocket)
+		if errDial != nil {
+			logrus.Errorf("failed to dial %v:%v, error: %v", t.remoteHostName, remoteDockerSocket, errDial)
 			continue
 		}
 
@@ -83,8 +84,19 @@ func (t *Tunnel) forward(dst, src net.Conn) {
 		src.Close()
 	}()
 
-	go deploy.MustCopy(src, dst)
-	deploy.MustCopy(dst, src)
+	connCopy := func(dst io.Writer, src io.Reader) error {
+		if _, err := io.Copy(dst, src); err != nil {
+			logrus.Errorf("connection copy failed: %v", err)
+			return err
+		}
+
+		return nil
+	}
+
+	go connCopy(src, dst)
+	go connCopy(dst, src)
+
+	<-t.done
 }
 
 func (t *Tunnel) Close() (err error) {
