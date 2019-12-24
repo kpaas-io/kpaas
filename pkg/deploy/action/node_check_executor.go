@@ -71,6 +71,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 	checkItems := check.NewCheckOperations().CreateOperations(item)
 	if checkItems == nil {
 		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = ItemErrEmpty
 		checkItemReport.Err.Detail = ItemErrEmpty
 		checkItemReport.Err.FixMethods = ItemHelperEmpty
@@ -84,6 +85,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 	op, err := checkItems.GetOperations(config)
 	if err != nil {
 		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = ItemErrOperation
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Err.FixMethods = ItemHelperOperation
@@ -94,6 +96,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 	stdErr, stdOut, err := op.Do()
 	if err != nil {
 		checkItemReport.Status = ItemActionFailed
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = ItemErrScript
 		checkItemReport.Err.Detail = string(stdErr)
 		checkItemReport.Err.FixMethods = ItemHelperScript
@@ -124,6 +127,7 @@ func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	err = check.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
 	if err != nil {
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "docker version too low"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
@@ -151,6 +155,7 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	err = check.CheckCPUNums(cpuCore, desiredCPUCore)
 	if err != nil {
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "cpu cores not enough"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
@@ -178,6 +183,7 @@ func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	err = check.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
 	if err != nil {
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "kernel version too low"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
@@ -205,6 +211,7 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	err = check.CheckMemoryCapacity(memoryCap, desiredMemory)
 	if err != nil {
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "memory capacity not enough"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
@@ -232,6 +239,7 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	err = check.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
 	if err != nil {
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "root disk volume is not enough"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
@@ -259,6 +267,7 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	err = check.CheckSystemDistribution(disName)
 	if err != nil {
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system distribution is not supported"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
@@ -281,6 +290,7 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	_, checkItemReport, err := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system preference is not supported"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
@@ -308,6 +318,7 @@ func CheckSysComponentExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	err = check.CheckSysComponent(systemManager, desiredSystemManager)
 	if err != nil {
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system component is not clear"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed

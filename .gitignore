@@ -144,3 +144,6 @@ builds/debug/*
 
 # test-result files
 .test-result/*
+
+# system test tmp files
+/test/deploy/tmp/*
