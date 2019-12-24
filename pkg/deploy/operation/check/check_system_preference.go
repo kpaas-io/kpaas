@@ -54,8 +54,9 @@ func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (o
 	if err != nil {
 		return nil, err
 	}
+	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, ckops.getScriptPath()); err != nil {
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
 		return nil, err
 	}
 
