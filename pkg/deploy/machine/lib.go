@@ -78,7 +78,7 @@ func (m *Machine) PutFile(content io.Reader, remotePath string) error {
 	}
 	defer remoteFile.Close()
 
-	if err = deploy.MustCopy(remoteFile, content); err != nil {
+	if _, err = io.Copy(remoteFile, content); err != nil {
 		return fmt.Errorf("copy content to remote file %v failed: %v", remotePath, err)
 	}
 
@@ -114,7 +114,7 @@ func (m *Machine) FetchFile(dst io.Writer, remotePath string) error {
 	}
 	defer remoteFile.Close()
 
-	if err = deploy.MustCopy(dst, remoteFile); err != nil {
+	if _, err = io.Copy(dst, remoteFile); err != nil {
 		return fmt.Errorf("copy from remote file %v failed, error: %v", remotePath, err)
 	}
 

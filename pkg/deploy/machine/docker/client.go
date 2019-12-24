@@ -20,9 +20,15 @@ import (
 	"github.com/docker/docker/client"
 )
 
+const (
+	defaultScheme = "unix://"
+)
+
 func NewTunneledClient(hostName string) (*client.Client, error) {
 	localDockerSocketFile := composeLocalDockerSocketFile(hostName)
-	opt := client.WithHost(localDockerSocketFile)
+	localDockerAdder := defaultScheme + localDockerSocketFile
+
+	opt := client.WithHost(localDockerAdder)
 
 	cli, err := client.NewClientWithOpts(opt)
 	if err != nil {
