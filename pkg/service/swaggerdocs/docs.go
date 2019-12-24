@@ -227,7 +227,7 @@ var doc = `{
                 "tags": [
                     "kubeconfig"
                 ],
-                "summary": "Download the log detail",
+                "summary": "Download kubeconfig file content",
                 "operationId": "DownloadKubeConfig",
                 "responses": {
                     "200": {
