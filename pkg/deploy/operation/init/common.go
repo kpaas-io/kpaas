@@ -20,7 +20,7 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type ItemEnum int
+type ItemEnum string
 
 type OperationsGenerator struct{}
 
@@ -39,17 +39,20 @@ type InitAction interface {
 }
 
 const (
-	RemoteScriptPath          = "/tmp"
-	FireWall         ItemEnum = iota
-	HostAlias
-	HostName
-	Network
-	Route
-	Swap
-	TimeZone
-	Haproxy
-	Keepalived
-	KubeTool
+	FireWall   ItemEnum = "firewall"
+	HostAlias  ItemEnum = "hostalias"
+	HostName   ItemEnum = "hostname"
+	Network    ItemEnum = "network"
+	Route      ItemEnum = "route"
+	Swap       ItemEnum = "swap"
+	TimeZone   ItemEnum = "timezone"
+	Haproxy    ItemEnum = "haproxy"
+	Keepalived ItemEnum = "keepalived"
+	KubeTool   ItemEnum = "kubetool"
+)
+
+const (
+	RemoteScriptPath = "/tmp"
 )
 
 func NewInitOperations() *OperationsGenerator {

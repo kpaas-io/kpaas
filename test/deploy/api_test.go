@@ -18,6 +18,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"testing"
 	"time"
 
@@ -91,8 +92,48 @@ func TestTestConnection(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	r, err := client.TestConnection(ctx, _testdata["TestConnection"].request.(*pb.TestConnectionRequest))
+	r, err := client.TestConnection(ctx, testConnectionData.request.(*pb.TestConnectionRequest))
 	assert.NoError(t, err)
 	assert.NotNil(t, r)
 	assert.Equal(t, true, r.Passed)
+}
+
+func TestCheckNodes(t *testing.T) {
+	if _skip {
+		t.SkipNow()
+	}
+
+	// CheckNodes request
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	r, err := client.CheckNodes(ctx, checkNodesData.request.(*pb.CheckNodesRequest))
+	assert.NoError(t, err)
+	assert.NotNil(t, r)
+	assert.Equal(t, true, r.Accepted)
+
+	// Wait the task/action finish
+	time.Sleep(60 * time.Second)
+
+	// GetCheckNodesResult request
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	actualReply, err := client.GetCheckNodesResult(ctx, getCheckNodesResultData.request.(*pb.GetCheckNodesResultRequest))
+	assert.NoError(t, err)
+	assert.NotNil(t, actualReply)
+	sortCheckNodesResult(actualReply)
+	expectedReply := getCheckNodesResultData.reply.(*pb.GetCheckNodesResultReply)
+	sortCheckNodesResult(expectedReply)
+	assert.Equal(t, expectedReply, actualReply)
+}
+
+func sortItemCheckResults(results []*pb.ItemCheckResult) {
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Item.Name >= results[j].Item.Name
+	})
+}
+
+func sortCheckNodesResult(r *pb.GetCheckNodesResultReply) {
+	for _, nodeCheckResult := range r.Nodes {
+		sortItemCheckResults(nodeCheckResult.Items)
+	}
 }

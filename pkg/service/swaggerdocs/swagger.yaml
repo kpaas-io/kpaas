@@ -712,7 +712,7 @@ paths:
         in: path
         name: ip
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -740,7 +740,7 @@ paths:
         in: path
         name: ip
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:
@@ -775,7 +775,7 @@ paths:
         in: path
         name: ip
         required: true
-        type: integer
+        type: string
       produces:
       - application/json
       responses:

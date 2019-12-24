@@ -23,8 +23,6 @@ import (
 
 const ActionTypeJoinMaster Type = "JoinMaster"
 
-type joinMasterStatus string
-
 type JoinMasterActionConfig struct {
 	Node            *pb.Node
 	MasterNodes     []*pb.Node
@@ -38,7 +36,7 @@ type JoinMasterTask struct {
 	ClusterConfig *pb.ClusterConfig
 }
 
-func NewJoinMasterTask(cfg *JoinMasterActionConfig) (Action, error) {
+func NewJoinMasterAction(cfg *JoinMasterActionConfig) (Action, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("action config is nil")
 	}

@@ -20,7 +20,7 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-type ItemEnum int
+type ItemEnum string
 
 type OperationsGenerator struct {
 	Node *pb.Node
@@ -41,14 +41,14 @@ type CheckAction interface {
 
 const (
 	checkRemoteScriptPath          = "/tmp"
-	Docker                ItemEnum = iota
-	CPU
-	Kernel
-	Memory
-	Disk
-	Distribution
-	SystemPreference
-	SystemComponent
+	Docker                ItemEnum = "docker"
+	CPU                   ItemEnum = "cpu"
+	Kernel                ItemEnum = "kernel"
+	Memory                ItemEnum = "memory"
+	Disk                  ItemEnum = "disk"
+	Distribution          ItemEnum = "distribution"
+	SystemPreference      ItemEnum = "systempreference"
+	SystemComponent       ItemEnum = "systemcomponent"
 )
 
 func NewCheckOperations() *OperationsGenerator {

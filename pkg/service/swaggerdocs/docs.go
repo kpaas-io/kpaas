@@ -372,7 +372,7 @@ var doc = `{
                 "operationId": "GetNode",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Node IP Address",
                         "name": "ip",
                         "in": "path",
@@ -424,7 +424,7 @@ var doc = `{
                         }
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Node IP Address",
                         "name": "ip",
                         "in": "path",
@@ -470,7 +470,7 @@ var doc = `{
                 "operationId": "DeleteNode",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Node IP Address",
                         "name": "ip",
                         "in": "path",

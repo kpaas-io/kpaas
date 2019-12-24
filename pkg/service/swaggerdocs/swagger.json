@@ -358,7 +358,7 @@
                 "operationId": "GetNode",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Node IP Address",
                         "name": "ip",
                         "in": "path",
@@ -410,7 +410,7 @@
                         }
                     },
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Node IP Address",
                         "name": "ip",
                         "in": "path",
@@ -456,7 +456,7 @@
                 "operationId": "DeleteNode",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Node IP Address",
                         "name": "ip",
                         "in": "path",
