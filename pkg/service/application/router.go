@@ -36,10 +36,10 @@ func (a *app) setRoutes() {
 	wizardGroup.POST("/clusters", deploy.SetCluster)
 
 	wizardGroup.GET("/nodes", deploy.GetNodeList)
-	wizardGroup.GET("/nodes/{ip}", deploy.GetNode)
+	wizardGroup.GET("/nodes/:ip", deploy.GetNode)
 	wizardGroup.POST("/nodes", deploy.AddNode)
-	wizardGroup.PUT("/nodes/{ip}", deploy.UpdateNode)
-	wizardGroup.DELETE("/nodes/{ip}", deploy.DeleteNode)
+	wizardGroup.PUT("/nodes/:ip", deploy.UpdateNode)
+	wizardGroup.DELETE("/nodes/:ip", deploy.DeleteNode)
 
 	wizardGroup.POST("/batchnodes", deploy.UploadBatchNodes)
 
@@ -49,7 +49,7 @@ func (a *app) setRoutes() {
 	wizardGroup.POST("/deploys", deploy.Deploy)
 	wizardGroup.GET("/deploys", deploy.GetDeployReport)
 
-	wizardGroup.GET("/logs/{id}", deploy.DownloadLog)
+	wizardGroup.GET("/logs/:id", deploy.DownloadLog)
 
 	wizardGroup.GET("/kubeconfigs", deploy.DownloadKubeConfig)
 
