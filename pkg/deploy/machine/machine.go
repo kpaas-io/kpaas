@@ -59,7 +59,9 @@ func (m *Machine) SetDockerClient() error {
 }
 
 func (m *Machine) Close() {
-	m.ExecClient.Close()
+	if m.SSHClient != nil {
+		m.ExecClient.Close()
+	}
 
 	if m.DockerClient != nil {
 		m.DockerClient.Close()

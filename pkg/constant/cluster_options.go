@@ -12,8 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package constant
 
 const (
-	DefaultKubeToolScript = "/scripts/init_deploy_kubetool.sh"
+	DefaultKubeVersion     = "1.16.3"
+	DefaultServiceSubnet   = "10.112.0.0/16"
+	DefaultPodSubnet       = "10.120.0.0/16"
+	DefaultPkgMirror       = "mirrors.aliyun.com"
+	DefaultImageRepository = "reg.kpaas.io/library"
+
+	// TODO local-repo-dir, docker registry in the future
 )

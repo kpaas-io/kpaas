@@ -72,7 +72,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		return "", initItemReport, fmt.Errorf("can not create operation command %v for node: %v", item, action.Node.Name)
 	}
 
-	stdErr, stdOut, err := op.Do()
+	stdOut, stdErr, err := op.Do()
 	if err != nil {
 		initItemReport.Status = ItemActionFailed
 		initItemReport.Err.Reason = ItemErrScript

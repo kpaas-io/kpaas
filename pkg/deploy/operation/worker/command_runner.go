@@ -41,7 +41,7 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 	var stdout, stderr []byte
 	var err error
 	startExecuteTime := time.Now()
-	stderr, stdout, err = command.Execute()
+	stdout, stderr, err = command.Execute()
 
 	runner.log(consts.DashLine + "\n")
 	runner.log(fmt.Sprintf("[start time]: %s\n", startExecuteTime.String()))

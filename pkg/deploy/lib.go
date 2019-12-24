@@ -86,3 +86,19 @@ func PBErrLogger(pbErr *pb.Error, entry *logrus.Entry) *logrus.Entry {
 	}
 	return entry.WithFields(fields)
 }
+
+// return size with unit
+func ReturnWithUnit(size float64) (valueWithUnit string) {
+	if size < 1 {
+		valueWithUnit = fmt.Sprintf("%.0f Byte", size)
+	} else if size < 1024 {
+		valueWithUnit = fmt.Sprintf("%.0f Bytes", size)
+	} else if size < 1048576 {
+		valueWithUnit = fmt.Sprintf("%.0f KiB", size/1024)
+	} else if size < 1073741824 {
+		valueWithUnit = fmt.Sprintf("%.0f MiB", size/1024/1024)
+	} else {
+		valueWithUnit = fmt.Sprintf("%.0f GiB", size/1024/1024/1024)
+	}
+	return
+}

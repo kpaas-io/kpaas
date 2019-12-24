@@ -34,7 +34,6 @@ const (
 	ErrParaEmpty             = "parameter empty"
 	ErrPara                  = "parameter error"
 	ErrInvalid               = "parameter invalid"
-	InfoPassed               = "check passed"
 	ErrSplitSym              = "error split symbol found"
 	ErrParaInput             = "input parameter invalid"
 	ErrTooHigh               = "version too high"
@@ -135,18 +134,23 @@ func versionLargerAndEqual(firstVersion string, secondVersion string) int {
 func CheckEntity(comparedEntity string, desiredEntity float64) error {
 	logger := logrus.WithFields(logrus.Fields{
 		"actual_amount":  comparedEntity,
-		"desired_amount": desiredEntity,
+		"desired_amount": fmt.Sprintf("%.0f", desiredEntity),
 	})
 
 	comparedEntityFloat64, err := strconv.ParseFloat(comparedEntity, 64)
+	if comparedEntity == "" {
+		logger.Errorf("%v: input entity is empty", ErrParaEmpty)
+		return fmt.Errorf("%v, desired amount: %.0f, actual amount: %v", ErrParaInput, desiredEntity, comparedEntity)
+	}
+
 	if err != nil {
-		logger.Errorf("%v", ErrParaInput)
-		return fmt.Errorf("%v, desired amount: %v, actual amount: %v", ErrParaInput, desiredEntity, comparedEntity)
+		logger.Errorf("%v: parse float failed", ErrParaInput)
+		return fmt.Errorf("%v, desired amount: %.0f, actual amount: %v", ErrParaInput, desiredEntity, comparedEntity)
 	}
 
 	if comparedEntityFloat64 < float64(0) {
-		logger.Errorf("%v", ErrParaInput)
-		return fmt.Errorf("%v, input parameter can not be negative, desired amount: %.1f", ErrParaInput, desiredEntity)
+		logger.Errorf("%v: value can not be negative", ErrParaInput)
+		return fmt.Errorf("%v, input parameter can not be negative, desired amount: %.0f", ErrParaInput, desiredEntity)
 	}
 
 	if comparedEntityFloat64 >= desiredEntity {
@@ -155,7 +159,7 @@ func CheckEntity(comparedEntity string, desiredEntity float64) error {
 	}
 
 	logger.Errorf("%v", ErrNotEnough)
-	return fmt.Errorf("%v, desired amount: %.1f, actual amount: %v", ErrNotEnough, desiredEntity, comparedEntity)
+	return fmt.Errorf("%v, desired amount: %.0f, actual amount: %v", ErrNotEnough, desiredEntity, comparedEntity)
 }
 
 // check if raw input contains non-digit character
@@ -177,7 +181,7 @@ func checkVersionValid(rawVersion string) error {
 
 	// check if version is empty
 	if rawVersion == "" {
-		logger.Errorf("%v", ErrParaInput)
+		logger.Errorf("%v: input version empty", ErrParaInput)
 		return fmt.Errorf("%v, input version: %v", ErrParaInput, rawVersion)
 	}
 
@@ -191,7 +195,7 @@ func checkVersionValid(rawVersion string) error {
 
 	// check if input contains non-digit char
 	if ok := checkContainsNonDigit(splitedVersion); !ok {
-		logger.Errorf("%v", ErrParaInput)
+		logger.Errorf("%v: inputs can not contain non-digit character", ErrParaInput)
 		return fmt.Errorf("%v, contains non-digit char, input version: %v", ErrParaInput, rawVersion)
 	}
 	if ok := checkContainsNonDigit(splitedVersion); !ok {
