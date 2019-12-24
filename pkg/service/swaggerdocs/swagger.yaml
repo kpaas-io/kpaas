@@ -628,7 +628,7 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/h.AppErr'
-      summary: Download the log detail
+      summary: Download kubeconfig file content
       tags:
       - kubeconfig
   /api/v1/deploy/wizard/logs/{id}:

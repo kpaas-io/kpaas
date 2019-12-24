@@ -56,18 +56,18 @@ const (
 	KubeAPIServerConnectTypeKeepalived    KubeAPIServerConnectType = "keepalived"
 	KubeAPIServerConnectTypeLoadBalancer  KubeAPIServerConnectType = "loadbalancer"
 
-	ClusterNameLengthLimit          = 30
-	ClusterShortNameLengthLimit     = 20
-	ClusterIPLengthLimit            = 15
-	ClusterNetInterfaceLengthLimit  = 30
-	ClusterLoadbalancerPortMinimum  = 1
-	ClusterLoadbalancerPortMaximum  = 65535
-	ClusterNodePortMinimum          = 1
-	ClusterNodePortMaximum          = 65535
-	LabelKeyLengthLimit             = 253
-	LabelKeySegmentLengthLimit      = 63
-	AnnotationKeyLengthLimit        = 253
-	AnnotationKeySegmentLengthLimit = 63
+	ClusterNameLengthLimit         = 30
+	ClusterShortNameLengthLimit    = 20
+	ClusterIPLengthLimit           = 15
+	ClusterNetInterfaceLengthLimit = 30
+	ClusterLoadbalancerPortMinimum = 1
+	ClusterLoadbalancerPortMaximum = 65535
+	ClusterNodePortMinimum         = 1
+	ClusterNodePortMaximum         = 65535
+	LabelKeyLengthLimit            = 253
+	AnnotationKeyLengthLimit       = 253
+	DefaultClusterNodePortMinimum  = 30000
+	DefaultClusterNodePortMaximum  = 32767
 )
 
 func (cluster *Cluster) Validate() error {
@@ -78,15 +78,30 @@ func (cluster *Cluster) Validate() error {
 		validator.ValidateStringOptions(string(cluster.KubeAPIServerConnectType),
 			"kubeAPIServerConnectType",
 			[]string{string(KubeAPIServerConnectTypeFirstMasterIP), string(KubeAPIServerConnectTypeKeepalived), string(KubeAPIServerConnectTypeLoadBalancer)}),
-		validator.ValidateIntRange(int(cluster.NodePortMinimum), "nodePortMinimum", ClusterNodePortMinimum, ClusterNodePortMaximum),
-		validator.ValidateIntRange(int(cluster.NodePortMaximum), "nodePortMaximum", ClusterNodePortMinimum, ClusterNodePortMaximum),
-		func() error {
-			if cluster.NodePortMinimum > cluster.NodePortMaximum {
-				return fmt.Errorf("nodePortMinimum must be not larger than nodePortMaximum")
-			}
-			return nil
-		},
 	)
+
+	if cluster.NodePortMinimum > 0 {
+		wrapper.AddValidateFunc(
+			validator.ValidateIntRange(int(cluster.NodePortMinimum), "nodePortMinimum", ClusterNodePortMinimum, ClusterNodePortMaximum),
+		)
+	}
+
+	if cluster.NodePortMaximum > 0 {
+		wrapper.AddValidateFunc(
+			validator.ValidateIntRange(int(cluster.NodePortMaximum), "nodePortMaximum", ClusterNodePortMinimum, ClusterNodePortMaximum),
+		)
+	}
+
+	if cluster.NodePortMinimum > 0 && cluster.NodePortMaximum > 0 {
+		wrapper.AddValidateFunc(
+			func() error {
+				if cluster.NodePortMinimum > cluster.NodePortMaximum {
+					return fmt.Errorf("nodePortMinimum must be not larger than nodePortMaximum")
+				}
+				return nil
+			},
+		)
+	}
 
 	switch cluster.KubeAPIServerConnectType {
 	case KubeAPIServerConnectTypeKeepalived:
