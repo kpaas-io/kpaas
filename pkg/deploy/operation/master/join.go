@@ -16,10 +16,11 @@ package master
 
 import (
 	"fmt"
-	"github.com/kpaas-io/kpaas/pkg/deploy"
-	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy"
+	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
