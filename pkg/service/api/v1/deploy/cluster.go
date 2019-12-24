@@ -45,6 +45,12 @@ func SetCluster(c *gin.Context) {
 	}
 
 	wizardData := wizard.GetCurrentWizard()
+	if err := initDefaultNodePort(requestData, wizardData); err != nil {
+		log.ReqEntry(c).Info(err)
+		h.E(c, err)
+		return
+	}
+
 	wizardData.Info.Name = requestData.Name
 	wizardData.Info.ShortName = requestData.ShortName
 	wizardData.Info.KubeAPIServerConnection = wizard.NewKubeAPIServerConnectionData()
@@ -79,6 +85,22 @@ func SetCluster(c *gin.Context) {
 	}
 
 	h.R(c, api.SuccessfulOption{Success: true})
+}
+
+func initDefaultNodePort(requestData *api.Cluster, wizardData *wizard.Cluster) error {
+
+	if requestData.NodePortMinimum == 0 {
+		requestData.NodePortMinimum = wizardData.Info.NodePortMinimum
+	}
+	if requestData.NodePortMinimum == 0 {
+		requestData.NodePortMaximum = wizardData.Info.NodePortMaximum
+	}
+
+	if requestData.NodePortMinimum > requestData.NodePortMaximum {
+		return h.EParamsError.WithPayload("nodePortMinimum must be not larger than nodePortMaximum")
+	}
+
+	return nil
 }
 
 // @ID GetCluster
