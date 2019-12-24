@@ -92,7 +92,7 @@ func initDefaultNodePort(requestData *api.Cluster, wizardData *wizard.Cluster) e
 	if requestData.NodePortMinimum == 0 {
 		requestData.NodePortMinimum = wizardData.Info.NodePortMinimum
 	}
-	if requestData.NodePortMinimum == 0 {
+	if requestData.NodePortMaximum == 0 {
 		requestData.NodePortMaximum = wizardData.Info.NodePortMaximum
 	}
 
