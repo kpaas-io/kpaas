@@ -24,6 +24,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/server"
@@ -111,13 +112,21 @@ func TestCheckNodes(t *testing.T) {
 	assert.NotNil(t, r)
 	assert.Equal(t, true, r.Accepted)
 
-	// Wait the task/action finish
-	time.Sleep(60 * time.Second)
-
 	// GetCheckNodesResult request
 	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	actualReply, err := client.GetCheckNodesResult(ctx, getCheckNodesResultData.request.(*pb.GetCheckNodesResultRequest))
+	var actualReply *pb.GetCheckNodesResultReply
+	// Call GetCheckNodesResult repeatly until the related task is done or failed.
+	err = wait.Poll(10*time.Second, 1*time.Minute, func() (done bool, err error) {
+		actualReply, err = client.GetCheckNodesResult(ctx, getCheckNodesResultData.request.(*pb.GetCheckNodesResultRequest))
+		if err != nil {
+			return false, err
+		}
+		if actualReply.Status == "failed" || actualReply.Status == "done" {
+			return true, nil
+		}
+		return false, nil
+	})
 	assert.NoError(t, err)
 	assert.NotNil(t, actualReply)
 	sortCheckNodesResult(actualReply)
@@ -126,9 +135,45 @@ func TestCheckNodes(t *testing.T) {
 	assert.Equal(t, expectedReply, actualReply)
 }
 
+func TestDeploy(t *testing.T) {
+	if _skip {
+		t.SkipNow()
+	}
+
+	// Deploy request
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	res, err := client.Deploy(ctx, deployData.request.(*pb.DeployRequest))
+	assert.NoError(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, true, res.Accepted)
+
+	// GetDeployResult request
+	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	var actualReply *pb.GetDeployResultReply
+	// Call GetDeployResult repeatly until the related task is done or failed.
+	err = wait.Poll(10*time.Second, 10*time.Minute, func() (done bool, err error) {
+		actualReply, err := client.GetDeployResult(ctx, getDeployResultData.request.(*pb.GetDeployResultRequest))
+		if err != nil {
+			return false, err
+		}
+		if actualReply.Status == "failed" || actualReply.Status == "done" {
+			return true, nil
+		}
+		return false, nil
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, actualReply)
+	sortDeployItemResults(actualReply.Items)
+	expectedReply := getCheckNodesResultData.reply.(*pb.GetDeployResultReply)
+	sortDeployItemResults(expectedReply.Items)
+	assert.Equal(t, expectedReply, actualReply)
+}
+
 func sortItemCheckResults(results []*pb.ItemCheckResult) {
 	sort.Slice(results, func(i, j int) bool {
-		return results[i].Item.Name >= results[j].Item.Name
+		return results[i].Item.Name <= results[j].Item.Name
 	})
 }
 
@@ -136,4 +181,16 @@ func sortCheckNodesResult(r *pb.GetCheckNodesResultReply) {
 	for _, nodeCheckResult := range r.Nodes {
 		sortItemCheckResults(nodeCheckResult.Items)
 	}
+}
+
+func sortDeployItemResults(r []*pb.DeployItemResult) {
+	sort.Slice(r, func(i, j int) bool {
+		itemI := r[i].DeployItem
+		itemJ := r[j].DeployItem
+		// Sort by {NodeName, Role}
+		if itemI.NodeName != itemJ.NodeName {
+			return itemI.NodeName <= itemJ.NodeName
+		}
+		return itemI.Role <= itemJ.Role
+	})
 }
