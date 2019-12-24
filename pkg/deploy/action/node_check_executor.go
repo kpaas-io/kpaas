@@ -107,8 +107,6 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		return "", checkItemReport, fmt.Errorf("fail to run %v commands", item)
 	}
 
-	// logrus.Debugf("check item %v, value: %v", item, stdOut) // DEBUG
-
 	checkItemStdOut := strings.Trim(string(stdOut), "\n")
 	return checkItemStdOut, checkItemReport, nil
 }
