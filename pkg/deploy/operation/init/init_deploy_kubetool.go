@@ -55,11 +55,8 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", constant.DefaultPkgMirror)
 	kubernetesVersion := fmt.Sprintf("--version %v", constant.DefaultKubeVersion)
 
-	if initAction.ClusterConfig.ServiceSubnet == "" {
-		initAction.ClusterConfig.ServiceSubnet = constant.DefaultServiceSubnet
-	}
-
-	clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(initAction.ClusterConfig.ServiceSubnet))
+	// we would use initAction's service subnet in the future
+	clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(constant.DefaultServiceSubnet))
 
 	if initAction.NodeInitConfig.Node.Ip == "" {
 		return nil, fmt.Errorf("current node %v ip can not be empty", initAction.NodeInitConfig.Node.Name)
@@ -67,9 +64,8 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 
 	nodeIP = fmt.Sprintf("--node-ip %v", initAction.NodeInitConfig.Node.Ip)
 
-	if initAction.ClusterConfig.ImageRepository == "" {
-		imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
-	}
+	// we would use initAction's image repository in the future
+	imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
 
 	ops := &InitKubeToolOperation{}
 	m, err := machine.NewMachine(node)

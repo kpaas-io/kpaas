@@ -137,12 +137,12 @@ func CheckEntity(comparedEntity string, desiredEntity float64) error {
 		"desired_amount": fmt.Sprintf("%.0f", desiredEntity),
 	})
 
-	comparedEntityFloat64, err := strconv.ParseFloat(comparedEntity, 64)
 	if comparedEntity == "" {
 		logger.Errorf("%v: input entity is empty", ErrParaEmpty)
 		return fmt.Errorf("%v, desired amount: %.0f, actual amount: %v", ErrParaInput, desiredEntity, comparedEntity)
 	}
 
+	comparedEntityFloat64, err := strconv.ParseFloat(comparedEntity, 64)
 	if err != nil {
 		logger.Errorf("%v: parse float failed", ErrParaInput)
 		return fmt.Errorf("%v, desired amount: %.0f, actual amount: %v", ErrParaInput, desiredEntity, comparedEntity)

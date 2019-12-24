@@ -122,11 +122,9 @@ func newNodeCheckItem() *NodeCheckItem {
 
 // goroutine as executor for check docker
 func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
-	var err error
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"error":      err,
 		"check_item": "docker",
 	})
 
@@ -136,12 +134,13 @@ func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	comparedDockerVersion, checkItemReport, err := ExecuteCheckScript(check.Docker, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
+		logger.Errorf("check docker failed, err: %v", err)
 		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
 	if err != nil {
-		logger.Debug(CheckFailed)
+		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "docker version too low"
 		checkItemReport.Err.Detail = err.Error()
@@ -161,11 +160,9 @@ func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 // goroutine as executor for check CPU
 func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
-	var err error
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"error":      err,
 		"check_item": "cpu",
 	})
 
@@ -181,7 +178,7 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	err = check.CheckCPUNums(cpuCore, desiredCPUCore)
 	if err != nil {
-		logger.Debug(CheckFailed)
+		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "cpu cores not enough"
 		checkItemReport.Err.Detail = err.Error()
@@ -202,11 +199,8 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 // goroutine as executor for check kernel
 func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
-	var err error
-
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"error":      err,
 		"check_item": "kernel",
 	})
 
@@ -216,12 +210,13 @@ func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	kernelVersion, checkItemReport, err := ExecuteCheckScript(check.Kernel, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
+		logger.Errorf("check kernel failed, err: %v", err)
 		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
 	if err != nil {
-		logger.Debug(CheckFailed)
+		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "kernel version too low"
 		checkItemReport.Err.Detail = err.Error()
@@ -242,11 +237,8 @@ func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 // goroutine as executor for check memory
 func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
-	var err error
-
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"error":      err,
 		"check_item": "memory",
 	})
 
@@ -256,12 +248,13 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	memoryCap, checkItemReport, err := ExecuteCheckScript(check.Memory, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
+		logger.Errorf("check memory failed, err: %v", err)
 		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckMemoryCapacity(memoryCap, desiredMemory)
 	if err != nil {
-		logger.Debug(CheckFailed)
+		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "memory capacity not enough"
 		checkItemReport.Err.Detail = err.Error()
@@ -283,11 +276,8 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 // goroutine as executor for check disk
 func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
-	var err error
-
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"error":      err,
 		"check_item": "root disk",
 	})
 
@@ -297,12 +287,13 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	rootDiskVolume, checkItemReport, err := ExecuteCheckScript(check.Disk, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
+		logger.Errorf("check root disk failed, err: %v", err)
 		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
 	if err != nil {
-		logger.Debug(CheckFailed)
+		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "root disk volume is not enough"
 		checkItemReport.Err.Detail = err.Error()
@@ -323,11 +314,8 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 // goroutine as executor for check distribution
 func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
-	var err error
-
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"error":      err,
 		"check_item": "distro",
 	})
 
@@ -337,13 +325,14 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	disName, checkItemReport, err := ExecuteCheckScript(check.Distribution, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
+		logger.Errorf("check distro failed, err: %v", err)
 		checkItemReport.Status = ItemActionFailed
 	}
 
 	disName = strings.Trim(disName, "\"")
 	err = check.CheckSystemDistribution(disName)
 	if err != nil {
-		logger.Debug(CheckFailed)
+		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system distribution is not supported"
 		checkItemReport.Err.Detail = err.Error()
@@ -364,11 +353,8 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 // goroutine as executor for check system preference
 func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
-	var err error
-
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"error":      err,
 		"check_item": "system preference",
 	})
 
@@ -376,12 +362,13 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.Status = ItemActionDoing
-	_, checkItemReport, error := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport)
-	if error != nil {
-		logger.Debug(CheckFailed)
+	_, checkItemReport, err := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport)
+	if err != nil {
+		logger.Errorf("check system preference failed, err: %v", err)
+		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system preference is not supported"
-		checkItemReport.Err.Detail = error.Error()
+		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
 		checkItemReport.Err.FixMethods = fmt.Sprint("please modify system preference")
 	} else {
@@ -399,11 +386,8 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 // goroutine as executor for check system components
 func CheckSysComponentExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
-	var err error
-
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"error":      err,
 		"check_item": "docker",
 	})
 
@@ -413,12 +397,13 @@ func CheckSysComponentExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemComponent, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
+		logger.Errorf("check system component failed, err: %v", err)
 		checkItemReport.Status = ItemActionFailed
 	}
 
 	err = check.CheckSysComponent(systemManager, desiredSystemManager)
 	if err != nil {
-		logger.Debug(CheckFailed)
+		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system component is not clear"
 		checkItemReport.Err.Detail = err.Error()
