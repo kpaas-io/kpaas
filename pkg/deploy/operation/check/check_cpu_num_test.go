@@ -22,7 +22,7 @@ import (
 )
 
 const (
-	desiredCPUCore float64 = 8
+	desiredCPUCore float64 = 4
 )
 
 // unit test of CheckCPUNums
@@ -48,9 +48,9 @@ func TestCheckCPUNums(t *testing.T) {
 			want:        nil,
 		},
 		{
-			cpuCore:     "7",
+			cpuCore:     "3",
 			desiredCore: desiredCPUCore,
-			want:        fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 7", desiredCPUCore),
+			want:        fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 3", desiredCPUCore),
 		},
 		{
 			cpuCore:     "-100",

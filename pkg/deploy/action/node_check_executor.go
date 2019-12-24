@@ -31,10 +31,10 @@ const (
 	desiredDockerVersion              = "18.09.0"
 	desiredKernelVersion              = "4.19.46"
 	desiredSystemManager              = "systemd"
-	desiredCPUCore            float64 = 8
-	desiredMemoryByteBase     float64 = 16
+	desiredCPUCore            float64 = 4
+	desiredMemoryByteBase     float64 = 8
 	desiredMemory                     = desiredMemoryByteBase * operation.GiByteUnits
-	desiredDiskVolumeByteBase float64 = 200
+	desiredDiskVolumeByteBase float64 = 50
 	desiredRootDiskVolume             = desiredDiskVolumeByteBase * operation.GiByteUnits
 
 	ItemActionPending = "pending"
@@ -82,12 +82,10 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		return "", checkItemReport, fmt.Errorf("fail to construct %v operation", item)
 	}
 
-	// close ssh client
-	defer checkItems.CloseSSH()
-
 	// create operation commands for specific item
 	op, err := checkItems.GetOperations(config)
 	if err != nil {
+		logrus.Debugf("errorororor: %v", err) //DEBUG
 		checkItemReport.Status = ItemActionFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = ItemErrOperation
@@ -106,6 +104,9 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.FixMethods = ItemHelperScript
 		return "", checkItemReport, fmt.Errorf("fail to run %v commands", item)
 	}
+
+	// close ssh client
+	checkItems.CloseSSH()
 
 	checkItemStdOut := strings.Trim(string(stdOut), "\n")
 	return checkItemStdOut, checkItemReport, nil
@@ -370,6 +371,7 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	_, checkItemReport, error := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport)
 	if error != nil {
+		logger.Debugf("errorororor: %v", error) //DEBUG
 		logger.Debug(CheckFailed)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system preference is not supported"

@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	desiredRootDiskByteVolume float64 = 200
+	desiredRootDiskByteVolume float64 = 50
 	diskStandard              float64 = desiredRootDiskByteVolume * operation.GiByteUnits
 )
 
@@ -46,9 +46,9 @@ func TestCheckRootDiskVolume(t *testing.T) {
 			want:              nil,
 		},
 		{
-			rootDiskVolume:    "51473368953",
+			rootDiskVolume:    "32473368953",
 			desiredDiskVolume: diskStandard,
-			want:              fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 51473368953", diskStandard),
+			want:              fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 32473368953", diskStandard),
 		},
 		{
 			rootDiskVolume:    "-1",

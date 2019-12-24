@@ -23,7 +23,7 @@ import (
 // Don't set _skip to true when commit for PR, otherwise it will break the UT.
 
 var (
-	_skip = true // set it to false if you want to run/debug the test locally.
+	_skip = false // set it to false if you want to run/debug the test locally.
 
 	_launchLocalServer   = true           // launch a local deploy server and connect to it to test
 	_remoteServerAddress = "0.0.0.0:8081" // connect to the remote deploy server
@@ -43,7 +43,7 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "placeholder", // replace it with the correct password when run/debug testing.
+				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},
@@ -55,7 +55,7 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "placeholder", // replace it with the correct password when run/debug testing.
+				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},
@@ -67,7 +67,7 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "placeholder", // replace it with the correct password when run/debug testing.
+				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},
@@ -79,7 +79,7 @@ var nodes = []*pb.Node{
 			Auth: &pb.Auth{
 				Type:       "password",
 				Username:   "root",
-				Credential: "placeholder", // replace it with the correct password when run/debug testing.
+				Credential: "PH5S~*Fg8d7o", // replace it with the correct password when run/debug testing.
 			},
 		},
 	},
