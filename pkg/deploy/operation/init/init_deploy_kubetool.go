@@ -23,6 +23,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
@@ -36,7 +37,7 @@ type InitKubeToolOperation struct {
 }
 
 func (itOps *InitKubeToolOperation) getScript() string {
-	itOps.Script = constant.KubeToolScript
+	itOps.Script = consts.DefaultKubeToolScript
 	return itOps.Script
 }
 
@@ -51,11 +52,11 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	var clusterDNSIP string
 	var nodeIP string
 
-	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", constant.PkgMirror)
-	kubernetesVersion := fmt.Sprintf("--version %v", constant.KubeVersion)
+	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", constant.DefaultPkgMirror)
+	kubernetesVersion := fmt.Sprintf("--version %v", constant.DefaultKubeVersion)
 
 	if initAction.ClusterConfig.ServiceSubnet == "" {
-		initAction.ClusterConfig.ServiceSubnet = constant.ServiceSubnet
+		initAction.ClusterConfig.ServiceSubnet = constant.DefaultServiceSubnet
 	}
 
 	clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(initAction.ClusterConfig.ServiceSubnet))
@@ -66,8 +67,8 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 
 	nodeIP = fmt.Sprintf("--node-ip %v", initAction.NodeInitConfig.Node.Ip)
 
-	if initAction.ClusterConfig.ImageRepository != "" {
-		imageRepository = fmt.Sprintf("--image-repository %v", constant.ImageRepository)
+	if initAction.ClusterConfig.ImageRepository == "" {
+		imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
 	}
 
 	ops := &InitKubeToolOperation{}

@@ -20,7 +20,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
@@ -67,7 +66,7 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(
 			operation.config.Machine,
-			fmt.Sprintf("/bin/bash %s", constant.KubeToolScript),
+			fmt.Sprintf("/bin/bash %s", consts.KubeConfigPath),
 			"join",
 			"--token="+consts.KubernetesToken,
 			"--master="+controlPlaneEndpoint,

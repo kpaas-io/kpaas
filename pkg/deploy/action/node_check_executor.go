@@ -21,6 +21,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check"
@@ -82,10 +83,12 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		return "", checkItemReport, fmt.Errorf("fail to construct %v operation", item)
 	}
 
+	// close ssh client
+	defer checkItems.CloseSSH()
+
 	// create operation commands for specific item
 	op, err := checkItems.GetOperations(config)
 	if err != nil {
-		logrus.Debugf("errorororor: %v", err) //DEBUG
 		checkItemReport.Status = ItemActionFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = ItemErrOperation
@@ -104,9 +107,6 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.FixMethods = ItemHelperScript
 		return "", checkItemReport, fmt.Errorf("fail to run %v commands", item)
 	}
-
-	// close ssh client
-	checkItems.CloseSSH()
 
 	checkItemStdOut := strings.Trim(string(stdOut), "\n")
 	return checkItemStdOut, checkItemReport, nil
@@ -262,7 +262,7 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Err.Reason = "memory capacity not enough"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
-		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize memory capacity to %e", desiredMemory)
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize memory capacity to %v", deploy.ReturnWithUnit(desiredMemory))
 	} else {
 		logger.Debug(CheckPassed)
 		logrus.Debug("memory check passed")
@@ -302,7 +302,7 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Err.Reason = "root disk volume is not enough"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemActionFailed
-		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize root disk volume to %e", desiredRootDiskVolume)
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize root disk volume to %s", deploy.ReturnWithUnit(desiredRootDiskVolume))
 	} else {
 		logger.Debug(CheckPassed)
 		checkItemReport.Status = ItemActionDone
@@ -371,7 +371,6 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport.Status = ItemActionDoing
 	_, checkItemReport, error := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport)
 	if error != nil {
-		logger.Debugf("errorororor: %v", error) //DEBUG
 		logger.Debug(CheckFailed)
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system preference is not supported"
