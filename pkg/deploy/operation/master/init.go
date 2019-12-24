@@ -37,7 +37,7 @@ import (
 const (
 	defaultControlPlaneReadyTimeout    = 5 * time.Minute
 	kubeadmConfigFileName              = "kubeadm_config.yaml"
-	kubeadmConfigPath                  = consts.DefaultK8sConfigDir + kubeadmConfigFileName
+	kubeadmConfigPath                  = consts.DefaultK8sConfigDir + "/" + kubeadmConfigFileName
 	defaultApiServerEtcdClientCertName = "apiserver-etcd-client.crt"
 	defaultApiServerEtcdClientKeyName  = "apiserver-etcd-client.key"
 	defaultApiServerEtcdClientCertPath = etcd.DefaultPKIDir + defaultApiServerEtcdClientCertName
@@ -80,8 +80,6 @@ func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOpera
 }
 
 func (op *initMasterOperation) PreDo() error {
-	// TODO
-	// put etcd ca cert, apiserver etcd client cert and key to first master node
 	etcdCACrt := etcd.EtcdCAcrt
 	if len(etcdCACrt) == 0 {
 		return fmt.Errorf("failed go obtain etcd ca cert, it's empty")
@@ -110,7 +108,7 @@ func (op *initMasterOperation) PreDo() error {
 		return fmt.Errorf("failed to generate %v, error: %v", kubeadmConfigPath, err)
 	}
 
-	if err := op.machine.PutFile(strings.NewReader(kubeadmConfig), defaultApiServerEtcdClientKeyPath); err != nil {
+	if err := op.machine.PutFile(strings.NewReader(kubeadmConfig), kubeadmConfigPath); err != nil {
 		return fmt.Errorf("failed to put kubeadm init config file to %v:%v, error: %v", op.machine.Name, defaultApiServerEtcdClientKeyPath, err)
 	}
 

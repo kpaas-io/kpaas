@@ -48,7 +48,7 @@ func GetNodeList(c *gin.Context) {
 // @Description Get a node information
 // @Tags node
 // @Produce application/json
-// @Param ip path int true "Node IP Address"
+// @Param ip path string true "Node IP Address"
 // @Success 200 {object} api.NodeData
 // @Failure 400 {object} h.AppErr
 // @Failure 404 {object} h.AppErr
@@ -143,7 +143,7 @@ func AddNode(c *gin.Context) {
 // @Accept application/json
 // @Produce application/json
 // @Param node body api.UpdateNodeData true "Node information"
-// @Param ip path int true "Node IP Address"
+// @Param ip path string true "Node IP Address"
 // @Success 200 {object} api.NodeData
 // @Failure 400 {object} h.AppErr
 // @Failure 404 {object} h.AppErr
@@ -214,7 +214,7 @@ func UpdateNode(c *gin.Context) {
 // @Description Delete a node from deployment candidate node list
 // @Tags node
 // @Produce application/json
-// @Param ip path int true "Node IP Address"
+// @Param ip path string true "Node IP Address"
 // @Success 204
 // @Failure 400 {object} h.AppErr
 // @Failure 404 {object} h.AppErr
