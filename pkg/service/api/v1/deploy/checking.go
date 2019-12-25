@@ -47,7 +47,7 @@ func CheckNodeList(c *gin.Context) {
 		return
 	}
 
-	if wizardData.GetCheckResult() == constant.CheckResultChecking {
+	if wizardData.GetCheckResult() == constant.CheckResultRunning {
 		h.E(c, h.EStatusError.WithPayload("It was checking"))
 		return
 	}
@@ -128,7 +128,7 @@ func listenCheckNodesData() {
 
 	wizardData := wizard.GetCurrentWizard()
 	for {
-		if wizardData.GetCheckResult() != constant.CheckResultChecking {
+		if wizardData.GetCheckResult() != constant.CheckResultRunning {
 			break
 		}
 

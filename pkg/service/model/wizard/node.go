@@ -94,11 +94,11 @@ const (
 	TaintEffectNoExecute        TaintEffect = "NoExecute"
 	TaintEffectPreferNoSchedule TaintEffect = "PreferNoSchedule"
 
-	DeployStatusPending   DeployStatus = "pending"
-	DeployStatusDeploying DeployStatus = "deploying"
-	DeployStatusCompleted DeployStatus = "completed"
-	DeployStatusFailed    DeployStatus = "failed"
-	DeployStatusAborted   DeployStatus = "aborted"
+	DeployStatusPending    DeployStatus = "pending"
+	DeployStatusRunning    DeployStatus = "running"
+	DeployStatusSuccessful DeployStatus = "successful"
+	DeployStatusFailed     DeployStatus = "failed"
+	DeployStatusAborted    DeployStatus = "aborted"
 
 	DefaultDockerRootDirectory = "/var/lib/docker"
 	DefaultUsername            = "root"
@@ -214,12 +214,12 @@ func NewCheckItem() *CheckItem {
 
 func (item *CheckItem) init() {
 
-	item.CheckResult = constant.CheckResultNotRunning
+	item.CheckResult = constant.CheckResultPending
 }
 
 func (report *CheckReport) init() {
 
-	report.CheckResult = constant.CheckResultNotRunning
+	report.CheckResult = constant.CheckResultPending
 	report.CheckedError = nil
 	report.CheckItems = make([]*CheckItem, 0, 0)
 }
