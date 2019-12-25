@@ -56,6 +56,7 @@ func (itOps *InitSwapOperation) GetOperations(node *pb.Node, initAction *operati
 	if err != nil {
 		return nil, err
 	}
+	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
 		return nil, err
@@ -66,5 +67,8 @@ func (itOps *InitSwapOperation) GetOperations(node *pb.Node, initAction *operati
 }
 
 func (itOps *InitSwapOperation) CloseSSH() {
+	if itOps.Machine == nil {
+		return
+	}
 	itOps.Machine.Close()
 }

@@ -95,6 +95,9 @@ func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *o
 }
 
 func (itOps *InitKeepalivedOperation) CloseSSH() {
+	if itOps.Machine == nil {
+		return
+	}
 	itOps.Machine.Close()
 }
 

@@ -16,6 +16,7 @@ package action
 
 import (
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/sirupsen/logrus"
@@ -24,6 +25,11 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	it "github.com/kpaas-io/kpaas/pkg/deploy/operation/init"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	InitPassed = "init passed"
+	InitFailed = "init failed"
 )
 
 func init() {
@@ -35,12 +41,14 @@ type nodeInitExecutor struct{}
 // due to items, ItemInitScripts exec remote scripts and return std, report, error
 func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport *NodeInitItem) (string, *NodeInitItem, error) {
 	logger := logrus.WithFields(logrus.Fields{
-		"error_reason": fmt.Sprintf("failed to run script on node: %v", action.Node.Name),
+		"node":      action.Node.GetName(),
+		"init_item": item,
 	})
 
 	initItemReport = &NodeInitItem{
 		Name:        fmt.Sprintf("init %v", item),
 		Description: fmt.Sprintf("init %v", item),
+		Err:         new(pb.Error),
 	}
 
 	initAction := &operation.NodeInitAction{
@@ -51,11 +59,11 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 
 	initItem := it.NewInitOperations().CreateOperations(item, initAction)
 	if initItem == nil {
+		logger.Error("can not create operation")
 		initItemReport.Status = ItemActionFailed
 		initItemReport.Err.Reason = ItemErrEmpty
 		initItemReport.Err.Detail = ItemErrEmpty
 		initItemReport.Err.FixMethods = ItemHelperEmpty
-		logger.Errorf("can not create %v operation", item)
 		return "", initItemReport, fmt.Errorf("can not create %v's operation for node: %v", item, action.Node.Name)
 	}
 
@@ -64,25 +72,26 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 
 	op, err := initItem.GetOperations(action.Node, initAction)
 	if err != nil {
+		logger.Errorf("can not create operation command, err: %v", err)
 		initItemReport.Status = ItemActionFailed
 		initItemReport.Err.Reason = ItemErrOperation
 		initItemReport.Err.Detail = err.Error()
 		initItemReport.Err.FixMethods = ItemHelperOperation
-		logger.Errorf("can not create operation command for %v", item)
 		return "", initItemReport, fmt.Errorf("can not create operation command %v for node: %v", item, action.Node.Name)
 	}
 
 	stdOut, stdErr, err := op.Do()
 	if err != nil {
+		logger.Errorf("can not execute operation command, err: %v", err)
 		initItemReport.Status = ItemActionFailed
 		initItemReport.Err.Reason = ItemErrScript
 		initItemReport.Err.Detail = string(stdErr)
 		initItemReport.Err.FixMethods = ItemHelperScript
-		logger.Errorf("can not execute %v operation", item)
 		return "", initItemReport, fmt.Errorf("can not execute %v operation command on node: %v", item, action.Node.Name)
 	}
 
-	initItemStdOut := string(stdOut)
+	initItemStdOut := strings.Trim(string(stdOut), "\n")
+
 	return initItemStdOut, initItemReport, nil
 }
 
@@ -97,13 +106,22 @@ func newNodeInitItem() *NodeInitItem {
 // goroutine exec item init event
 func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.WaitGroup) {
 
+	logger := logrus.WithFields(logrus.Fields{
+		"node":      ncAction.Node.GetName(),
+		"init_item": item,
+	})
+
+	logrus.Debugf("Start to execute init")
+
 	initItemReport := newNodeInitItem()
 	initItemReport.Status = ItemActionDoing
 	_, initItemReport, err := ExecuteInitScript(item, ncAction, initItemReport)
 	if err != nil {
+		logger.Errorf("%v: %v", InitFailed, err)
 		initItemReport.Status = ItemActionFailed
 	}
 
+	logger.Info(InitPassed)
 	UpdateInitItems(ncAction, initItemReport)
 
 	wg.Done()
@@ -125,7 +143,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	// init events include firewall, hostalias, hostname, network
 	// route, swap, timezone， kubetool
-	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.Haproxy, it.Keepalived, it.KubeTool}
+	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // TODO it.Haproxy, it.Keepalived,
 	for _, item := range itemEnums {
 		wg.Add(1)
 		go InitAsyncExecutor(item, nodeInitAction, &wg)
