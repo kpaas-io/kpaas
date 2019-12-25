@@ -32,9 +32,9 @@ func (op *BaseOperation) AddCommands(commands ...command.Command) {
 	op.commands = append(op.commands, commands...)
 }
 
-func (op *BaseOperation) Do() (stderr, stdout []byte, err error) {
+func (op *BaseOperation) Do() (stdout, stderr []byte, err error) {
 	for _, cmd := range op.commands {
-		stderr, stdout, err = cmd.Execute()
+		stdout, stderr, err = cmd.Execute()
 		if err != nil {
 			err = fmt.Errorf("run cmd %v error: %v", cmd, err)
 			return

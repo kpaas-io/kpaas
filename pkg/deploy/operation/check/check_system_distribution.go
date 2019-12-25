@@ -78,7 +78,6 @@ func CheckSystemDistribution(disName string) error {
 	}
 
 	if disName == DistributionCentos || disName == DistributionUbuntu || disName == DistributionRHEL {
-		logrus.Infof("%v", operation.InfoPassed)
 		return nil
 	} else {
 		logger.Errorf("distribution unclear")

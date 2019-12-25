@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	desiredMemoryByteBase float64 = 16
+	desiredMemoryByteBase float64 = 8
 	desiredMemory                 = desiredMemoryByteBase * operation.GiByteUnits
 )
 
@@ -46,19 +46,19 @@ func TestCheckMemoryCapacity(t *testing.T) {
 			want:           nil,
 		},
 		{
-			comparedMemory: "16267396000",
+			comparedMemory: "996123214",
 			desiredMemory:  desiredMemory,
-			want:           nil,
+			want:           fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 996123214", desiredMemory),
 		},
 		{
-			comparedMemory: "1626123214",
+			comparedMemory: "726123214",
 			desiredMemory:  desiredMemory,
-			want:           fmt.Errorf("amount not enough, desired amount: %.1f, actual amount: 1626123214", desiredMemory),
+			want:           fmt.Errorf("amount not enough, desired amount: %.0f, actual amount: 726123214", desiredMemory),
 		},
 		{
 			comparedMemory: "-1241211",
 			desiredMemory:  desiredMemory,
-			want:           fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.1f", desiredMemory),
+			want:           fmt.Errorf("input parameter invalid, input parameter can not be negative, desired amount: %.0f", desiredMemory),
 		},
 	}
 

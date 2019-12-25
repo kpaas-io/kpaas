@@ -81,7 +81,7 @@ func (c *ShellCommand) GetCommand() string {
 func (c *ShellCommand) Exists() (isExist bool, err error) {
 
 	var stderr, stdout []byte
-	stderr, stdout, err = c.machine.Run(getCommandExistShell(c.cmd))
+	stdout, stderr, err = c.machine.Run(getCommandExistShell(c.cmd))
 	if err != nil {
 		return false, err
 	}

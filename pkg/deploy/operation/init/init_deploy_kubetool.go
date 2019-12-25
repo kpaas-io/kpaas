@@ -20,6 +20,7 @@ import (
 
 	"k8s.io/kubernetes/pkg/registry/core/service/ipallocator"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
@@ -36,7 +37,7 @@ type InitKubeToolOperation struct {
 }
 
 func (itOps *InitKubeToolOperation) getScript() string {
-	itOps.Script = consts.KubeToolScript
+	itOps.Script = consts.DefaultKubeToolScript
 	return itOps.Script
 }
 
@@ -51,14 +52,11 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	var clusterDNSIP string
 	var nodeIP string
 
-	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", consts.PkgMirror)
-	kubernetesVersion := fmt.Sprintf("--version %v", consts.KubeVersion)
+	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", constant.DefaultPkgMirror)
+	kubernetesVersion := fmt.Sprintf("--version %v", constant.DefaultKubeVersion)
 
-	if initAction.ClusterConfig.ServiceSubnet == "" {
-		return nil, fmt.Errorf("service subnet can not be empty")
-	}
-
-	clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(initAction.ClusterConfig.ServiceSubnet))
+	// we would use initAction's service subnet in the future
+	clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(constant.DefaultServiceSubnet))
 
 	if initAction.NodeInitConfig.Node.Ip == "" {
 		return nil, fmt.Errorf("current node %v ip can not be empty", initAction.NodeInitConfig.Node.Name)
@@ -66,9 +64,8 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 
 	nodeIP = fmt.Sprintf("--node-ip %v", initAction.NodeInitConfig.Node.Ip)
 
-	if initAction.ClusterConfig.ImageRepository != "" {
-		imageRepository = fmt.Sprintf("--image-repository %v", initAction.ClusterConfig.ImageRepository)
-	}
+	// we would use initAction's image repository in the future
+	imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
 
 	ops := &InitKubeToolOperation{}
 	m, err := machine.NewMachine(node)

@@ -66,7 +66,7 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(
 			operation.config.Machine,
-			fmt.Sprintf("/bin/bash %s", consts.KubeToolScript),
+			fmt.Sprintf("/bin/bash %s", consts.DefaultKubeToolScript),
 			"join",
 			"--token="+consts.KubernetesToken,
 			"--master="+controlPlaneEndpoint,

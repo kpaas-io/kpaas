@@ -28,6 +28,7 @@ import (
 
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/server"
+	"github.com/sirupsen/logrus"
 )
 
 var (
@@ -40,6 +41,8 @@ func setup() {
 	if _skip {
 		return
 	}
+
+	logrus.SetLevel(logrus.DebugLevel)
 
 	serverAddress := _remoteServerAddress
 
