@@ -50,7 +50,7 @@ func (c *ShellCommand) WithExecuteLogWriter(w io.Writer) *ShellCommand {
 	return c
 }
 
-func (c *ShellCommand) Execute() (stderr, stdout []byte, err error) {
+func (c *ShellCommand) Execute() (stdout, stderr []byte, err error) {
 	startTime := time.Now()
 	stdout, stderr, err = c.machine.Run(c.GetCommand())
 	endTime := time.Now()
