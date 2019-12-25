@@ -46,7 +46,7 @@ func TestNewDeploymentReport(t *testing.T) {
 func TestNewCheckItem(t *testing.T) {
 
 	item := NewCheckItem()
-	assert.Equal(t, constant.CheckResultNotRunning, item.CheckResult)
+	assert.Equal(t, constant.CheckResultPending, item.CheckResult)
 }
 
 func TestNode_SetCheckResult(t *testing.T) {
@@ -67,15 +67,15 @@ func TestNode_SetCheckResult(t *testing.T) {
 			}{
 				Node: &Node{
 					CheckReport: &CheckReport{
-						CheckResult: constant.CheckResultChecking,
+						CheckResult: constant.CheckResultRunning,
 					},
 				},
-				CheckResult:   constant.CheckResultPassed,
+				CheckResult:   constant.CheckResultSuccessful,
 				FailureDetail: nil,
 			},
 			Want: &Node{
 				CheckReport: &CheckReport{
-					CheckResult: constant.CheckResultPassed,
+					CheckResult: constant.CheckResultSuccessful,
 				},
 			},
 		},
@@ -87,7 +87,7 @@ func TestNode_SetCheckResult(t *testing.T) {
 			}{
 				Node: &Node{
 					CheckReport: &CheckReport{
-						CheckResult: constant.CheckResultChecking,
+						CheckResult: constant.CheckResultRunning,
 					},
 				},
 				CheckResult: constant.CheckResultFailed,
@@ -143,7 +143,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 					},
 				},
 				ItemName:      "item 1",
-				CheckResult:   constant.CheckResultChecking,
+				CheckResult:   constant.CheckResultRunning,
 				FailureDetail: nil,
 			},
 			Want: &Node{
@@ -151,7 +151,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 					CheckItems: []*CheckItem{
 						{
 							ItemName:    "item 1",
-							CheckResult: constant.CheckResultChecking,
+							CheckResult: constant.CheckResultRunning,
 							Error:       nil,
 						},
 					},
@@ -170,14 +170,14 @@ func TestNode_SetCheckItem(t *testing.T) {
 						CheckItems: []*CheckItem{
 							{
 								ItemName:    "item 1",
-								CheckResult: constant.CheckResultChecking,
+								CheckResult: constant.CheckResultRunning,
 								Error:       nil,
 							},
 						},
 					},
 				},
 				ItemName:      "item 1",
-				CheckResult:   constant.CheckResultPassed,
+				CheckResult:   constant.CheckResultSuccessful,
 				FailureDetail: nil,
 			},
 			Want: &Node{
@@ -185,7 +185,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 					CheckItems: []*CheckItem{
 						{
 							ItemName:    "item 1",
-							CheckResult: constant.CheckResultPassed,
+							CheckResult: constant.CheckResultSuccessful,
 							Error:       nil,
 						},
 					},
@@ -204,7 +204,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 						CheckItems: []*CheckItem{
 							{
 								ItemName:    "item 2",
-								CheckResult: constant.CheckResultChecking,
+								CheckResult: constant.CheckResultRunning,
 								Error:       nil,
 							},
 						},
@@ -248,7 +248,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 						CheckItems: []*CheckItem{
 							{
 								ItemName:    "item 1",
-								CheckResult: constant.CheckResultChecking,
+								CheckResult: constant.CheckResultRunning,
 								Error:       nil,
 							},
 						},
@@ -268,7 +268,7 @@ func TestNode_SetCheckItem(t *testing.T) {
 					CheckItems: []*CheckItem{
 						{
 							ItemName:    "item 1",
-							CheckResult: constant.CheckResultChecking,
+							CheckResult: constant.CheckResultRunning,
 							Error:       nil,
 						},
 						{
@@ -346,14 +346,14 @@ func TestNode_SetDeployResult(t *testing.T) {
 					},
 				},
 				Role:          constant.MachineRoleMaster,
-				Status:        DeployStatusDeploying,
+				Status:        DeployStatusRunning,
 				FailureDetail: nil,
 			},
 			Want: &Node{
 				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 					constant.MachineRoleMaster: {
 						Role:   constant.MachineRoleMaster,
-						Status: DeployStatusDeploying,
+						Status: DeployStatusRunning,
 						Error:  nil,
 					},
 				},
@@ -370,7 +370,7 @@ func TestNode_SetDeployResult(t *testing.T) {
 					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 						constant.MachineRoleMaster: {
 							Role:   constant.MachineRoleMaster,
-							Status: DeployStatusDeploying,
+							Status: DeployStatusRunning,
 							Error:  nil,
 						},
 					},
@@ -410,25 +410,25 @@ func TestNode_SetDeployResult(t *testing.T) {
 					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 						constant.MachineRoleMaster: {
 							Role:   constant.MachineRoleMaster,
-							Status: DeployStatusDeploying,
+							Status: DeployStatusRunning,
 							Error:  nil,
 						},
 					},
 				},
 				Role:          constant.MachineRoleEtcd,
-				Status:        DeployStatusCompleted,
+				Status:        DeployStatusSuccessful,
 				FailureDetail: nil,
 			},
 			Want: &Node{
 				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
 					constant.MachineRoleMaster: {
 						Role:   constant.MachineRoleMaster,
-						Status: DeployStatusDeploying,
+						Status: DeployStatusRunning,
 						Error:  nil,
 					},
 					constant.MachineRoleEtcd: {
 						Role:   constant.MachineRoleEtcd,
-						Status: DeployStatusCompleted,
+						Status: DeployStatusSuccessful,
 						Error:  nil,
 					},
 				},

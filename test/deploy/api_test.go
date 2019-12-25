@@ -39,15 +39,15 @@ var (
 )
 
 func setup() {
-	if _skip {
+	if _testConfig.Skip {
 		return
 	}
 
 	logrus.SetLevel(logrus.DebugLevel)
 
-	serverAddress := _remoteServerAddress
+	serverAddress := _testConfig.RemoteServerAddress
 
-	if _launchLocalServer {
+	if _testConfig.LaunchLocalServer {
 		var port uint16 = 9999
 		// Setup and start gRpc server
 		options := server.ServerOptions{
@@ -72,13 +72,13 @@ func setup() {
 }
 
 func tearDown() {
-	if _skip {
+	if _testConfig.Skip {
 		return
 	}
 
 	conn.Close()
 
-	if _launchLocalServer {
+	if _testConfig.LaunchLocalServer {
 		stopCh <- struct{}{}
 	}
 }
@@ -91,74 +91,78 @@ func TestMain(m *testing.M) {
 }
 
 func TestTestConnection(t *testing.T) {
-	if _skip {
+	if _testConfig.Skip {
 		t.SkipNow()
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	r, err := client.TestConnection(ctx, testConnectionData.request.(*pb.TestConnectionRequest))
+	request, expetecdReply := getTestConnectionData()
+	actualReply, err := client.TestConnection(ctx, request)
 	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	assert.Equal(t, true, r.Passed)
+	assert.NotNil(t, actualReply)
+	assert.Equal(t, expetecdReply, actualReply)
 }
 
 func TestCheckNodes(t *testing.T) {
-	if _skip {
+	if _testConfig.Skip {
 		t.SkipNow()
 	}
 
 	// CheckNodes request
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	r, err := client.CheckNodes(ctx, checkNodesData.request.(*pb.CheckNodesRequest))
+	checkRequest, expetecdCheckReply := getCheckNodesData()
+	actualCheckReply, err := client.CheckNodes(ctx, checkRequest)
 	assert.NoError(t, err)
-	assert.NotNil(t, r)
-	assert.Equal(t, true, r.Accepted)
+	assert.NotNil(t, actualCheckReply)
+	assert.Equal(t, expetecdCheckReply, actualCheckReply)
 
 	// GetCheckNodesResult request
-	var actualReply *pb.GetCheckNodesResultReply
+	var actualResultReply *pb.GetCheckNodesResultReply
+	resultRequest, expetecdResultReply := getGetCheckNodesResultData()
 	// Call GetCheckNodesResult repeatly until the related task is done or failed.
 	err = wait.Poll(10*time.Second, 1*time.Minute, func() (done bool, err error) {
 		ctxPoll, cancelPoll := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelPoll()
-		actualReply, err = client.GetCheckNodesResult(ctxPoll, getCheckNodesResultData.request.(*pb.GetCheckNodesResultRequest))
+		actualResultReply, err = client.GetCheckNodesResult(ctxPoll, resultRequest)
 		if err != nil {
 			return false, err
 		}
-		if actualReply.Status == string(task.TaskFailed) || actualReply.Status == string(task.TaskDone) {
+		if actualResultReply.Status == string(task.TaskFailed) || actualResultReply.Status == string(task.TaskDone) {
 			return true, nil
 		}
 		return false, nil
 	})
 	assert.NoError(t, err)
-	assert.NotNil(t, actualReply)
-	sortCheckNodesResult(actualReply)
-	expectedReply := getCheckNodesResultData.reply.(*pb.GetCheckNodesResultReply)
-	sortCheckNodesResult(expectedReply)
-	assert.Equal(t, expectedReply, actualReply)
+	assert.NotNil(t, actualResultReply)
+	sortCheckNodesResult(actualResultReply)
+	sortCheckNodesResult(expetecdResultReply)
+	assert.Equal(t, expetecdResultReply, actualResultReply)
 }
 
 func TestDeploy(t *testing.T) {
-	if _skip {
+	if _testConfig.Skip {
 		t.SkipNow()
 	}
 
 	// Deploy request
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	res, err := client.Deploy(ctx, deployData.request.(*pb.DeployRequest))
+	deployRequest, expetecdDeployReply := getDeployData()
+	actualDeployReply, err := client.Deploy(ctx, deployRequest)
 	assert.NoError(t, err)
-	assert.NotNil(t, res)
-	assert.Equal(t, true, res.Accepted)
+	assert.NotNil(t, actualDeployReply)
+	assert.Equal(t, expetecdDeployReply, actualDeployReply)
 
 	// GetDeployResult request
-	var actualReply *pb.GetDeployResultReply
+	var actualResultReply *pb.GetDeployResultReply
+	resultRequest, expetecdResultReply := getDeployResultData()
 	// Call GetDeployResult repeatly until the related task is done or failed.
 	err = wait.Poll(10*time.Second, 10*time.Minute, func() (done bool, err error) {
 		ctxPoll, cancelPoll := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelPoll()
-		actualReply, err := client.GetDeployResult(ctxPoll, getDeployResultData.request.(*pb.GetDeployResultRequest))
+		actualReply, err := client.GetDeployResult(ctxPoll, resultRequest)
 		if err != nil {
 			return false, err
 		}
@@ -168,11 +172,10 @@ func TestDeploy(t *testing.T) {
 		return false, nil
 	})
 	assert.NoError(t, err)
-	assert.NotNil(t, actualReply)
-	sortDeployItemResults(actualReply.Items)
-	expectedReply := getCheckNodesResultData.reply.(*pb.GetDeployResultReply)
-	sortDeployItemResults(expectedReply.Items)
-	assert.Equal(t, expectedReply, actualReply)
+	assert.NotNil(t, actualResultReply)
+	sortDeployItemResults(actualResultReply.Items)
+	sortDeployItemResults(expetecdResultReply.Items)
+	assert.Equal(t, expetecdResultReply, actualResultReply)
 }
 
 func sortItemCheckResults(results []*pb.ItemCheckResult) {

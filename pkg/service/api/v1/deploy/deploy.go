@@ -47,7 +47,7 @@ func Deploy(c *gin.Context) {
 		return
 	}
 
-	if wizardData.GetCheckResult() != constant.CheckResultPassed {
+	if wizardData.GetCheckResult() != constant.CheckResultSuccessful {
 		h.E(c, h.EStatusError.WithPayload("current check result status is not passed"))
 		return
 	}

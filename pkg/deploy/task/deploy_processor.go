@@ -53,17 +53,7 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	roles := p.groupByRole(deployTask.NodeConfigs)
 
 	// create the init sub tasks with priority = 10
-	// create the init master sub tasks with priority = 10
-	initTask, err := p.createInitSubTask(constant.MachineRoleMaster, deployTask, roles)
-	if err != nil {
-		err = fmt.Errorf("failed to create common init sub tasks: %s", err)
-		logger.Error(err)
-		return err
-	}
-	subTasks = append(subTasks, initTask)
-
-	// create the init worker sub tasks with priority = 10
-	initTask, err = p.createInitSubTask(constant.MachineRoleWorker, deployTask, roles)
+	initTask, err := p.createInitSubTask(deployTask, roles)
 	if err != nil {
 		err = fmt.Errorf("failed to create common init sub tasks: %s", err)
 		logger.Error(err)
@@ -151,7 +141,7 @@ func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[constant.
 	return roles
 }
 
-func (p *deployProcessor) createInitSubTask(role constant.MachineRole, parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {
+func (p *deployProcessor) createInitSubTask(parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {
 
 	config := &NodeInitTaskConfig{
 		NodeConfigs:     parent.NodeConfigs,
@@ -160,7 +150,7 @@ func (p *deployProcessor) createInitSubTask(role constant.MachineRole, parent *D
 		Parent:          parent.GetName(),
 		ClusterConfig:   parent.ClusterConfig,
 	}
-	task, err = NewNodeInitTask(fmt.Sprintf("init-%s", role), config)
+	task, err = NewNodeInitTask(fmt.Sprintf("init"), config)
 	return
 }
 
