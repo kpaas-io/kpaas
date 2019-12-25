@@ -16,15 +16,14 @@ package action
 
 import (
 	"fmt"
-	"sync"
-
 	"github.com/sirupsen/logrus"
+	"strings"
+	"sync"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	it "github.com/kpaas-io/kpaas/pkg/deploy/operation/init"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-	"strings"
 )
 
 const (
@@ -41,7 +40,8 @@ type nodeInitExecutor struct{}
 // due to items, ItemInitScripts exec remote scripts and return std, report, error
 func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport *NodeInitItem) (string, *NodeInitItem, error) {
 	logger := logrus.WithFields(logrus.Fields{
-		"error_reason": fmt.Sprintf("failed to run script on node: %v", action.Node.Name),
+		"node":      action.Node.GetName(),
+		"init_item": item,
 	})
 
 	initItemReport = &NodeInitItem{
@@ -57,36 +57,43 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 
 	initItem := it.NewInitOperations().CreateOperations(item, initAction)
 	if initItem == nil {
+		logger.Errorf("can not create %v operation", item)
 		initItemReport.Status = ItemActionFailed
+		initItemReport.Err = new(pb.Error)
 		initItemReport.Err.Reason = ItemErrEmpty
 		initItemReport.Err.Detail = ItemErrEmpty
 		initItemReport.Err.FixMethods = ItemHelperEmpty
-		logger.Errorf("can not create %v operation", item)
 		return "", initItemReport, fmt.Errorf("can not create %v's operation for node: %v", item, action.Node.Name)
 	}
 
 	// close ssh client
-	defer initItem.CloseSSH()
+	//defer initItem.CloseSSH()
 
 	op, err := initItem.GetOperations(action.Node, initAction)
 	if err != nil {
+		logger.Errorf("can not create %v operation command for %v", item, err)
+		logrus.Debugf("failed to create %v operation command, err: %v", item, err)
 		initItemReport.Status = ItemActionFailed
+		initItemReport.Err = new(pb.Error)
 		initItemReport.Err.Reason = ItemErrOperation
 		initItemReport.Err.Detail = err.Error()
 		initItemReport.Err.FixMethods = ItemHelperOperation
-		logger.Errorf("can not create operation command for %v", item)
 		return "", initItemReport, fmt.Errorf("can not create operation command %v for node: %v", item, action.Node.Name)
 	}
 
 	stdOut, stdErr, err := op.Do()
 	if err != nil {
+		logger.Errorf("can not execute %v operation command for %v", item, err)
+		logrus.Debugf("failed to exec %v operation command, err: %v", item, err)
 		initItemReport.Status = ItemActionFailed
+		initItemReport.Err = new(pb.Error)
 		initItemReport.Err.Reason = ItemErrScript
 		initItemReport.Err.Detail = string(stdErr)
 		initItemReport.Err.FixMethods = ItemHelperScript
-		logger.Errorf("can not execute %v operation", item)
 		return "", initItemReport, fmt.Errorf("can not execute %v operation command on node: %v", item, action.Node.Name)
 	}
+
+	initItem.CloseSSH()
 
 	initItemStdOut := strings.Trim(string(stdOut), "\n")
 	return initItemStdOut, initItemReport, nil
@@ -104,7 +111,7 @@ func newNodeInitItem() *NodeInitItem {
 func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.WaitGroup) {
 
 	logger := logrus.WithFields(logrus.Fields{
-		"node": ncAction.Node.GetName(),
+		"node":      ncAction.Node.GetName(),
 		"init_item": item,
 	})
 
@@ -141,12 +148,11 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	// init events include firewall, hostalias, hostname, network
 	// route, swap, timezone， kubetool
-	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.Haproxy, it.Keepalived, it.KubeTool}
+	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // TODO it.Haproxy, it.Keepalived,
 	for _, item := range itemEnums {
 		wg.Add(1)
 		go InitAsyncExecutor(item, nodeInitAction, &wg)
 	}
-
 
 	wg.Wait()
 

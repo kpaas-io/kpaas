@@ -56,6 +56,7 @@ func (itOps *InitRouteOperation) GetOperations(node *pb.Node, initAction *operat
 	if err != nil {
 		return nil, err
 	}
+	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
 		return nil, err

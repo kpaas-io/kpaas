@@ -56,6 +56,7 @@ func (itOps *InitHostaliasOperation) GetOperations(node *pb.Node, initAction *op
 	if err != nil {
 		return nil, err
 	}
+	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
 		return nil, err
