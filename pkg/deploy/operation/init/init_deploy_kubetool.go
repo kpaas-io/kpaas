@@ -79,6 +79,7 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	if err != nil {
 		return nil, err
 	}
+	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
 		return nil, err
@@ -97,6 +98,9 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 }
 
 func (itOps *InitKubeToolOperation) CloseSSH() {
+	if itOps.Machine == nil {
+		return
+	}
 	itOps.Machine.Close()
 }
 

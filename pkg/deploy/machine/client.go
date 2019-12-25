@@ -54,7 +54,16 @@ func NewExecClient(node *pb.Node) (*ExecClient, error) {
 // Close will only close ssh client
 // no need to close sftp client since it's based on ssh client
 func (m *ExecClient) Close() {
-	m.SSHClient.Close()
+
+	if m.SSHClient != nil {
+		m.SSHClient.Close()
+	}
+
+	if m.SFTPClient != nil {
+		m.SFTPClient.Close()
+	}
+
+	return
 }
 
 // WriteFile writes data to a file named by filename.

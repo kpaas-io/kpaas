@@ -56,15 +56,19 @@ func (itOps *InitFireWallOperation) GetOperations(node *pb.Node, initAction *ope
 	if err != nil {
 		return nil, err
 	}
+	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "/bin/bash", itOps.ScriptPath+itOps.Script))
 	return ops, nil
 }
 
 func (itOps *InitFireWallOperation) CloseSSH() {
+	if itOps.Machine == nil {
+		return
+	}
 	itOps.Machine.Close()
 }
