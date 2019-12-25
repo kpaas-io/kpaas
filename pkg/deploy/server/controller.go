@@ -20,6 +20,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/task"
@@ -323,4 +324,19 @@ func getTestConnectionTaskName(nodeName string) string {
 	// User may test a node's connection repeatly, so create a unique task name
 	// for each request
 	return fmt.Sprintf("testconnection-%v-%v", nodeName, idcreator.NextString())
+}
+
+func getOperationStatus(taskStatus task.Status) constant.OperationStatus {
+	switch taskStatus {
+	case task.TaskPending:
+		return constant.OperationStatusPending
+	case task.TaskDoing, task.TaskSplitting, task.TaskSplitted:
+		return constant.OperationStatusRunning
+	case task.TaskDone:
+		return constant.OperationStatusSuccessful
+	case task.TaskFailed:
+		return constant.OperationStatusFailed
+	default:
+		return constant.OperationStatusUnknown
+	}
 }
