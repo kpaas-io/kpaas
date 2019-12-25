@@ -187,7 +187,9 @@ func UpdateNode(c *gin.Context) {
 	node.AuthenticationType = convertAPIAuthenticationTypeToModelAuthenticationType(requestData.AuthenticationType)
 	switch requestData.AuthenticationType {
 	case api.AuthenticationTypePassword:
-		node.Password = requestData.Password
+		if len(requestData.Password) > 0 {
+			node.Password = requestData.Password
+		}
 	case api.AuthenticationTypePrivateKey:
 		node.PrivateKeyName = requestData.PrivateKeyName
 	}
