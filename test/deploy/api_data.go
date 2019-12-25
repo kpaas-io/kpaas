@@ -188,3 +188,153 @@ var getCheckNodesResultData = &ApiParams{
 		},
 	},
 }
+
+var clusterConfig = &pb.ClusterConfig{
+	ClusterName: "TestCluster",
+	KubeAPIServerConnect: &pb.KubeAPIServerConnect{
+		Type: "firstMasterIP",
+	},
+	NodePortRange: &pb.NodePortRange{
+		From: 30000,
+		To:   32000,
+	},
+	NodeLabels:      map[string]string{"nodelabelkey": "nodelabelvalue"},
+	NodeAnnotations: map[string]string{"nodeannokey": "nodeannovalue"},
+	// TODO: the following paramters are using default value for now.
+	// ImageRepository: "https://hub.docker.com/u/kpaas",
+	// PodSubnet: "",
+	// ServiceSubnet: "",
+	// KubernetesVersion: "",
+}
+
+var deployData = &ApiParams{
+	request: &pb.DeployRequest{
+		NodeConfigs: []*pb.NodeDeployConfig{
+			&pb.NodeDeployConfig{
+				Node:  nodes[0],
+				Roles: []string{"etcd", "master"},
+				Labels: map[string]string{
+					"kpaas-io/role": "master",
+					"testkey":       "testvalue",
+				},
+				Taints: []*pb.Taint{
+					&pb.Taint{
+						Key:    "kpaas-io/role",
+						Value:  "master",
+						Effect: "NoSchedule",
+					},
+				},
+			},
+			&pb.NodeDeployConfig{
+				Node:  nodes[1],
+				Roles: []string{"etcd", "master"},
+				Labels: map[string]string{
+					"kpaas-io/role": "master",
+					"testkey":       "testvalue",
+				},
+				Taints: []*pb.Taint{
+					&pb.Taint{
+						Key:    "kpaas-io/role",
+						Value:  "master",
+						Effect: "NoSchedule",
+					},
+				},
+			},
+			&pb.NodeDeployConfig{
+				Node:  nodes[2],
+				Roles: []string{"etcd", "master"},
+				Labels: map[string]string{
+					"kpaas-io/role": "master",
+					"testkey":       "testvalue",
+				},
+				Taints: []*pb.Taint{
+					&pb.Taint{
+						Key:    "kpaas-io/role",
+						Value:  "master",
+						Effect: "NoSchedule",
+					},
+				},
+			},
+			&pb.NodeDeployConfig{
+				Node:  nodes[3],
+				Roles: []string{"worker"},
+				Labels: map[string]string{
+					"kpaas-io/role": "worker",
+					"testkey":       "testvalue",
+				},
+			},
+		},
+		ClusterConfig: clusterConfig,
+	},
+	reply: &pb.DeployReply{
+		Accepted: true,
+	},
+}
+
+var deployItemResults = []*pb.DeployItemResult{
+	&pb.DeployItemResult{
+		DeployItem: &pb.DeployItem{
+			Role:     "etcd",
+			NodeName: nodes[0].Name,
+		},
+		Status: "done",
+		Err:    nil,
+	},
+	&pb.DeployItemResult{
+		DeployItem: &pb.DeployItem{
+			Role:     "etcd",
+			NodeName: nodes[1].Name,
+		},
+		Status: "done",
+		Err:    nil,
+	},
+	&pb.DeployItemResult{
+		DeployItem: &pb.DeployItem{
+			Role:     "etcd",
+			NodeName: nodes[2].Name,
+		},
+		Status: "done",
+		Err:    nil,
+	},
+	&pb.DeployItemResult{
+		DeployItem: &pb.DeployItem{
+			Role:     "master",
+			NodeName: nodes[0].Name,
+		},
+		Status: "done",
+		Err:    nil,
+	},
+	&pb.DeployItemResult{
+		DeployItem: &pb.DeployItem{
+			Role:     "master",
+			NodeName: nodes[1].Name,
+		},
+		Status: "done",
+		Err:    nil,
+	},
+	&pb.DeployItemResult{
+		DeployItem: &pb.DeployItem{
+			Role:     "master",
+			NodeName: nodes[2].Name,
+		},
+		Status: "done",
+		Err:    nil,
+	},
+	&pb.DeployItemResult{
+		DeployItem: &pb.DeployItem{
+			Role:     "worker",
+			NodeName: nodes[3].Name,
+		},
+		Status: "done",
+		Err:    nil,
+	},
+}
+
+var getDeployResultData = &ApiParams{
+	request: &pb.GetDeployResultRequest{},
+	reply: &pb.GetDeployResultReply{
+		Status: string(task.TaskDone),
+		Err:    nil,
+		Items:  deployItemResults,
+	},
+}

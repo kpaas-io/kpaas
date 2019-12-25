@@ -22,7 +22,7 @@ import (
 )
 
 // @ID DownloadKubeConfig
-// @Summary Download the log detail
+// @Summary Download kubeconfig file content
 // @Description Download kubeconfig file
 // @Tags kubeconfig
 // @Produce text/plain

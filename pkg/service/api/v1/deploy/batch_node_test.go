@@ -137,6 +137,127 @@ k8s-master2   root	    master,etcd          192.168.3.224    22          -	     
 			},
 		},
 		{
+			BaseNodeList: []*wizard.Node{},
+			Input: `
+#<hostname>    <user>    <role,role,role>    <IP>             <ssh port>    <password>       <login key name>    <docker path>
+k8s-master1    root      master,etcd         192.168.3.223    22             111111111111    -                   /var/lib/docker
+k8s-master2    root      master,etcd         192.168.3.224    22             111111111111    -                   /var/lib/docker
+k8s-master3    root      master,etcd         192.168.3.227    22             111111111111    -                   /var/lib/docker
+k8s-worker4    root      worker,etcd         192.168.3.226    22             -               worker_key          /var/lib/docker
+k8s-worker5    root      worker,etcd         192.168.3.229    22             -               worker_key          /var/lib/docker
+k8s-worker6    root      worker              192.168.3.230    22             -               worker_key          /var/lib/docker
+`,
+			Want: &api.GetNodeListResponse{
+				Nodes: []api.NodeData{
+					{
+						NodeBaseData: api.NodeBaseData{
+							Name:                "k8s-master1",
+							MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
+							DockerRootDirectory: "/var/lib/docker",
+							Labels:              []api.Label{},
+							Taints:              []api.Taint{},
+						},
+						ConnectionData: api.ConnectionData{
+							SSHLoginData: api.SSHLoginData{
+								Username:           "root",
+								AuthenticationType: api.AuthenticationTypePassword,
+							},
+							IP:   "192.168.3.223",
+							Port: 22,
+						},
+					},
+					{
+						NodeBaseData: api.NodeBaseData{
+							Name:                "k8s-master2",
+							MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
+							DockerRootDirectory: "/var/lib/docker",
+							Labels:              []api.Label{},
+							Taints:              []api.Taint{},
+						},
+						ConnectionData: api.ConnectionData{
+							SSHLoginData: api.SSHLoginData{
+								Username:           "root",
+								AuthenticationType: api.AuthenticationTypePassword,
+							},
+							IP:   "192.168.3.224",
+							Port: 22,
+						},
+					},
+					{
+						NodeBaseData: api.NodeBaseData{
+							Name:                "k8s-master3",
+							MachineRoles:        []constant.MachineRole{constant.MachineRoleMaster, constant.MachineRoleEtcd},
+							DockerRootDirectory: "/var/lib/docker",
+							Labels:              []api.Label{},
+							Taints:              []api.Taint{},
+						},
+						ConnectionData: api.ConnectionData{
+							SSHLoginData: api.SSHLoginData{
+								Username:           "root",
+								AuthenticationType: api.AuthenticationTypePassword,
+							},
+							IP:   "192.168.3.227",
+							Port: 22,
+						},
+					},
+					{
+						NodeBaseData: api.NodeBaseData{
+							Name:                "k8s-worker4",
+							MachineRoles:        []constant.MachineRole{constant.MachineRoleWorker, constant.MachineRoleEtcd},
+							DockerRootDirectory: "/var/lib/docker",
+							Labels:              []api.Label{},
+							Taints:              []api.Taint{},
+						},
+						ConnectionData: api.ConnectionData{
+							SSHLoginData: api.SSHLoginData{
+								Username:           "root",
+								AuthenticationType: api.AuthenticationTypePrivateKey,
+								PrivateKeyName:     "worker_key",
+							},
+							IP:   "192.168.3.226",
+							Port: 22,
+						},
+					},
+					{
+						NodeBaseData: api.NodeBaseData{
+							Name:                "k8s-worker5",
+							MachineRoles:        []constant.MachineRole{constant.MachineRoleWorker, constant.MachineRoleEtcd},
+							DockerRootDirectory: "/var/lib/docker",
+							Labels:              []api.Label{},
+							Taints:              []api.Taint{},
+						},
+						ConnectionData: api.ConnectionData{
+							SSHLoginData: api.SSHLoginData{
+								Username:           "root",
+								AuthenticationType: api.AuthenticationTypePrivateKey,
+								PrivateKeyName:     "worker_key",
+							},
+							IP:   "192.168.3.229",
+							Port: 22,
+						},
+					},
+					{
+						NodeBaseData: api.NodeBaseData{
+							Name:                "k8s-worker6",
+							MachineRoles:        []constant.MachineRole{constant.MachineRoleWorker},
+							DockerRootDirectory: "/var/lib/docker",
+							Labels:              []api.Label{},
+							Taints:              []api.Taint{},
+						},
+						ConnectionData: api.ConnectionData{
+							SSHLoginData: api.SSHLoginData{
+								Username:           "root",
+								AuthenticationType: api.AuthenticationTypePrivateKey,
+								PrivateKeyName:     "worker_key",
+							},
+							IP:   "192.168.3.230",
+							Port: 22,
+						},
+					},
+				},
+			},
+		},
+		{
 			BaseNodeList: []*wizard.Node{
 				{
 					Name: "k8s-master1",
