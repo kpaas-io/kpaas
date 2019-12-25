@@ -95,7 +95,9 @@ func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *o
 }
 
 func (itOps *InitKeepalivedOperation) CloseSSH() {
-	itOps.Machine.Close()
+	if itOps.Machine.ExecClient.SSHClient != nil {
+		itOps.Machine.Close()
+	}
 }
 
 // get master IP with config

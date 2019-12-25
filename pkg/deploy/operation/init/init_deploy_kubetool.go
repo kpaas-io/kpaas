@@ -97,7 +97,9 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 }
 
 func (itOps *InitKubeToolOperation) CloseSSH() {
-	itOps.Machine.Close()
+	if itOps.Machine.ExecClient.SSHClient != nil {
+		itOps.Machine.Close()
+	}
 }
 
 // get dns IP from subnet

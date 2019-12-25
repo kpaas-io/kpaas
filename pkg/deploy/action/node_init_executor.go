@@ -24,6 +24,12 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	it "github.com/kpaas-io/kpaas/pkg/deploy/operation/init"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"strings"
+)
+
+const (
+	InitPassed = "init passed"
+	InitFailed = "init failed"
 )
 
 func init() {
@@ -82,7 +88,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		return "", initItemReport, fmt.Errorf("can not execute %v operation command on node: %v", item, action.Node.Name)
 	}
 
-	initItemStdOut := string(stdOut)
+	initItemStdOut := strings.Trim(string(stdOut), "\n")
 	return initItemStdOut, initItemReport, nil
 }
 
@@ -97,13 +103,23 @@ func newNodeInitItem() *NodeInitItem {
 // goroutine exec item init event
 func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.WaitGroup) {
 
+	logger := logrus.WithFields(logrus.Fields{
+		"node": ncAction.Node.GetName(),
+		"init_item": item,
+	})
+
+	logrus.Debugf("Start to execute init %v, node: %v", item, ncAction.Node.GetName())
+
 	initItemReport := newNodeInitItem()
 	initItemReport.Status = ItemActionDoing
 	_, initItemReport, err := ExecuteInitScript(item, ncAction, initItemReport)
 	if err != nil {
+		logger.Errorf("init %v failed, err: %v", item, err)
+		logger.Debugf("%v: %v", InitFailed, err)
 		initItemReport.Status = ItemActionFailed
 	}
 
+	logger.Debugf(InitPassed)
 	UpdateInitItems(ncAction, initItemReport)
 
 	wg.Done()
@@ -130,6 +146,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 		wg.Add(1)
 		go InitAsyncExecutor(item, nodeInitAction, &wg)
 	}
+
 
 	wg.Wait()
 

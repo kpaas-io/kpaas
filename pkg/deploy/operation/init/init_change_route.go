@@ -66,5 +66,7 @@ func (itOps *InitRouteOperation) GetOperations(node *pb.Node, initAction *operat
 }
 
 func (itOps *InitRouteOperation) CloseSSH() {
-	itOps.Machine.Close()
+	if itOps.Machine.ExecClient.SSHClient != nil {
+		itOps.Machine.Close()
+	}
 }

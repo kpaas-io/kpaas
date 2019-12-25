@@ -104,7 +104,9 @@ func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *oper
 }
 
 func (itOps *InitHaproxyOperation) CloseSSH() {
-	itOps.Machine.Close()
+	if itOps.Machine.ExecClient.SSHClient != nil {
+		itOps.Machine.Close()
+	}
 }
 
 // construct haproxy parameter
