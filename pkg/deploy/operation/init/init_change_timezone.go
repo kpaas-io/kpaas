@@ -59,5 +59,8 @@ func (itOps *InitTimeZoneOperation) GetOperations(node *pb.Node, initAction *ope
 }
 
 func (itOps *InitTimeZoneOperation) CloseSSH() {
+	if itOps.Machine == nil {
+		return
+	}
 	itOps.Machine.Close()
 }
