@@ -126,40 +126,74 @@ var checkNodesData = &ApiParams{
 
 var checkItems = []*pb.CheckItem{
 	&pb.CheckItem{
-		Name:        "Docker check",
-		Description: "Docker check",
+		Name:        "docker check",
+		Description: "docker check",
 	},
 	&pb.CheckItem{
-		Name:        "CPU check",
-		Description: "CPU check",
+		Name:        "cpu check",
+		Description: "cpu check",
 	},
 	&pb.CheckItem{
-		Name:        "Kernel check",
-		Description: "Kernel check",
+		Name:        "kernel check",
+		Description: "kernel check",
 	},
 	&pb.CheckItem{
-		Name:        "Memory check",
-		Description: "Memory check",
+		Name:        "memory check",
+		Description: "memory check",
 	},
 	&pb.CheckItem{
-		Name:        "Disk check",
-		Description: "Disk check",
+		Name:        "disk check",
+		Description: "disk check",
 	},
 	&pb.CheckItem{
-		Name:        "Distribution check",
-		Description: "Distribution check",
+		Name:        "distribution check",
+		Description: "distribution check",
 	},
 	&pb.CheckItem{
-		Name:        "SystemPreference check",
-		Description: "SystemPreference check",
+		Name:        "systempreference check",
+		Description: "systempreference check",
 	},
 	&pb.CheckItem{
-		Name:        "SystemComponent check",
-		Description: "SystemComponent check",
+		Name:        "systemcomponent check",
+		Description: "systemcomponent check",
 	},
 }
 
 var itemsResult []*pb.ItemCheckResult
+
+var getCheckNodesResultData = &ApiParams{
+	request: &pb.GetCheckNodesResultRequest{},
+	reply: &pb.GetCheckNodesResultReply{
+		Status: string(task.TaskDone),
+		Err:    nil,
+		Nodes: map[string]*pb.NodeCheckResult{
+			nodes[0].Name: &pb.NodeCheckResult{
+				NodeName: nodes[0].Name,
+				Status:   string(task.TaskDone),
+				Err:      nil,
+				Items:    nil,
+			},
+			nodes[1].Name: &pb.NodeCheckResult{
+				NodeName: nodes[1].Name,
+				Status:   string(task.TaskDone),
+				Err:      nil,
+				Items:    nil,
+			},
+			nodes[2].Name: &pb.NodeCheckResult{
+				NodeName: nodes[2].Name,
+				Status:   string(task.TaskDone),
+				Err:      nil,
+				Items:    nil,
+			},
+			nodes[3].Name: &pb.NodeCheckResult{
+				NodeName: nodes[3].Name,
+				Status:   string(task.TaskDone),
+				Err:      nil,
+				Items:    nil,
+			},
+		},
+	},
+}
 
 func init() {
 	// Create check itemsResult
@@ -171,22 +205,10 @@ func init() {
 		}
 		itemsResult = append(itemsResult, result)
 	}
-}
 
-var getCheckNodesResultData = &ApiParams{
-	request: &pb.GetCheckNodesResultRequest{},
-	reply: &pb.GetCheckNodesResultReply{
-		Status: string(task.TaskDone),
-		Err:    nil,
-		Nodes: map[string]*pb.NodeCheckResult{
-			nodes[0].Name: &pb.NodeCheckResult{
-				NodeName: nodes[0].Name,
-				Status:   "done",
-				Err:      nil,
-				Items:    itemsResult,
-			},
-		},
-	},
+	for _, checkResult := range getCheckNodesResultData.reply.(*pb.GetCheckNodesResultReply).Nodes {
+		checkResult.Items = itemsResult
+	}
 }
 
 var clusterConfig = &pb.ClusterConfig{
