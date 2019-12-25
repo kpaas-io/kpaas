@@ -21,6 +21,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	it "github.com/kpaas-io/kpaas/pkg/deploy/operation/init"
@@ -147,15 +148,13 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	workerItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
 	masterItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // cloud machine can not test it.Haproxy, it.Keepalived}
 
-	if pickUpRole(nodeInitAction, "master") {
+	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
 		for _, item := range masterItemEnums {
 			wg.Add(1)
 			go InitAsyncExecutor(item, nodeInitAction, &wg)
 		}
 		wg.Wait()
-	}
-
-	if pickUpRole(nodeInitAction, "worker") {
+	} else if containsRole(nodeInitAction, constant.MachineRoleWorker) {
 		for _, item := range workerItemEnums {
 			wg.Add(1)
 			go InitAsyncExecutor(item, nodeInitAction, &wg)
@@ -198,9 +197,9 @@ func getFailedInitItems(initAction *NodeInitAction) []string {
 }
 
 // separate roles
-func pickUpRole(initAction *NodeInitAction, wantRole string) bool {
+func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) bool {
 	for _, role := range initAction.NodeInitConfig.Roles {
-		if role == wantRole {
+		if role == string(wantRole) {
 			return true
 		}
 	}
