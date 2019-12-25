@@ -30,7 +30,7 @@ import (
 )
 
 // Run will run command on remote machine
-func (m *Machine) Run(cmd string) (stderr, stdout []byte, err error) {
+func (m *Machine) Run(cmd string) (stdout, stderr []byte, err error) {
 	session, err := mssh.NewSession(m.SSHClient)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get session of machine(%v), error: %v", m.Name, err)
@@ -62,7 +62,7 @@ func (m *Machine) Run(cmd string) (stderr, stdout []byte, err error) {
 		return nil, nil, fmt.Errorf("unable to  read stderr message for cmd(%v) returned from machine(%v), error: %v", cmd, m.Name, err)
 	}
 
-	return stderr, stdout, nil
+	return
 }
 
 func (m *Machine) PutFile(content io.Reader, remotePath string) error {
