@@ -26,6 +26,11 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+const (
+	InitPassed = "init passed"
+	InitFailed = "init failed"
+)
+
 func init() {
 	RegisterExecutor(ActionTypeNodeInit, new(nodeInitExecutor))
 }
@@ -53,7 +58,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 
 	initItem := it.NewInitOperations().CreateOperations(item, initAction)
 	if initItem == nil {
-		logger.Errorf("can not create %v operation", item)
+		logger.Error("can not create operation")
 		initItemReport.Status = ItemActionFailed
 		initItemReport.Err.Reason = ItemErrEmpty
 		initItemReport.Err.Detail = ItemErrEmpty
@@ -66,7 +71,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 
 	op, err := initItem.GetOperations(action.Node, initAction)
 	if err != nil {
-		logger.Errorf("can not create %v operation command for %v", item, err)
+		logger.Errorf("can not create operation command, err: %v", err)
 		initItemReport.Status = ItemActionFailed
 		initItemReport.Err.Reason = ItemErrOperation
 		initItemReport.Err.Detail = err.Error()
@@ -76,7 +81,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 
 	stdOut, stdErr, err := op.Do()
 	if err != nil {
-		logger.Errorf("can not execute %v operation command for %v", item, err)
+		logger.Errorf("can not execute operation command, err: %v", err)
 		initItemReport.Status = ItemActionFailed
 		initItemReport.Err.Reason = ItemErrScript
 		initItemReport.Err.Detail = string(stdErr)
@@ -105,16 +110,17 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 		"init_item": item,
 	})
 
-	logrus.Debugf("Start to execute init %v, node: %v", item, ncAction.Node.GetName())
+	logrus.Debugf("Start to execute init")
 
 	initItemReport := newNodeInitItem()
 	initItemReport.Status = ItemActionDoing
 	_, initItemReport, err := ExecuteInitScript(item, ncAction, initItemReport)
 	if err != nil {
-		logger.Errorf("init %v failed, err: %v", item, err)
+		logger.Errorf("%v: %v", InitFailed, err)
 		initItemReport.Status = ItemActionFailed
 	}
 
+	logger.Info(InitPassed)
 	UpdateInitItems(ncAction, initItemReport)
 
 	wg.Done()
