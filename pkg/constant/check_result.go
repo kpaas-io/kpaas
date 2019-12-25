@@ -19,8 +19,8 @@ type (
 )
 
 const (
-	CheckResultNotRunning CheckResult = "notRunning"
-	CheckResultChecking   CheckResult = "checking"
-	CheckResultPassed     CheckResult = "passed"
+	CheckResultPending    CheckResult = "pending"
+	CheckResultRunning    CheckResult = "running"
+	CheckResultSuccessful CheckResult = "successful"
 	CheckResultFailed     CheckResult = "failed"
 )

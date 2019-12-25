@@ -85,11 +85,11 @@ func TestDeploy3(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
-	wizardData.ClusterCheckResult = constant.CheckResultPassed
+	wizardData.ClusterCheckResult = constant.CheckResultSuccessful
 	node := wizard.NewNode()
 	node.Name = "master1"
 	node.CheckReport = &wizard.CheckReport{
-		CheckResult: constant.CheckResultPassed,
+		CheckResult: constant.CheckResultSuccessful,
 	}
 	wizardData.Nodes = []*wizard.Node{
 		node,
@@ -122,11 +122,11 @@ func TestGetDeployReport(t *testing.T) {
 			DeploymentReports: map[constant.MachineRole]*wizard.DeploymentReport{
 				constant.MachineRoleMaster: {
 					Role:   constant.MachineRoleMaster,
-					Status: wizard.DeployStatusCompleted,
+					Status: wizard.DeployStatusSuccessful,
 				},
 				constant.MachineRoleEtcd: {
 					Role:   constant.MachineRoleEtcd,
-					Status: wizard.DeployStatusCompleted,
+					Status: wizard.DeployStatusSuccessful,
 				},
 			},
 		},
@@ -154,7 +154,7 @@ func TestGetDeployReport(t *testing.T) {
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
-					Status: api.DeployStatusCompleted,
+					Status: api.DeployStatusSuccessful,
 				},
 			},
 		},
@@ -163,7 +163,7 @@ func TestGetDeployReport(t *testing.T) {
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
-					Status: api.DeployStatusCompleted,
+					Status: api.DeployStatusSuccessful,
 				},
 			},
 		},

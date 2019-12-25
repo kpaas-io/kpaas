@@ -26,8 +26,8 @@ type (
 		DeploymentData      []DeploymentResponseData     `json:"deploymentData"`                                                                                             // Deployment result
 		Progress            Progress                     `json:"progress" enums:"settingClusterInformation,settingNodesInformation,checkingNodes,deploying,deployCompleted"` // Wizard progress
 		Mode                WizardMode                   `json:"mode"`                                                                                                       // Wizard mode, normal or advanced
-		CheckResult         constant.CheckResult         `json:"checkResult" enums:"notRunning,checking,passed,failed"`                                                      // Nodes check result
-		DeployClusterStatus DeployClusterStatus          `json:"deployClusterStatus" enums:"notRunning,running,successful,failed,workedButHaveError"`                        // Cluster deployment status
+		CheckResult         constant.CheckResult         `json:"checkResult" enums:"pending,running,successful,failed"`                                                      // Nodes check result
+		DeployClusterStatus DeployClusterStatus          `json:"deployClusterStatus" enums:"pending,running,successful,failed,workedButHaveError"`                           // Cluster deployment status
 	}
 
 	Progress   string

@@ -48,8 +48,8 @@ func TestGetWizardProgress(t *testing.T) {
 	assert.Empty(t, responseData.NodesData)
 	assert.Empty(t, responseData.CheckingData)
 	assert.Empty(t, responseData.DeploymentData)
-	assert.Equal(t, constant.CheckResultNotRunning, responseData.CheckResult)
-	assert.Equal(t, api.DeployClusterStatusNotRunning, responseData.DeployClusterStatus)
+	assert.Equal(t, constant.CheckResultPending, responseData.CheckResult)
+	assert.Equal(t, api.DeployClusterStatusPending, responseData.DeployClusterStatus)
 }
 
 func TestGetWizardProgress2(t *testing.T) {
@@ -123,7 +123,7 @@ func TestGetWizardProgress3(t *testing.T) {
 			},
 			CheckReport: &wizard.CheckReport{
 				CheckItems:  make([]*wizard.CheckItem, 0),
-				CheckResult: constant.CheckResultNotRunning,
+				CheckResult: constant.CheckResultPending,
 			},
 		},
 	}
@@ -149,7 +149,7 @@ func TestGetWizardProgress4(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
-	wizardData.ClusterCheckResult = constant.CheckResultPassed
+	wizardData.ClusterCheckResult = constant.CheckResultSuccessful
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
@@ -157,14 +157,14 @@ func TestGetWizardProgress4(t *testing.T) {
 				CheckItems: []*wizard.CheckItem{
 					{
 						ItemName:    "check 1",
-						CheckResult: constant.CheckResultPassed,
+						CheckResult: constant.CheckResultSuccessful,
 					},
 					{
 						ItemName:    "check 2",
-						CheckResult: constant.CheckResultPassed,
+						CheckResult: constant.CheckResultSuccessful,
 					},
 				},
-				CheckResult: constant.CheckResultPassed,
+				CheckResult: constant.CheckResultSuccessful,
 			},
 		},
 	}
@@ -176,14 +176,14 @@ func TestGetWizardProgress4(t *testing.T) {
 	assert.Equal(t, []api.CheckingItem{
 		{
 			CheckingPoint: "check 1",
-			Result:        constant.CheckResultPassed,
+			Result:        constant.CheckResultSuccessful,
 		},
 		{
 			CheckingPoint: "check 2",
-			Result:        constant.CheckResultPassed,
+			Result:        constant.CheckResultSuccessful,
 		},
 	}, checkData.Items)
-	assert.Equal(t, constant.CheckResultPassed, responseData.CheckResult)
+	assert.Equal(t, constant.CheckResultSuccessful, responseData.CheckResult)
 }
 
 func TestGetWizardProgress5(t *testing.T) {
@@ -196,16 +196,16 @@ func TestGetWizardProgress5(t *testing.T) {
 			DeploymentReports: map[constant.MachineRole]*wizard.DeploymentReport{
 				constant.MachineRoleMaster: {
 					Role:   constant.MachineRoleMaster,
-					Status: wizard.DeployStatusCompleted,
+					Status: wizard.DeployStatusSuccessful,
 				},
 				constant.MachineRoleEtcd: {
 					Role:   constant.MachineRoleEtcd,
-					Status: wizard.DeployStatusCompleted,
+					Status: wizard.DeployStatusSuccessful,
 				},
 			},
 			CheckReport: &wizard.CheckReport{
 				CheckItems:  make([]*wizard.CheckItem, 0),
-				CheckResult: constant.CheckResultPassed,
+				CheckResult: constant.CheckResultSuccessful,
 			},
 		},
 	}
@@ -219,7 +219,7 @@ func TestGetWizardProgress5(t *testing.T) {
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
-					Status: api.DeployStatusCompleted,
+					Status: api.DeployStatusSuccessful,
 				},
 			},
 		},
@@ -228,7 +228,7 @@ func TestGetWizardProgress5(t *testing.T) {
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
-					Status: api.DeployStatusCompleted,
+					Status: api.DeployStatusSuccessful,
 				},
 			},
 		},

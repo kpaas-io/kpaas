@@ -86,7 +86,7 @@ func TestGetCheckingNodeListResult(t *testing.T) {
 
 	wizard.ClearCurrentWizardData()
 	wizardData := wizard.GetCurrentWizard()
-	wizardData.ClusterCheckResult = constant.CheckResultPassed
+	wizardData.ClusterCheckResult = constant.CheckResultSuccessful
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
@@ -94,14 +94,14 @@ func TestGetCheckingNodeListResult(t *testing.T) {
 				CheckItems: []*wizard.CheckItem{
 					{
 						ItemName:    "check 1",
-						CheckResult: constant.CheckResultPassed,
+						CheckResult: constant.CheckResultSuccessful,
 					},
 					{
 						ItemName:    "check 2",
-						CheckResult: constant.CheckResultPassed,
+						CheckResult: constant.CheckResultSuccessful,
 					},
 				},
-				CheckResult: constant.CheckResultPassed,
+				CheckResult: constant.CheckResultSuccessful,
 			},
 		},
 	}
@@ -126,13 +126,13 @@ func TestGetCheckingNodeListResult(t *testing.T) {
 	assert.Equal(t, []api.CheckingItem{
 		{
 			CheckingPoint: "check 1",
-			Result:        constant.CheckResultPassed,
+			Result:        constant.CheckResultSuccessful,
 		},
 		{
 			CheckingPoint: "check 2",
-			Result:        constant.CheckResultPassed,
+			Result:        constant.CheckResultSuccessful,
 		},
 	}, checkData.Items)
 
-	assert.Equal(t, constant.CheckResultPassed, responseData.Result)
+	assert.Equal(t, constant.CheckResultSuccessful, responseData.Result)
 }

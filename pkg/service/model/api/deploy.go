@@ -21,8 +21,8 @@ import (
 type (
 	GetDeploymentReportResponse struct {
 		Roles               []DeploymentResponseData `json:"roles"`
-		DeployClusterStatus DeployClusterStatus      `json:"deployClusterStatus" enums:"notRunning,running,successful,failed,workedButHaveError"` // The cluster deployment status
-		DeployClusterError  *Error                   `json:"deployClusterError,omitempty"`                                                        // Deploy cluster error message
+		DeployClusterStatus DeployClusterStatus      `json:"deployClusterStatus" enums:"pending,running,successful,failed,workedButHaveError"` // The cluster deployment status
+		DeployClusterError  *Error                   `json:"deployClusterError,omitempty"`                                                     // Deploy cluster error message
 	}
 
 	DeploymentResponseData struct {
@@ -31,8 +31,8 @@ type (
 	}
 
 	DeploymentNode struct {
-		Name   string       `json:"name"`                                                      // node name
-		Status DeployStatus `json:"result" enums:"pending,deploying,completed,failed,aborted"` // Checking Result
+		Name   string       `json:"name"`                                                     // node name
+		Status DeployStatus `json:"result" enums:"pending,running,successful,failed,aborted"` // Checking Result
 		Error  *Error       `json:"error,omitempty"`
 	}
 
@@ -41,13 +41,13 @@ type (
 )
 
 const (
-	DeployStatusPending   DeployStatus = "pending"
-	DeployStatusDeploying DeployStatus = "deploying"
-	DeployStatusCompleted DeployStatus = "completed"
-	DeployStatusFailed    DeployStatus = "failed"
-	DeployStatusAborted   DeployStatus = "aborted"
+	DeployStatusPending    DeployStatus = "pending"
+	DeployStatusRunning    DeployStatus = "running"
+	DeployStatusSuccessful DeployStatus = "successful"
+	DeployStatusFailed     DeployStatus = "failed"
+	DeployStatusAborted    DeployStatus = "aborted"
 
-	DeployClusterStatusNotRunning         DeployClusterStatus = "notRunning"
+	DeployClusterStatusPending            DeployClusterStatus = "pending"
 	DeployClusterStatusRunning            DeployClusterStatus = "running"
 	DeployClusterStatusSuccessful         DeployClusterStatus = "successful"
 	DeployClusterStatusFailed             DeployClusterStatus = "failed"

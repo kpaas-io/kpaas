@@ -40,7 +40,7 @@ func TestNewClusterInfo(t *testing.T) {
 func TestGetCurrentWizard(t *testing.T) {
 
 	cluster := GetCurrentWizard()
-	assert.Equal(t, DeployClusterStatusNotRunning, cluster.DeployClusterStatus)
+	assert.Equal(t, DeployClusterStatusPending, cluster.DeployClusterStatus)
 	assert.NotNil(t, cluster.Wizard)
 	assert.NotNil(t, cluster.Nodes)
 	assert.NotNil(t, cluster.Info)
@@ -76,10 +76,10 @@ func TestCluster_GetCheckResult(t *testing.T) {
 	}{
 		{
 			Input: Cluster{
-				ClusterCheckResult: constant.CheckResultPassed,
+				ClusterCheckResult: constant.CheckResultSuccessful,
 				lock:               new(sync.RWMutex),
 			},
-			Want: constant.CheckResultPassed,
+			Want: constant.CheckResultSuccessful,
 		},
 		{
 			Input: Cluster{
@@ -111,10 +111,10 @@ func TestCluster_GetDeployClusterStatus(t *testing.T) {
 		},
 		{
 			Input: Cluster{
-				DeployClusterStatus: DeployClusterStatusNotRunning,
+				DeployClusterStatus: DeployClusterStatusPending,
 				lock:                new(sync.RWMutex),
 			},
-			Want: DeployClusterStatusNotRunning,
+			Want: DeployClusterStatusPending,
 		},
 	}
 
@@ -772,7 +772,7 @@ func TestCluster_MarkNodeChecking(t *testing.T) {
 		{
 			Input: Cluster{
 				Nodes:              []*Node{},
-				ClusterCheckResult: constant.CheckResultNotRunning,
+				ClusterCheckResult: constant.CheckResultPending,
 				lock:               new(sync.RWMutex),
 			},
 			Want: struct {
@@ -781,7 +781,7 @@ func TestCluster_MarkNodeChecking(t *testing.T) {
 			}{
 				Cluster: Cluster{
 					Nodes:              []*Node{},
-					ClusterCheckResult: constant.CheckResultNotRunning,
+					ClusterCheckResult: constant.CheckResultPending,
 					lock:               new(sync.RWMutex),
 				},
 				ReturnValue: nil,
@@ -797,7 +797,7 @@ func TestCluster_MarkNodeChecking(t *testing.T) {
 						},
 					},
 				},
-				ClusterCheckResult: constant.CheckResultNotRunning,
+				ClusterCheckResult: constant.CheckResultPending,
 				lock:               new(sync.RWMutex),
 			},
 			Want: struct {
@@ -813,7 +813,7 @@ func TestCluster_MarkNodeChecking(t *testing.T) {
 							},
 						},
 					},
-					ClusterCheckResult: constant.CheckResultChecking,
+					ClusterCheckResult: constant.CheckResultRunning,
 					lock:               new(sync.RWMutex),
 				},
 				ReturnValue: nil,
@@ -829,7 +829,7 @@ func TestCluster_MarkNodeChecking(t *testing.T) {
 						},
 					},
 				},
-				ClusterCheckResult: constant.CheckResultChecking,
+				ClusterCheckResult: constant.CheckResultRunning,
 				lock:               new(sync.RWMutex),
 			},
 			Want: struct {
@@ -845,7 +845,7 @@ func TestCluster_MarkNodeChecking(t *testing.T) {
 							},
 						},
 					},
-					ClusterCheckResult: constant.CheckResultChecking,
+					ClusterCheckResult: constant.CheckResultRunning,
 					lock:               new(sync.RWMutex),
 				},
 				ReturnValue: errors.New("was checking"),
@@ -869,12 +869,12 @@ func TestCluster_ClearClusterCheckingData(t *testing.T) {
 		{
 			Input: Cluster{
 				Nodes:              []*Node{},
-				ClusterCheckResult: constant.CheckResultNotRunning,
+				ClusterCheckResult: constant.CheckResultPending,
 				lock:               new(sync.RWMutex),
 			},
 			Want: Cluster{
 				Nodes:              []*Node{},
-				ClusterCheckResult: constant.CheckResultNotRunning,
+				ClusterCheckResult: constant.CheckResultPending,
 				lock:               new(sync.RWMutex),
 			},
 		},
@@ -886,7 +886,7 @@ func TestCluster_ClearClusterCheckingData(t *testing.T) {
 						CheckReport: &CheckReport{},
 					},
 				},
-				ClusterCheckResult: constant.CheckResultChecking,
+				ClusterCheckResult: constant.CheckResultRunning,
 				lock:               new(sync.RWMutex),
 			},
 			Want: Cluster{
@@ -895,11 +895,11 @@ func TestCluster_ClearClusterCheckingData(t *testing.T) {
 						Name: "node2",
 						CheckReport: &CheckReport{
 							CheckItems:  make([]*CheckItem, 0, 0),
-							CheckResult: constant.CheckResultNotRunning,
+							CheckResult: constant.CheckResultPending,
 						},
 					},
 				},
-				ClusterCheckResult: constant.CheckResultNotRunning,
+				ClusterCheckResult: constant.CheckResultPending,
 				lock:               new(sync.RWMutex),
 			},
 		},
@@ -929,14 +929,14 @@ func TestCluster_SetClusterCheckResult(t *testing.T) {
 				FailureDetail *common.FailureDetail
 			}{
 				Cluster: Cluster{
-					ClusterCheckResult: constant.CheckResultChecking,
+					ClusterCheckResult: constant.CheckResultRunning,
 					lock:               new(sync.RWMutex),
 				},
-				CheckResult:   constant.CheckResultPassed,
+				CheckResult:   constant.CheckResultSuccessful,
 				FailureDetail: nil,
 			},
 			Want: Cluster{
-				ClusterCheckResult: constant.CheckResultPassed,
+				ClusterCheckResult: constant.CheckResultSuccessful,
 				lock:               new(sync.RWMutex),
 			},
 		},
@@ -947,7 +947,7 @@ func TestCluster_SetClusterCheckResult(t *testing.T) {
 				FailureDetail *common.FailureDetail
 			}{
 				Cluster: Cluster{
-					ClusterCheckResult: constant.CheckResultChecking,
+					ClusterCheckResult: constant.CheckResultRunning,
 					lock:               new(sync.RWMutex),
 				},
 				CheckResult: constant.CheckResultFailed,
@@ -1018,7 +1018,7 @@ func TestCluster_ClearClusterDeployData(t *testing.T) {
 						DeploymentReports: map[constant.MachineRole]*DeploymentReport{},
 					},
 				},
-				DeployClusterStatus: DeployClusterStatusNotRunning,
+				DeployClusterStatus: DeployClusterStatusPending,
 				lock:                new(sync.RWMutex),
 			},
 		},
@@ -1045,7 +1045,7 @@ func TestCluster_ClearClusterDeployData(t *testing.T) {
 						DeploymentReports: map[constant.MachineRole]*DeploymentReport{},
 					},
 				},
-				DeployClusterStatus: DeployClusterStatusNotRunning,
+				DeployClusterStatus: DeployClusterStatusPending,
 				lock:                new(sync.RWMutex),
 			},
 		},
@@ -1092,7 +1092,7 @@ func TestCluster_MarkNodeDeploying(t *testing.T) {
 						Name: "node2",
 					},
 				},
-				DeployClusterStatus: DeployClusterStatusNotRunning,
+				DeployClusterStatus: DeployClusterStatusPending,
 				lock:                new(sync.RWMutex),
 			},
 			Want: struct {
