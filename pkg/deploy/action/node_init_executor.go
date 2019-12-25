@@ -16,9 +16,10 @@ package action
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"strings"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"

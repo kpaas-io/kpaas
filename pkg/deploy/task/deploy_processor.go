@@ -54,13 +54,15 @@ func (p *deployProcessor) SplitTask(t Task) error {
 
 	// create the init sub tasks with priority = 10
 	// create the init master sub tasks with priority = 10
-	initMasterTask, err := p.createInitSubTask(constant.MachineRoleMaster, deployTask, roles)
-	if err != nil {
-		err = fmt.Errorf("failed to create master init sub tasks: %s", err)
-		logger.Error(err)
-		return err
+	if _, ok := roles[constant.MachineRoleMaster]; ok {
+		initMasterTask, err := p.createInitSubTask(constant.MachineRoleMaster, deployTask, roles)
+		if err != nil {
+			err = fmt.Errorf("failed to create master init sub tasks: %s", err)
+			logger.Error(err)
+			return err
+		}
+		subTasks = append(subTasks, initMasterTask)
 	}
-	subTasks = append(subTasks, initMasterTask)
 
 	// create the init common sub tasks with priority = 10
 	initTask, err := p.createInitSubTask("", deployTask, roles)
