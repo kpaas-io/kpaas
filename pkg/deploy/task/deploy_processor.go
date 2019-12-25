@@ -53,19 +53,8 @@ func (p *deployProcessor) SplitTask(t Task) error {
 	roles := p.groupByRole(deployTask.NodeConfigs)
 
 	// create the init sub tasks with priority = 10
-	// create the init master sub tasks with priority = 10
-	if _, ok := roles[constant.MachineRoleMaster]; ok {
-		initMasterTask, err := p.createInitSubTask(constant.MachineRoleMaster, deployTask, roles)
-		if err != nil {
-			err = fmt.Errorf("failed to create master init sub tasks: %s", err)
-			logger.Error(err)
-			return err
-		}
-		subTasks = append(subTasks, initMasterTask)
-	}
-
 	// create the init common sub tasks with priority = 10
-	initTask, err := p.createInitSubTask("", deployTask, roles)
+	initTask, err := p.createInitSubTask(deployTask, roles)
 	if err != nil {
 		err = fmt.Errorf("failed to create common init sub tasks: %s", err)
 		logger.Error(err)
@@ -153,31 +142,17 @@ func (p *deployProcessor) groupByRole(cfgs []*pb.NodeDeployConfig) map[constant.
 	return roles
 }
 
-func (p *deployProcessor) createInitSubTask(role constant.MachineRole, parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {
-	switch role {
-	case constant.MachineRoleMaster:
+func (p *deployProcessor) createInitSubTask(parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {
 
-		config := &NodeInitTaskConfig{
-			NodeConfigs:     parent.NodeConfigs,
-			LogFileBasePath: parent.GetLogFileDir(),
-			Priority:        int(initPriority),
-			Parent:          parent.GetName(),
-			ClusterConfig:   parent.ClusterConfig,
-		}
-		task, err = NewNodeInitTask(fmt.Sprintf("init-%s", role), config)
-		return
-
-	default:
-		config := &NodeInitTaskConfig{
-			NodeConfigs:     parent.NodeConfigs,
-			LogFileBasePath: parent.GetLogFileDir(),
-			Priority:        int(initPriority),
-			Parent:          parent.GetName(),
-			ClusterConfig:   parent.ClusterConfig,
-		}
-		task, err = NewNodeInitTask("common-init", config)
-		return
+	config := &NodeInitTaskConfig{
+		NodeConfigs:     parent.NodeConfigs,
+		LogFileBasePath: parent.GetLogFileDir(),
+		Priority:        int(initPriority),
+		Parent:          parent.GetName(),
+		ClusterConfig:   parent.ClusterConfig,
 	}
+	task, err = NewNodeInitTask("init", config)
+	return
 }
 
 func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {

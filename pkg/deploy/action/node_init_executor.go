@@ -111,7 +111,7 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 		"init_item": item,
 	})
 
-	logrus.Debugf("Start to execute init")
+	logger.Debugf("Start to execute init")
 
 	initItemReport := newNodeInitItem()
 	initItemReport.Status = ItemActionDoing
@@ -119,9 +119,11 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 	if err != nil {
 		logger.Errorf("%v: %v", InitFailed, err)
 		initItemReport.Status = ItemActionFailed
+	} else {
+		initItemReport.Status = ItemActionDone
+		logger.Info(InitPassed)
 	}
 
-	logger.Info(InitPassed)
 	UpdateInitItems(ncAction, initItemReport)
 
 	wg.Done()
@@ -141,15 +143,27 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	logger.Debug("Start to execute node init action")
 
-	// init events include firewall, hostalias, hostname, network
-	// route, swap, timezone， kubetool
-	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // TODO it.Haproxy, it.Keepalived,
-	for _, item := range itemEnums {
-		wg.Add(1)
-		go InitAsyncExecutor(item, nodeInitAction, &wg)
+	// init events include firewall, hostalias, hostname, network, route, swap, timezone， kubetool
+	workerItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+	masterItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // cloud machine can not test it.Haproxy, it.Keepalived}
+
+	if pickUpRole(nodeInitAction, "master") {
+		for _, item := range masterItemEnums {
+			wg.Add(1)
+			go InitAsyncExecutor(item, nodeInitAction, &wg)
+		}
+		wg.Wait()
 	}
 
-	wg.Wait()
+	if pickUpRole(nodeInitAction, "worker") {
+		for _, item := range workerItemEnums {
+			wg.Add(1)
+			go InitAsyncExecutor(item, nodeInitAction, &wg)
+		}
+		wg.Wait()
+	}
+
+	// TODO if etcd and ingress needs init seperately
 
 	// If any of init item was failed, we should return an error
 	failedItems := getFailedInitItems(nodeInitAction)
@@ -181,4 +195,14 @@ func getFailedInitItems(initAction *NodeInitAction) []string {
 		}
 	}
 	return failedItemName
+}
+
+// separate roles
+func pickUpRole(initAction *NodeInitAction, wantRole string) bool {
+	for _, role := range initAction.NodeInitConfig.Roles {
+		if role == wantRole {
+			return true
+		}
+	}
+	return false
 }
