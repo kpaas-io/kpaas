@@ -15,102 +15,149 @@
 package deploy
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"os"
+
+	"github.com/sirupsen/logrus"
+
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/task"
 )
 
-// Note: this file contains the env and test data to test the deploy gRPC API.
-// Don't set _skip to true when commit for PR, otherwise it will break the UT.
+// This file along with the following local config file contains the env and test data to test the deploy gRPC API.
 
-var (
-	_skip = true // set it to false if you want to run/debug the test locally.
+// localConfigFilePath stores the local config for deploy system testing.
+// The following is an example, make sure there is at least 4 nodes.
+/*
+{
+	"skip": false,
+	"launchLocalServer": true,
+	"remoteServerAddress": "0.0,0.0:8081",
+	"nodes": [
+		{
+			"name": "g1-node0",
+			"ip":   "47.102.123.5",
+			"ssh": {
+				"port": 22,
+				"auth": {
+					"type":       "password",
+					"username":   "root",
+					"credential": "the real password or private key"
+				}
+			}
+		},
+		{
+			"name": "g1-node1",
+			"ip":   "47.102.126.233",
+			"ssh": {
+				"port": 22,
+				"auth": {
+					"type":       "password",
+					"username":   "root",
+					"credential": "the real password or private key"
+				}
+			}
+		},
+		{
+			"name": "g1-node2",
+			"ip":   "106.14.187.43",
+			"ssh": {
+				"port": 22,
+				"auth": {
+					"type":       "password",
+					"username":   "root",
+					"credential": "the real password or private key"
+				}
+			}
+		},
+		{
+			"name": "g1-node3",
+			"ip":   "47.103.15.20",
+			"ssh": {
+				"port": 22,
+				"auth": {
+					"type":       "password",
+					"username":   "root",
+					"credential": "the real password or private key"
+				}
+			}
+		}
+	]
+}
+*/
+const localConfigFilePath = "./tmp/config/deploy.json"
 
-	_launchLocalServer   = true           // launch a local deploy server and connect to it to test
-	_remoteServerAddress = "0.0.0.0:8081" // connect to the remote deploy server
-)
-
-type ApiParams struct {
-	request interface{}
-	reply   interface{}
+// Don't set Skip to false here, otherwise it will break the testing. It should be
+// reset through the local config file
+var _testConfig = DeployTestConfig{
+	Skip:              true,
+	LaunchLocalServer: true,
 }
 
-var nodes = []*pb.Node{
-	&pb.Node{
-		Name: "g1-node0",
-		Ip:   "47.102.123.5",
-		Ssh: &pb.SSH{
-			Port: 22,
-			Auth: &pb.Auth{
-				Type:       "password",
-				Username:   "root",
-				Credential: "placeholder", // replace it with the correct password when run/debug testing.
-			},
-		},
-	},
-	&pb.Node{
-		Name: "g1-node1",
-		Ip:   "47.102.126.233",
-		Ssh: &pb.SSH{
-			Port: 22,
-			Auth: &pb.Auth{
-				Type:       "password",
-				Username:   "root",
-				Credential: "placeholder", // replace it with the correct password when run/debug testing.
-			},
-		},
-	},
-	&pb.Node{
-		Name: "g1-node2",
-		Ip:   "106.14.187.43",
-		Ssh: &pb.SSH{
-			Port: 22,
-			Auth: &pb.Auth{
-				Type:       "password",
-				Username:   "root",
-				Credential: "placeholder", // replace it with the correct password when run/debug testing.
-			},
-		},
-	},
-	&pb.Node{
-		Name: "g1-node3",
-		Ip:   "47.103.15.20",
-		Ssh: &pb.SSH{
-			Port: 22,
-			Auth: &pb.Auth{
-				Type:       "password",
-				Username:   "root",
-				Credential: "placeholder", // replace it with the correct password when run/debug testing.
-			},
-		},
-	},
+type DeployTestConfig struct {
+	// Skip defines whether to skip the deploy system testing when using "go test"
+	Skip bool `json:"skip,omitempty"`
+	// LaunchLocalServer defines whether to launch a local deploy server for deploy system testing
+	LaunchLocalServer bool `json:"launchLocalServer,omitempty"`
+	// RemoteServerAddress defines an already running deploy server for deploy system testing, it will
+	// only take effect if LaunchLocalServer is set to false.
+	RemoteServerAddress string `json:"remoteServerAddress,omitempty"`
+	// NodeCredential defines the
+	Nodes []*pb.Node `json:"nodes,omitempty"`
 }
 
-var testConnectionData = &ApiParams{
-	request: &pb.TestConnectionRequest{
-		Node: nodes[0],
-	},
-	reply: &pb.TestConnectionReply{
+func init() {
+	if err := loadLocalConfig(); err != nil {
+		_testConfig.Skip = true
+	}
+}
+
+func loadLocalConfig() error {
+	file, err := os.Open(localConfigFilePath)
+	if err != nil {
+		logrus.Infof("Failed to open local config file: %v", localConfigFilePath)
+		return err
+	}
+	defer file.Close()
+
+	if configBytes, err := ioutil.ReadAll(file); err != nil {
+		logrus.Infof("Failed to read local config file: %v", localConfigFilePath)
+		return err
+	} else if err = json.Unmarshal(configBytes, &_testConfig); err != nil {
+		logrus.Infof("Failed to unmarshal local config content: %v", string(localConfigFilePath))
+		return err
+	}
+	return nil
+}
+
+func getTestConnectionData() (request *pb.TestConnectionRequest, reply *pb.TestConnectionReply) {
+	request = &pb.TestConnectionRequest{
+		Node: _testConfig.Nodes[0],
+	}
+	reply = &pb.TestConnectionReply{
 		Passed: true,
-	},
+	}
+	return
 }
 
-var checkNodesData = &ApiParams{
-	request: &pb.CheckNodesRequest{
+func getCheckNodesData() (request *pb.CheckNodesRequest, reply *pb.CheckNodesReply) {
+	request = &pb.CheckNodesRequest{
 		Configs: []*pb.NodeCheckConfig{
 			&pb.NodeCheckConfig{
-				Node:  nodes[0],
+				Node:  _testConfig.Nodes[0],
 				Roles: []string{"etcd", "master"},
 			},
 			&pb.NodeCheckConfig{
-				Node:  nodes[1],
+				Node:  _testConfig.Nodes[1],
 				Roles: []string{"etcd", "master"},
 			},
 			&pb.NodeCheckConfig{
-				Node:  nodes[2],
+				Node:  _testConfig.Nodes[2],
 				Roles: []string{"etcd", "master"},
 			},
 			&pb.NodeCheckConfig{
-				Node:  nodes[3],
+				Node:  _testConfig.Nodes[3],
 				Roles: []string{"worker"},
 			},
 		},
@@ -118,84 +165,81 @@ var checkNodesData = &ApiParams{
 		// NetworkOptions: &pb.NetworkOptions{
 		// 	NetworkType: string(consts.NetworkTypeCalico),
 		// },
-	},
-	reply: &pb.CheckNodesReply{
+	}
+	reply = &pb.CheckNodesReply{
 		Accepted: true,
-	},
+	}
+	return
 }
 
-var checkItems = []*pb.CheckItem{
-	&pb.CheckItem{
-		Name:        "docker check",
-		Description: "docker check",
-	},
-	&pb.CheckItem{
-		Name:        "cpu check",
-		Description: "cpu check",
-	},
-	&pb.CheckItem{
-		Name:        "kernel check",
-		Description: "kernel check",
-	},
-	&pb.CheckItem{
-		Name:        "memory check",
-		Description: "memory check",
-	},
-	&pb.CheckItem{
-		Name:        "disk check",
-		Description: "disk check",
-	},
-	&pb.CheckItem{
-		Name:        "distribution check",
-		Description: "distribution check",
-	},
-	&pb.CheckItem{
-		Name:        "systempreference check",
-		Description: "systempreference check",
-	},
-	&pb.CheckItem{
-		Name:        "systemcomponent check",
-		Description: "systemcomponent check",
-	},
-}
-
-var itemsResult []*pb.ItemCheckResult
-
-var getCheckNodesResultData = &ApiParams{
-	request: &pb.GetCheckNodesResultRequest{},
-	reply: &pb.GetCheckNodesResultReply{
+func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply *pb.GetCheckNodesResultReply) {
+	request = &pb.GetCheckNodesResultRequest{}
+	reply = &pb.GetCheckNodesResultReply{
 		Status: string(task.TaskDone),
 		Err:    nil,
 		Nodes: map[string]*pb.NodeCheckResult{
-			nodes[0].Name: &pb.NodeCheckResult{
-				NodeName: nodes[0].Name,
+			_testConfig.Nodes[0].Name: &pb.NodeCheckResult{
+				NodeName: _testConfig.Nodes[0].Name,
 				Status:   string(task.TaskDone),
 				Err:      nil,
 				Items:    nil,
 			},
-			nodes[1].Name: &pb.NodeCheckResult{
-				NodeName: nodes[1].Name,
+			_testConfig.Nodes[1].Name: &pb.NodeCheckResult{
+				NodeName: _testConfig.Nodes[1].Name,
 				Status:   string(task.TaskDone),
 				Err:      nil,
 				Items:    nil,
 			},
-			nodes[2].Name: &pb.NodeCheckResult{
-				NodeName: nodes[2].Name,
+			_testConfig.Nodes[2].Name: &pb.NodeCheckResult{
+				NodeName: _testConfig.Nodes[2].Name,
 				Status:   string(task.TaskDone),
 				Err:      nil,
 				Items:    nil,
 			},
-			nodes[3].Name: &pb.NodeCheckResult{
-				NodeName: nodes[3].Name,
+			_testConfig.Nodes[3].Name: &pb.NodeCheckResult{
+				NodeName: _testConfig.Nodes[3].Name,
 				Status:   string(task.TaskDone),
 				Err:      nil,
 				Items:    nil,
 			},
 		},
-	},
-}
+	}
 
-func init() {
+	var checkItems = []*pb.CheckItem{
+		&pb.CheckItem{
+			Name:        "docker check",
+			Description: "docker check",
+		},
+		&pb.CheckItem{
+			Name:        "cpu check",
+			Description: "cpu check",
+		},
+		&pb.CheckItem{
+			Name:        "kernel check",
+			Description: "kernel check",
+		},
+		&pb.CheckItem{
+			Name:        "memory check",
+			Description: "memory check",
+		},
+		&pb.CheckItem{
+			Name:        "disk check",
+			Description: "disk check",
+		},
+		&pb.CheckItem{
+			Name:        "distribution check",
+			Description: "distribution check",
+		},
+		&pb.CheckItem{
+			Name:        "systempreference check",
+			Description: "systempreference check",
+		},
+		&pb.CheckItem{
+			Name:        "systemcomponent check",
+			Description: "systemcomponent check",
+		},
+	}
+	var itemsResult []*pb.ItemCheckResult
 	// Create check itemsResult
 	for _, checkItem := range checkItems {
 		result := &pb.ItemCheckResult{
@@ -205,10 +249,10 @@ func init() {
 		}
 		itemsResult = append(itemsResult, result)
 	}
-
-	for _, checkResult := range getCheckNodesResultData.reply.(*pb.GetCheckNodesResultReply).Nodes {
+	for _, checkResult := range reply.Nodes {
 		checkResult.Items = itemsResult
 	}
+	return
 }
 
 var clusterConfig = &pb.ClusterConfig{
@@ -229,11 +273,11 @@ var clusterConfig = &pb.ClusterConfig{
 	// KubernetesVersion: "",
 }
 
-var deployData = &ApiParams{
-	request: &pb.DeployRequest{
+func getDeployData() (request *pb.DeployRequest, reply *pb.DeployReply) {
+	request = &pb.DeployRequest{
 		NodeConfigs: []*pb.NodeDeployConfig{
 			&pb.NodeDeployConfig{
-				Node:  nodes[0],
+				Node:  _testConfig.Nodes[0],
 				Roles: []string{"etcd", "master"},
 				Labels: map[string]string{
 					"kpaas-io/role": "master",
@@ -248,7 +292,7 @@ var deployData = &ApiParams{
 				},
 			},
 			&pb.NodeDeployConfig{
-				Node:  nodes[1],
+				Node:  _testConfig.Nodes[1],
 				Roles: []string{"etcd", "master"},
 				Labels: map[string]string{
 					"kpaas-io/role": "master",
@@ -263,7 +307,7 @@ var deployData = &ApiParams{
 				},
 			},
 			&pb.NodeDeployConfig{
-				Node:  nodes[2],
+				Node:  _testConfig.Nodes[2],
 				Roles: []string{"etcd", "master"},
 				Labels: map[string]string{
 					"kpaas-io/role": "master",
@@ -278,7 +322,7 @@ var deployData = &ApiParams{
 				},
 			},
 			&pb.NodeDeployConfig{
-				Node:  nodes[3],
+				Node:  _testConfig.Nodes[3],
 				Roles: []string{"worker"},
 				Labels: map[string]string{
 					"kpaas-io/role": "worker",
@@ -287,76 +331,78 @@ var deployData = &ApiParams{
 			},
 		},
 		ClusterConfig: clusterConfig,
-	},
-	reply: &pb.DeployReply{
+	}
+	reply = &pb.DeployReply{
 		Accepted: true,
-	},
+	}
+	return
 }
 
-var deployItemResults = []*pb.DeployItemResult{
-	&pb.DeployItemResult{
-		DeployItem: &pb.DeployItem{
-			Role:     "etcd",
-			NodeName: nodes[0].Name,
+func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDeployResultReply) {
+	var deployItemResults = []*pb.DeployItemResult{
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "etcd",
+				NodeName: _testConfig.Nodes[0].Name,
+			},
+			Status: "done",
+			Err:    nil,
 		},
-		Status: "done",
-		Err:    nil,
-	},
-	&pb.DeployItemResult{
-		DeployItem: &pb.DeployItem{
-			Role:     "etcd",
-			NodeName: nodes[1].Name,
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "etcd",
+				NodeName: _testConfig.Nodes[1].Name,
+			},
+			Status: "done",
+			Err:    nil,
 		},
-		Status: "done",
-		Err:    nil,
-	},
-	&pb.DeployItemResult{
-		DeployItem: &pb.DeployItem{
-			Role:     "etcd",
-			NodeName: nodes[2].Name,
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "etcd",
+				NodeName: _testConfig.Nodes[2].Name,
+			},
+			Status: "done",
+			Err:    nil,
 		},
-		Status: "done",
-		Err:    nil,
-	},
-	&pb.DeployItemResult{
-		DeployItem: &pb.DeployItem{
-			Role:     "master",
-			NodeName: nodes[0].Name,
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "master",
+				NodeName: _testConfig.Nodes[0].Name,
+			},
+			Status: "done",
+			Err:    nil,
 		},
-		Status: "done",
-		Err:    nil,
-	},
-	&pb.DeployItemResult{
-		DeployItem: &pb.DeployItem{
-			Role:     "master",
-			NodeName: nodes[1].Name,
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "master",
+				NodeName: _testConfig.Nodes[1].Name,
+			},
+			Status: "done",
+			Err:    nil,
 		},
-		Status: "done",
-		Err:    nil,
-	},
-	&pb.DeployItemResult{
-		DeployItem: &pb.DeployItem{
-			Role:     "master",
-			NodeName: nodes[2].Name,
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "master",
+				NodeName: _testConfig.Nodes[2].Name,
+			},
+			Status: "done",
+			Err:    nil,
 		},
-		Status: "done",
-		Err:    nil,
-	},
-	&pb.DeployItemResult{
-		DeployItem: &pb.DeployItem{
-			Role:     "worker",
-			NodeName: nodes[3].Name,
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "worker",
+				NodeName: _testConfig.Nodes[3].Name,
+			},
+			Status: "done",
+			Err:    nil,
 		},
-		Status: "done",
-		Err:    nil,
-	},
-}
+	}
 
-var getDeployResultData = &ApiParams{
-	request: &pb.GetDeployResultRequest{},
-	reply: &pb.GetDeployResultReply{
+	request = &pb.GetDeployResultRequest{}
+	reply = &pb.GetDeployResultReply{
 		Status: string(task.TaskDone),
 		Err:    nil,
 		Items:  deployItemResults,
-	},
+	}
+	return
 }
