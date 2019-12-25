@@ -63,7 +63,8 @@ func (itOps *InitHostNameOperation) GetOperations(node *pb.Node, initAction *ope
 }
 
 func (itOps *InitHostNameOperation) CloseSSH() {
-	if itOps.Machine.ExecClient.SSHClient != nil {
-		itOps.Machine.Close()
+	if itOps.Machine == nil {
+		return
 	}
+	itOps.Machine.Close()
 }

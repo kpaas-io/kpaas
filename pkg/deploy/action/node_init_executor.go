@@ -26,11 +26,6 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	InitPassed = "init passed"
-	InitFailed = "init failed"
-)
-
 func init() {
 	RegisterExecutor(ActionTypeNodeInit, new(nodeInitExecutor))
 }
@@ -47,6 +42,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 	initItemReport = &NodeInitItem{
 		Name:        fmt.Sprintf("init %v", item),
 		Description: fmt.Sprintf("init %v", item),
+		Err:         new(pb.Error),
 	}
 
 	initAction := &operation.NodeInitAction{
@@ -59,7 +55,6 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 	if initItem == nil {
 		logger.Errorf("can not create %v operation", item)
 		initItemReport.Status = ItemActionFailed
-		initItemReport.Err = new(pb.Error)
 		initItemReport.Err.Reason = ItemErrEmpty
 		initItemReport.Err.Detail = ItemErrEmpty
 		initItemReport.Err.FixMethods = ItemHelperEmpty
@@ -67,14 +62,12 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 	}
 
 	// close ssh client
-	//defer initItem.CloseSSH()
+	defer initItem.CloseSSH()
 
 	op, err := initItem.GetOperations(action.Node, initAction)
 	if err != nil {
 		logger.Errorf("can not create %v operation command for %v", item, err)
-		logrus.Debugf("failed to create %v operation command, err: %v", item, err)
 		initItemReport.Status = ItemActionFailed
-		initItemReport.Err = new(pb.Error)
 		initItemReport.Err.Reason = ItemErrOperation
 		initItemReport.Err.Detail = err.Error()
 		initItemReport.Err.FixMethods = ItemHelperOperation
@@ -84,18 +77,15 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 	stdOut, stdErr, err := op.Do()
 	if err != nil {
 		logger.Errorf("can not execute %v operation command for %v", item, err)
-		logrus.Debugf("failed to exec %v operation command, err: %v", item, err)
 		initItemReport.Status = ItemActionFailed
-		initItemReport.Err = new(pb.Error)
 		initItemReport.Err.Reason = ItemErrScript
 		initItemReport.Err.Detail = string(stdErr)
 		initItemReport.Err.FixMethods = ItemHelperScript
 		return "", initItemReport, fmt.Errorf("can not execute %v operation command on node: %v", item, action.Node.Name)
 	}
 
-	initItem.CloseSSH()
-
 	initItemStdOut := strings.Trim(string(stdOut), "\n")
+
 	return initItemStdOut, initItemReport, nil
 }
 
@@ -122,11 +112,9 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 	_, initItemReport, err := ExecuteInitScript(item, ncAction, initItemReport)
 	if err != nil {
 		logger.Errorf("init %v failed, err: %v", item, err)
-		logger.Debugf("%v: %v", InitFailed, err)
 		initItemReport.Status = ItemActionFailed
 	}
 
-	logger.Debugf(InitPassed)
 	UpdateInitItems(ncAction, initItemReport)
 
 	wg.Done()

@@ -16,4 +16,6 @@
 # This script is aim to delete invalid route
 
 invalid_route=`ip route | awk '/172.16.0.0/{print $1}'`
-test -n $invalid_route && ip route delete $invalid_route
+if [[ $invalid_route != "" ]]; then
+    ip route delete $invalid_route
+fi

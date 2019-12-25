@@ -166,7 +166,6 @@ func (p *deployProcessor) createInitSubTask(role constant.MachineRole, parent *D
 		return
 
 	default:
-		//goto EXTRA
 		config := &NodeInitTaskConfig{
 			NodeConfigs:     parent.NodeConfigs,
 			LogFileBasePath: parent.GetLogFileDir(),
@@ -177,17 +176,6 @@ func (p *deployProcessor) createInitSubTask(role constant.MachineRole, parent *D
 		task, err = NewNodeInitTask("common-init", config)
 		return
 	}
-	//EXTRA:
-	//	// common init task
-	//	config := &NodeInitTaskConfig{
-	//		NodeConfigs:     parent.NodeConfigs,
-	//		LogFileBasePath: parent.GetLogFileDir(),
-	//		Priority:        int(initPriority),
-	//		Parent:          parent.GetName(),
-	//		ClusterConfig:   parent.ClusterConfig,
-	//	}
-	//	task, err = NewNodeInitTask("common-init", config)
-	//	return
 }
 
 func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {
