@@ -150,6 +150,24 @@ func (login *SSHLoginData) Validate() error {
 	return wrapper.Validate()
 }
 
+func (login *SSHLoginData) ValidateWithoutPassword() error {
+
+	wrapper := validator.NewWrapper(
+		validator.ValidateString(login.Username, "username", validator.ItemNotEmptyLimit, validator.ItemNoLimit),
+		validator.ValidateRegexp(regexp.MustCompile(NodeUsernameRegularExpression), login.Username, "username"),
+		validator.ValidateStringOptions(string(login.AuthenticationType), "authorizationType", []string{string(AuthenticationTypePassword), string(AuthenticationTypePrivateKey)}),
+	)
+
+	switch login.AuthenticationType {
+	case AuthenticationTypePrivateKey:
+		wrapper.AddValidateFunc(
+			validator.ValidateString(login.PrivateKeyName, "privateKeyName", validator.ItemNotEmptyLimit, validator.ItemNoLimit),
+		)
+	}
+
+	return wrapper.Validate()
+}
+
 func (node *ConnectionData) Validate() error {
 
 	return validator.NewWrapper(
@@ -192,8 +210,6 @@ func (node *UpdateNodeData) Validate() error {
 			return node.NodeBaseData.Validate()
 		},
 		validator.ValidateIntRange(int(node.Port), "port", NodeSSHPortMinimum, NodeSSHPortMaximum),
-		func() error {
-			return node.SSHLoginData.Validate()
-		},
+		node.SSHLoginData.ValidateWithoutPassword,
 	).Validate()
 }

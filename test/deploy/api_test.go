@@ -28,6 +28,7 @@ import (
 
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/server"
+	"github.com/kpaas-io/kpaas/pkg/deploy/task"
 	"github.com/sirupsen/logrus"
 )
 
@@ -116,16 +117,16 @@ func TestCheckNodes(t *testing.T) {
 	assert.Equal(t, true, r.Accepted)
 
 	// GetCheckNodesResult request
-	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	var actualReply *pb.GetCheckNodesResultReply
 	// Call GetCheckNodesResult repeatly until the related task is done or failed.
 	err = wait.Poll(10*time.Second, 1*time.Minute, func() (done bool, err error) {
-		actualReply, err = client.GetCheckNodesResult(ctx, getCheckNodesResultData.request.(*pb.GetCheckNodesResultRequest))
+		ctxPoll, cancelPoll := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelPoll()
+		actualReply, err = client.GetCheckNodesResult(ctxPoll, getCheckNodesResultData.request.(*pb.GetCheckNodesResultRequest))
 		if err != nil {
 			return false, err
 		}
-		if actualReply.Status == "failed" || actualReply.Status == "done" {
+		if actualReply.Status == string(task.TaskFailed) || actualReply.Status == string(task.TaskDone) {
 			return true, nil
 		}
 		return false, nil
@@ -152,16 +153,16 @@ func TestDeploy(t *testing.T) {
 	assert.Equal(t, true, res.Accepted)
 
 	// GetDeployResult request
-	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	var actualReply *pb.GetDeployResultReply
 	// Call GetDeployResult repeatly until the related task is done or failed.
 	err = wait.Poll(10*time.Second, 10*time.Minute, func() (done bool, err error) {
-		actualReply, err := client.GetDeployResult(ctx, getDeployResultData.request.(*pb.GetDeployResultRequest))
+		ctxPoll, cancelPoll := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelPoll()
+		actualReply, err := client.GetDeployResult(ctxPoll, getDeployResultData.request.(*pb.GetDeployResultRequest))
 		if err != nil {
 			return false, err
 		}
-		if actualReply.Status == "failed" || actualReply.Status == "done" {
+		if actualReply.Status == string(task.TaskFailed) || actualReply.Status == string(task.TaskDone) {
 			return true, nil
 		}
 		return false, nil
