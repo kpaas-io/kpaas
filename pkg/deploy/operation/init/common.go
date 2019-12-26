@@ -27,7 +27,7 @@ type OperationsGenerator struct{}
 type InitOperations struct {
 	Script         string
 	ScriptPath     string
-	Machine        *machine.Machine
+	Machine        machine.IMachine
 	InitNodeAction *operation.NodeInitAction
 }
 

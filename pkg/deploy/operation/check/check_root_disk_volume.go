@@ -28,7 +28,7 @@ const (
 type CheckRootDiskOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Machine *machine.Machine
+	Machine machine.IMachine
 }
 
 func (ckops *CheckRootDiskOperation) getScript() string {

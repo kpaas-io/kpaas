@@ -57,7 +57,7 @@ type initMasterOperation struct {
 	Logger        *logrus.Entry
 	EtcdNodes     []*pb.Node
 	MasterNodes   []*pb.Node
-	machine       *machine.Machine
+	machine       machine.IMachine
 	ClusterConfig *pb.ClusterConfig
 }
 
@@ -94,13 +94,13 @@ func (op *initMasterOperation) PreDo() error {
 	}
 
 	if err := op.machine.PutFile(bytes.NewReader(etcdCACrt), etcd.DefaultEtcdCACertPath); err != nil {
-		return fmt.Errorf("failed to put etcd ca cert to %v:%v, error: %v", op.machine.Name, etcd.DefaultEtcdCACertPath, err)
+		return fmt.Errorf("failed to put etcd ca cert to %v:%v, error: %v", op.machine.GetName(), etcd.DefaultEtcdCACertPath, err)
 	}
 	if err := op.machine.PutFile(bytes.NewReader(apiServerEtcdClientCert), defaultApiServerEtcdClientCertPath); err != nil {
-		return fmt.Errorf("failed to put apiserver etcd client cert to %v:%v, error: %v", op.machine.Name, defaultApiServerEtcdClientCertPath, err)
+		return fmt.Errorf("failed to put apiserver etcd client cert to %v:%v, error: %v", op.machine.GetName(), defaultApiServerEtcdClientCertPath, err)
 	}
 	if err := op.machine.PutFile(bytes.NewReader(apiServerEtcdClientKey), defaultApiServerEtcdClientKeyPath); err != nil {
-		return fmt.Errorf("failed to put apiserver etcd client key to %v:%v, error: %v", op.machine.Name, defaultApiServerEtcdClientKeyPath, err)
+		return fmt.Errorf("failed to put apiserver etcd client key to %v:%v, error: %v", op.machine.GetName(), defaultApiServerEtcdClientKeyPath, err)
 	}
 
 	kubeadmConfig, err := newInitConfig(op)
@@ -109,7 +109,7 @@ func (op *initMasterOperation) PreDo() error {
 	}
 
 	if err := op.machine.PutFile(strings.NewReader(kubeadmConfig), kubeadmConfigPath); err != nil {
-		return fmt.Errorf("failed to put kubeadm init config file to %v:%v, error: %v", op.machine.Name, defaultApiServerEtcdClientKeyPath, err)
+		return fmt.Errorf("failed to put kubeadm init config file to %v:%v, error: %v", op.machine.GetName(), defaultApiServerEtcdClientKeyPath, err)
 	}
 
 	op.AddCommands(

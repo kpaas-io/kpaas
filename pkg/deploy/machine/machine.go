@@ -16,12 +16,29 @@ package machine
 
 import (
 	"fmt"
+	"io"
 
 	dockerclient "github.com/docker/docker/client"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine/docker"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
+
+type IMachine interface {
+	GetName() string
+	GetIp() string
+	Close()
+
+	StartDockerTunnel() error
+	Run(cmd string) (stdout, stderr []byte, err error)
+	FetchDir(localDir, remoteDir string, fileNeeded func(path string) bool) error
+	FetchFile(dst io.Writer, remotePath string) error
+	FetchFileToLocalPath(localPath, remotePath string) error
+	PutDir(localDir, remoteDir string, fileNeeded func(path string) bool) error
+	PutFile(content io.Reader, remotePath string) error
+	SetDockerClient() error
+	GetDockerClient() *dockerclient.Client
+}
 
 type Machine struct {
 	*ExecClient
@@ -30,7 +47,7 @@ type Machine struct {
 	DockerClient *dockerclient.Client
 }
 
-func NewMachine(node *pb.Node) (*Machine, error) {
+func NewMachine(node *pb.Node) (IMachine, error) {
 	client, err := NewExecClient(node)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create execution client for machine: %v(%v), error: %v", node.Name, node.Ip, err)
@@ -40,11 +57,6 @@ func NewMachine(node *pb.Node) (*Machine, error) {
 		ExecClient: client,
 		Node:       node,
 	}, nil
-}
-
-// SetDockerTunnel create a Docker Tunnel to remote Node when needed
-func (m *Machine) SetDockerTunnel() {
-	m.DockerTunnel = docker.NewTunnel(m.SSHClient, m.Name)
 }
 
 func (m *Machine) SetDockerClient() error {
@@ -71,4 +83,24 @@ func (m *Machine) Close() {
 	if m.DockerTunnel != nil {
 		m.DockerTunnel.Close()
 	}
+}
+
+func (m *Machine) StartDockerTunnel() error {
+	if m.DockerTunnel == nil {
+		m.DockerTunnel = docker.NewTunnel(m.SSHClient, m.Name)
+	}
+
+	return m.DockerTunnel.Start()
+}
+
+func (m *Machine) GetName() string {
+	return m.Name
+}
+
+func (m *Machine) GetIp() string {
+	return m.Ip
+}
+
+func (m *Machine) GetDockerClient() *dockerclient.Client {
+	return m.DockerClient
 }

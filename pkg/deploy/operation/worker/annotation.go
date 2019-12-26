@@ -29,7 +29,7 @@ import (
 )
 
 type AppendAnnotationConfig struct {
-	Machine          *deployMachine.Machine
+	Machine          deployMachine.IMachine
 	Logger           *logrus.Entry
 	Node             *pb.NodeDeployConfig
 	Cluster          *pb.ClusterConfig
