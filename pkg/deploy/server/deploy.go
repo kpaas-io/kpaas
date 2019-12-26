@@ -48,7 +48,7 @@ func (c *controller) getDeployResult(aTask task.Task, withLogs bool) (*pb.GetDep
 	}
 
 	result := &pb.GetDeployResultReply{
-		Status: string(aTask.GetStatus()),
+		Status: string(getOperationStatus(aTask.GetStatus())),
 		Err:    aTask.GetErr(),
 		Items:  items,
 	}

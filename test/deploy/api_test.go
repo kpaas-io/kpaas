@@ -26,9 +26,9 @@ import (
 	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/util/wait"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/server"
-	"github.com/kpaas-io/kpaas/pkg/deploy/task"
 	"github.com/sirupsen/logrus"
 )
 
@@ -129,7 +129,8 @@ func TestCheckNodes(t *testing.T) {
 		if err != nil {
 			return false, err
 		}
-		if actualResultReply.Status == string(task.TaskFailed) || actualResultReply.Status == string(task.TaskDone) {
+		if actualResultReply.Status == string(constant.OperationStatusFailed) ||
+			actualResultReply.Status == string(constant.OperationStatusSuccessful) {
 			return true, nil
 		}
 		return false, nil
@@ -162,11 +163,12 @@ func TestDeploy(t *testing.T) {
 	err = wait.Poll(10*time.Second, 10*time.Minute, func() (done bool, err error) {
 		ctxPoll, cancelPoll := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelPoll()
-		actualReply, err := client.GetDeployResult(ctxPoll, resultRequest)
+		actualResultReply, err = client.GetDeployResult(ctxPoll, resultRequest)
 		if err != nil {
 			return false, err
 		}
-		if actualReply.Status == string(task.TaskFailed) || actualReply.Status == string(task.TaskDone) {
+		if actualResultReply.Status == string(constant.OperationStatusFailed) ||
+			actualResultReply.Status == string(constant.OperationStatusSuccessful) {
 			return true, nil
 		}
 		return false, nil

@@ -59,7 +59,7 @@ func (c *controller) getCheckNodeResult(aTask task.Task, withLogs bool) (*pb.Get
 	}
 
 	result := &pb.GetCheckNodesResultReply{
-		Status: string(aTask.GetStatus()),
+		Status: string(getOperationStatus(aTask.GetStatus())),
 		Err:    aTask.GetErr(),
 		Nodes:  nodeResults,
 	}
