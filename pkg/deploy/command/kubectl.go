@@ -31,7 +31,7 @@ type KubectlCommand struct {
 	*ShellCommand
 }
 
-func NewKubectlCommand(machine *machine.Machine, kubeConfigPath string, ns string, subCommands ...string) Command {
+func NewKubectlCommand(machine machine.IMachine, kubeConfigPath string, ns string, subCommands ...string) Command {
 
 	if ns != "" {
 		subCommands = append(subCommands, fmt.Sprintf("-n %s", ns))

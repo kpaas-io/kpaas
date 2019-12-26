@@ -35,7 +35,7 @@ func init() {
 
 type deployWorkerExecutor struct {
 	logger           *logrus.Entry
-	machine          *deployMachine.Machine
+	machine          deployMachine.IMachine
 	action           *DeployWorkerAction
 	executeLogWriter io.Writer
 }

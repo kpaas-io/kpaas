@@ -29,7 +29,7 @@ type OperationsGenerator struct {
 type CheckOperations struct {
 	Script     string
 	ScriptPath string
-	Machine    *machine.Machine
+	Machine    machine.IMachine
 }
 
 type CheckAction interface {

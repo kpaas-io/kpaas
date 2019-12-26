@@ -30,7 +30,7 @@ const (
 )
 
 type StartKubeletConfig struct {
-	Machine          *deployMachine.Machine
+	Machine          deployMachine.IMachine
 	Node             *pb.NodeDeployConfig
 	Logger           *logrus.Entry
 	ExecuteLogWriter io.Writer

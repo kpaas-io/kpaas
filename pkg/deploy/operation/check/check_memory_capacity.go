@@ -28,7 +28,7 @@ const (
 type CheckMemoryOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Machine *machine.Machine
+	Machine machine.IMachine
 }
 
 func (ckops *CheckMemoryOperation) getScript() string {

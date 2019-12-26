@@ -52,7 +52,7 @@ func newCertPool(caCrt *x509.Certificate) (*x509.CertPool, error) {
 func newCert(d *deployEtcdOperation) (*tls.Certificate, error) {
 	tlsCert, err := tls.X509KeyPair(d.encodedPeerCert, d.encodedPeerKey)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse certificate for etcd client:%v, error: %v", d.machine.Name, err)
+		return nil, fmt.Errorf("failed to parse certificate for etcd client:%v, error: %v", d.machine.GetName(), err)
 	}
 
 	return &tlsCert, nil
@@ -63,7 +63,7 @@ func getClientV3TLS(d *deployEtcdOperation) (*tls.Config, error) {
 
 	cfg := &tls.Config{
 		MinVersion: tls.VersionTLS12,
-		ServerName: d.machine.Name,
+		ServerName: d.machine.GetName(),
 	}
 
 	cfg.GetCertificate = func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
@@ -75,7 +75,7 @@ func getClientV3TLS(d *deployEtcdOperation) (*tls.Config, error) {
 
 	cfg.RootCAs, err = newCertPool(d.caCrt)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get cert pool for etcd client:%v, error:%v", d.machine.Name, err)
+		return nil, fmt.Errorf("failed to get cert pool for etcd client:%v, error:%v", d.machine.GetName(), err)
 	}
 
 	return cfg, nil

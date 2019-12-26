@@ -37,7 +37,7 @@ type joinMasterOperation struct {
 	operation.BaseOperation
 	Logger        *logrus.Entry
 	MasterNodes   []*pb.Node
-	machine       *machine.Machine
+	machine       machine.IMachine
 	ClusterConfig *pb.ClusterConfig
 }
 
@@ -86,7 +86,7 @@ func (op *joinMasterOperation) Do() error {
 	// join master
 	stdErr, _, err := op.BaseOperation.Do()
 	if err != nil {
-		return fmt.Errorf("failed to join master:%v to cluster, error:%s", op.machine.Name, stdErr)
+		return fmt.Errorf("failed to join master:%v to cluster, error:%s", op.machine.GetName(), stdErr)
 	}
 	return nil
 }
