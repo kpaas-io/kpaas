@@ -122,7 +122,7 @@ func TestCheckNodes(t *testing.T) {
 	var actualResultReply *pb.GetCheckNodesResultReply
 	resultRequest, expetecdResultReply := getGetCheckNodesResultData()
 	// Call GetCheckNodesResult repeatly until the related task is done or failed.
-	err = wait.Poll(10*time.Second, 1*time.Minute, func() (done bool, err error) {
+	err = wait.Poll(3*time.Second, 1*time.Minute, func() (done bool, err error) {
 		ctxPoll, cancelPoll := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelPoll()
 		actualResultReply, err = client.GetCheckNodesResult(ctxPoll, resultRequest)
@@ -160,7 +160,7 @@ func TestDeploy(t *testing.T) {
 	var actualResultReply *pb.GetDeployResultReply
 	resultRequest, expetecdResultReply := getDeployResultData()
 	// Call GetDeployResult repeatly until the related task is done or failed.
-	err = wait.Poll(10*time.Second, 10*time.Minute, func() (done bool, err error) {
+	err = wait.Poll(5*time.Second, 10*time.Minute, func() (done bool, err error) {
 		ctxPoll, cancelPoll := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelPoll()
 		actualResultReply, err = client.GetDeployResult(ctxPoll, resultRequest)

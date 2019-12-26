@@ -21,8 +21,12 @@ import (
 
 type Store interface {
 	GetTask(name string) Task
+	// Add a task, if the task already exists (task name is same), return an error
 	AddTask(task Task) error
+	// Update a task, if the task doesn't exist (task name is same), return an error
 	UpdateTask(task Task) error
+	// Update a task, if the task doesn't exist (task name is same), add it.
+	UpdateOrAddTask(task Task) error
 }
 
 // A Store implementation via map
@@ -70,6 +74,20 @@ func (c *cache) UpdateTask(task Task) error {
 	if !ok {
 		return fmt.Errorf("failed to update task: task doesn't exist")
 	}
+
+	c.m[name] = task
+
+	return nil
+}
+
+func (c *cache) UpdateOrAddTask(task Task) error {
+	name := task.GetName()
+	if name == "" {
+		return fmt.Errorf("failed to update or create task: task name can't be empty")
+	}
+
+	c.Lock()
+	defer c.Unlock()
 
 	c.m[name] = task
 
