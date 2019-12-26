@@ -67,11 +67,12 @@ const (
 	KubeAPIServerConnectTypeKeepalived    KubeAPIServerConnectType = "keepalived"
 	KubeAPIServerConnectTypeLoadBalancer  KubeAPIServerConnectType = "loadbalancer"
 
-	DeployClusterStatusNotRunning         DeployClusterStatus = "notRunning"
-	DeployClusterStatusRunning            DeployClusterStatus = "running"
-	DeployClusterStatusSuccessful         DeployClusterStatus = "successful"
-	DeployClusterStatusFailed             DeployClusterStatus = "failed"
-	DeployClusterStatusWorkedButHaveError DeployClusterStatus = "workedButHaveError"
+	DeployClusterStatusPending              DeployClusterStatus = "pending"
+	DeployClusterStatusRunning              DeployClusterStatus = "running"
+	DeployClusterStatusSuccessful           DeployClusterStatus = "successful"
+	DeployClusterStatusFailed               DeployClusterStatus = "failed"
+	DeployClusterStatusWorkedButHaveError   DeployClusterStatus = "workedButHaveError"
+	DeployClusterStatusDeployServiceUnknown DeployClusterStatus = "unknown(deploy)"
 
 	DefaultNodePortMinimum uint16 = 30000
 	DefaultNodePortMaximum uint16 = 32767
@@ -91,8 +92,8 @@ func NewCluster() *Cluster {
 func (cluster *Cluster) init() {
 
 	cluster.Info = NewClusterInfo()
-	cluster.DeployClusterStatus = DeployClusterStatusNotRunning
-	cluster.ClusterCheckResult = constant.CheckResultNotRunning
+	cluster.DeployClusterStatus = DeployClusterStatusPending
+	cluster.ClusterCheckResult = constant.CheckResultPending
 	cluster.Nodes = make([]*Node, 0, 0)
 	cluster.Wizard = NewWizardData()
 	cluster.lock = &sync.RWMutex{}
@@ -256,11 +257,11 @@ func (cluster *Cluster) MarkNodeChecking() error {
 		return nil
 	}
 
-	if cluster.ClusterCheckResult == constant.CheckResultChecking {
+	if cluster.ClusterCheckResult == constant.CheckResultRunning {
 		return errors.New("was checking")
 	}
 
-	cluster.ClusterCheckResult = constant.CheckResultChecking
+	cluster.ClusterCheckResult = constant.CheckResultRunning
 
 	return nil
 }
@@ -274,7 +275,7 @@ func (cluster *Cluster) ClearClusterCheckingData() {
 		return
 	}
 
-	cluster.ClusterCheckResult = constant.CheckResultNotRunning
+	cluster.ClusterCheckResult = constant.CheckResultPending
 	cluster.ClusterCheckError = nil
 
 	for _, node := range cluster.Nodes {
@@ -305,7 +306,7 @@ func (cluster *Cluster) ClearClusterDeployData() {
 		return
 	}
 
-	cluster.DeployClusterStatus = DeployClusterStatusNotRunning
+	cluster.DeployClusterStatus = DeployClusterStatusPending
 	cluster.DeployClusterError = nil
 
 	for _, node := range cluster.Nodes {

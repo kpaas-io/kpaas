@@ -52,7 +52,10 @@ const (
 )
 
 const (
-	RemoteScriptPath = "/tmp"
+	RemoteScriptPath  = "/tmp"
+	HaDockerFilePath  = "/scripts/init_deploy_haproxy_keepalived/docker.sh"
+	HaLibFilePath     = "/scripts/init_deploy_haproxy_keepalived/lib.sh"
+	HaSystemdFilePath = "/scripts/init_deploy_haproxy_keepalived/systemd.sh"
 )
 
 func NewInitOperations() *OperationsGenerator {

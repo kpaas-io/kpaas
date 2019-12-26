@@ -15,6 +15,7 @@
 package deploy
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -102,7 +103,7 @@ func TestConvertModelErrorToAPIError(t *testing.T) {
 
 func TestConvertModelDeployClusterStatusToAPIDeployClusterStatus(t *testing.T) {
 
-	assert.Equal(t, api.DeployClusterStatusNotRunning, convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.DeployClusterStatusNotRunning))
+	assert.Equal(t, api.DeployClusterStatusPending, convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.DeployClusterStatusPending))
 	assert.Equal(t, api.DeployClusterStatusRunning, convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.DeployClusterStatusRunning))
 	assert.Equal(t, api.DeployClusterStatusSuccessful, convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.DeployClusterStatusSuccessful))
 	assert.Equal(t, api.DeployClusterStatusFailed, convertModelDeployClusterStatusToAPIDeployClusterStatus(wizard.DeployClusterStatusFailed))
@@ -113,8 +114,8 @@ func TestConvertModelDeployClusterStatusToAPIDeployClusterStatus(t *testing.T) {
 func TestConvertModelDeployStatusToAPiDeployStatus(t *testing.T) {
 
 	assert.Equal(t, api.DeployStatusPending, convertModelDeployStatusToAPIDeployStatus(wizard.DeployStatusPending))
-	assert.Equal(t, api.DeployStatusDeploying, convertModelDeployStatusToAPIDeployStatus(wizard.DeployStatusDeploying))
-	assert.Equal(t, api.DeployStatusCompleted, convertModelDeployStatusToAPIDeployStatus(wizard.DeployStatusCompleted))
+	assert.Equal(t, api.DeployStatusRunning, convertModelDeployStatusToAPIDeployStatus(wizard.DeployStatusRunning))
+	assert.Equal(t, api.DeployStatusSuccessful, convertModelDeployStatusToAPIDeployStatus(wizard.DeployStatusSuccessful))
 	assert.Equal(t, api.DeployStatusFailed, convertModelDeployStatusToAPIDeployStatus(wizard.DeployStatusFailed))
 	assert.Equal(t, api.DeployStatusAborted, convertModelDeployStatusToAPIDeployStatus(wizard.DeployStatusAborted))
 	assert.Equal(t, api.DeployStatus("unknown(OtherType)"), convertModelDeployStatusToAPIDeployStatus("OtherType"))
@@ -216,29 +217,62 @@ ls3Q/5aeF7hB2MXfAAAAGEx1Y2t5Ym95c0BMdWNreU1hYy5sb2NhbAEC
 
 func TestConvertDeployControllerCheckResultToModelCheckResult(t *testing.T) {
 
-	assert.Equal(t, constant.CheckResultNotRunning, convertDeployControllerCheckResultToModelCheckResult(string(constant.CheckResultNotRunning)))
-	assert.Equal(t, constant.CheckResultChecking, convertDeployControllerCheckResultToModelCheckResult(string(constant.CheckResultChecking)))
-	assert.Equal(t, constant.CheckResultPassed, convertDeployControllerCheckResultToModelCheckResult(string(constant.CheckResultPassed)))
-	assert.Equal(t, constant.CheckResultFailed, convertDeployControllerCheckResultToModelCheckResult(string(constant.CheckResultFailed)))
+	assert.Equal(t, constant.CheckResultPending, convertDeployControllerCheckResultToModelCheckResult(string(constant.OperationStatusPending)))
+	assert.Equal(t, constant.CheckResultRunning, convertDeployControllerCheckResultToModelCheckResult(string(constant.OperationStatusRunning)))
+	assert.Equal(t, constant.CheckResultSuccessful, convertDeployControllerCheckResultToModelCheckResult(string(constant.OperationStatusSuccessful)))
+	assert.Equal(t, constant.CheckResultFailed, convertDeployControllerCheckResultToModelCheckResult(string(constant.OperationStatusFailed)))
+	assert.Equal(t, constant.CheckResult(fmt.Sprintf("unknown(%s)", constant.OperationStatusAborted)), convertDeployControllerCheckResultToModelCheckResult(string(constant.OperationStatusAborted)))
+	assert.Equal(t, constant.CheckResultDeployServiceUnknown, convertDeployControllerCheckResultToModelCheckResult(string(constant.OperationStatusUnknown)))
 	assert.Equal(t, constant.CheckResult("unknown(OtherType)"), convertDeployControllerCheckResultToModelCheckResult("OtherType"))
 }
 
 func TestConvertDeployControllerDeployClusterStatusToModelDeployClusterStatus(t *testing.T) {
 
-	assert.Equal(t, wizard.DeployClusterStatusNotRunning, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusNotRunning)))
-	assert.Equal(t, wizard.DeployClusterStatusRunning, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusRunning)))
-	assert.Equal(t, wizard.DeployClusterStatusSuccessful, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusSuccessful)))
-	assert.Equal(t, wizard.DeployClusterStatusFailed, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusFailed)))
-	assert.Equal(t, wizard.DeployClusterStatusWorkedButHaveError, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(wizard.DeployClusterStatusWorkedButHaveError)))
+	assert.Equal(t, wizard.DeployClusterStatusPending, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(constant.OperationStatusPending)))
+	assert.Equal(t, wizard.DeployClusterStatusRunning, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(constant.OperationStatusRunning)))
+	assert.Equal(t, wizard.DeployClusterStatusSuccessful, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(constant.OperationStatusSuccessful)))
+	assert.Equal(t, wizard.DeployClusterStatusFailed, convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(constant.OperationStatusFailed)))
+	assert.Equal(t, wizard.DeployClusterStatus("unknown(deploy)"), convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(string(constant.OperationStatusUnknown)))
 	assert.Equal(t, wizard.DeployClusterStatus("unknown(OtherType)"), convertDeployControllerDeployClusterStatusToModelDeployClusterStatus("OtherType"))
 }
 
 func TestConvertDeployControllerDeployResultToModelDeployResult(t *testing.T) {
 
-	assert.Equal(t, wizard.DeployStatusPending, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusPending)))
-	assert.Equal(t, wizard.DeployStatusDeploying, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusDeploying)))
-	assert.Equal(t, wizard.DeployStatusCompleted, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusCompleted)))
-	assert.Equal(t, wizard.DeployStatusFailed, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusFailed)))
-	assert.Equal(t, wizard.DeployStatusAborted, convertDeployControllerDeployResultToModelDeployResult(string(wizard.DeployStatusAborted)))
+	assert.Equal(t, wizard.DeployStatusPending, convertDeployControllerDeployResultToModelDeployResult(string(constant.OperationStatusPending)))
+	assert.Equal(t, wizard.DeployStatusRunning, convertDeployControllerDeployResultToModelDeployResult(string(constant.OperationStatusRunning)))
+	assert.Equal(t, wizard.DeployStatusSuccessful, convertDeployControllerDeployResultToModelDeployResult(string(constant.OperationStatusSuccessful)))
+	assert.Equal(t, wizard.DeployStatusFailed, convertDeployControllerDeployResultToModelDeployResult(string(constant.OperationStatusFailed)))
+	assert.Equal(t, wizard.DeployStatusAborted, convertDeployControllerDeployResultToModelDeployResult(string(constant.OperationStatusAborted)))
 	assert.Equal(t, wizard.DeployStatus("unknown(OtherType)"), convertDeployControllerDeployResultToModelDeployResult("OtherType"))
+}
+
+func TestConvertDeployControllerErrorToFailureDetail(t *testing.T) {
+
+	tests := []struct {
+		Input *protos.Error
+		Want  *common.FailureDetail
+	}{
+		{
+			Input: nil,
+			Want:  nil,
+		},
+		{
+			Input: &protos.Error{
+				Reason:     "Reason",
+				Detail:     "Detail",
+				FixMethods: "FixMethod",
+			},
+			Want: &common.FailureDetail{
+				Reason:     "Reason",
+				Detail:     "Detail",
+				FixMethods: "FixMethod",
+				LogId:      0,
+			},
+		},
+	}
+
+	for _, test := range tests {
+
+		assert.Equal(t, test.Want, convertDeployControllerErrorToFailureDetail(test.Input))
+	}
 }

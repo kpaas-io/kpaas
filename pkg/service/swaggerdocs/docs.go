@@ -1039,9 +1039,9 @@ var doc = `{
                     "description": "Checking Result",
                     "type": "string",
                     "enum": [
-                        "notRunning",
-                        "checking",
-                        "passed",
+                        "pending",
+                        "running",
+                        "successful",
                         "failed"
                     ]
                 }
@@ -1191,8 +1191,8 @@ var doc = `{
                     "type": "string",
                     "enum": [
                         "pending",
-                        "deploying",
-                        "completed",
+                        "running",
+                        "successful",
                         "failed",
                         "aborted"
                     ]
@@ -1252,9 +1252,9 @@ var doc = `{
                     "description": "Overall inspection status",
                     "type": "string",
                     "enum": [
-                        "notRunning",
-                        "checking",
-                        "passed",
+                        "pending",
+                        "running",
+                        "successful",
                         "failed"
                     ]
                 }
@@ -1272,7 +1272,7 @@ var doc = `{
                     "description": "The cluster deployment status",
                     "type": "string",
                     "enum": [
-                        "notRunning",
+                        "pending",
                         "running",
                         "successful",
                         "failed",
@@ -1317,9 +1317,9 @@ var doc = `{
                     "description": "Nodes check result",
                     "type": "string",
                     "enum": [
-                        "notRunning",
-                        "checking",
-                        "passed",
+                        "pending",
+                        "running",
+                        "successful",
                         "failed"
                     ]
                 },
@@ -1339,7 +1339,7 @@ var doc = `{
                     "description": "Cluster deployment status",
                     "type": "string",
                     "enum": [
-                        "notRunning",
+                        "pending",
                         "running",
                         "successful",
                         "failed",

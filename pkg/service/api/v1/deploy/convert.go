@@ -91,8 +91,8 @@ func convertModelErrorToAPIError(detail *common.FailureDetail) *api.Error {
 func convertModelDeployClusterStatusToAPIDeployClusterStatus(status wizard.DeployClusterStatus) api.DeployClusterStatus {
 
 	switch status {
-	case wizard.DeployClusterStatusNotRunning:
-		return api.DeployClusterStatusNotRunning
+	case wizard.DeployClusterStatusPending:
+		return api.DeployClusterStatusPending
 	case wizard.DeployClusterStatusRunning:
 		return api.DeployClusterStatusRunning
 	case wizard.DeployClusterStatusSuccessful:
@@ -111,10 +111,10 @@ func convertModelDeployStatusToAPIDeployStatus(status wizard.DeployStatus) api.D
 	switch status {
 	case wizard.DeployStatusPending:
 		return api.DeployStatusPending
-	case wizard.DeployStatusDeploying:
-		return api.DeployStatusDeploying
-	case wizard.DeployStatusCompleted:
-		return api.DeployStatusCompleted
+	case wizard.DeployStatusRunning:
+		return api.DeployStatusRunning
+	case wizard.DeployStatusSuccessful:
+		return api.DeployStatusSuccessful
 	case wizard.DeployStatusFailed:
 		return api.DeployStatusFailed
 	case wizard.DeployStatusAborted:
@@ -236,26 +236,34 @@ func convertModelConnectionDataToDeployControllerSSHData(data *wizard.Connection
 
 func convertDeployControllerCheckResultToModelCheckResult(status string) constant.CheckResult {
 
-	s := constant.CheckResult(status)
-	switch s {
-	case constant.CheckResultNotRunning, constant.CheckResultChecking, constant.CheckResultPassed, constant.CheckResultFailed:
-		return s
+	switch status {
+	case string(constant.OperationStatusPending):
+		return constant.CheckResultPending
+	case string(constant.OperationStatusRunning):
+		return constant.CheckResultRunning
+	case string(constant.OperationStatusSuccessful):
+		return constant.CheckResultSuccessful
+	case string(constant.OperationStatusFailed):
+		return constant.CheckResultFailed
+	case string(constant.OperationStatusUnknown):
+		return constant.CheckResultDeployServiceUnknown
 	}
 	return constant.CheckResult(fmt.Sprintf("unknown(%s)", status))
 }
 
 func convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(status string) wizard.DeployClusterStatus {
+
 	switch status {
-	case string(wizard.DeployClusterStatusNotRunning):
-		return wizard.DeployClusterStatusNotRunning
-	case string(wizard.DeployClusterStatusRunning):
+	case string(constant.OperationStatusPending):
+		return wizard.DeployClusterStatusPending
+	case string(constant.OperationStatusRunning):
 		return wizard.DeployClusterStatusRunning
-	case string(wizard.DeployClusterStatusSuccessful):
+	case string(constant.OperationStatusSuccessful):
 		return wizard.DeployClusterStatusSuccessful
-	case string(wizard.DeployClusterStatusFailed):
+	case string(constant.OperationStatusFailed):
 		return wizard.DeployClusterStatusFailed
-	case string(wizard.DeployClusterStatusWorkedButHaveError):
-		return wizard.DeployClusterStatusWorkedButHaveError
+	case string(constant.OperationStatusUnknown):
+		return wizard.DeployClusterStatusDeployServiceUnknown
 	}
 	return wizard.DeployClusterStatus(fmt.Sprintf("unknown(%s)", status))
 }
@@ -263,15 +271,15 @@ func convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(status
 func convertDeployControllerDeployResultToModelDeployResult(status string) wizard.DeployStatus {
 
 	switch status {
-	case string(wizard.DeployStatusPending):
+	case string(constant.OperationStatusPending):
 		return wizard.DeployStatusPending
-	case string(wizard.DeployStatusDeploying):
-		return wizard.DeployStatusDeploying
-	case string(wizard.DeployStatusCompleted):
-		return wizard.DeployStatusCompleted
-	case string(wizard.DeployStatusFailed):
+	case string(constant.OperationStatusRunning):
+		return wizard.DeployStatusRunning
+	case string(constant.OperationStatusSuccessful):
+		return wizard.DeployStatusSuccessful
+	case string(constant.OperationStatusFailed):
 		return wizard.DeployStatusFailed
-	case string(wizard.DeployStatusAborted):
+	case string(constant.OperationStatusAborted):
 		return wizard.DeployStatusAborted
 	}
 

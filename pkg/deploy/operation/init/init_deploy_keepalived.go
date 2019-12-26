@@ -19,7 +19,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy"
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -28,9 +28,8 @@ import (
 
 const (
 	// we use master IP as keepalived listen IP, later we need use VIP to replace it
-	keepalivedEthernet   = "eth0"
-	keepalivedScript     = "/scripts/init_deploy_haproxy_keepalived/"
-	keepalivedScriptPath = "/scripts/init_deploy_haproxy_keepalived/setup_kubernetes_high_availability.sh"
+	keepalivedEthernet = "eth0"
+	keepalivedScript   = "/scripts/init_deploy_haproxy_keepalived/setup_kubernetes_high_availability.sh"
 )
 
 func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
@@ -61,7 +60,7 @@ type InitKeepalivedOperation struct {
 }
 
 func (itOps *InitKeepalivedOperation) getScript() string {
-	itOps.Script = keepalivedScriptPath
+	itOps.Script = keepalivedScript
 	return itOps.Script
 }
 
@@ -80,13 +79,52 @@ func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *o
 	itOps.NodeInitAction = initAction
 
 	masterIP := itOps.getMastersIP()
-	if masterIP != "" {
+	if masterIP == "" {
 		err = fmt.Errorf("master ip can not be empty")
 		return nil, err
 	}
 
-	err = m.PutDir(keepalivedScript, RemoteScriptPath, deploy.AllFilesNeeded)
+	// put setup.sh to machine
+	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {
+		return nil, err
+	}
+	defer scriptFile.Close()
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+		return nil, err
+	}
+
+	// put docker.sh to machine
+	scriptFile, err = assets.Assets.Open(HaDockerFilePath)
+	if err != nil {
+		return nil, err
+	}
+	defer scriptFile.Close()
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaDockerFilePath); err != nil {
+		return nil, err
+	}
+
+	// put lib.sh to machine
+	scriptFile, err = assets.Assets.Open(HaLibFilePath)
+	if err != nil {
+		return nil, err
+	}
+	defer scriptFile.Close()
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaLibFilePath); err != nil {
+		return nil, err
+	}
+
+	// put systemd.sh to machine
+	scriptFile, err = assets.Assets.Open(HaSystemdFilePath)
+	if err != nil {
+		return nil, err
+	}
+	defer scriptFile.Close()
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaSystemdFilePath); err != nil {
 		return nil, err
 	}
 

@@ -47,7 +47,7 @@ func Deploy(c *gin.Context) {
 		return
 	}
 
-	if wizardData.GetCheckResult() != constant.CheckResultPassed {
+	if wizardData.GetCheckResult() != constant.CheckResultSuccessful {
 		h.E(c, h.EStatusError.WithPayload("current check result status is not passed"))
 		return
 	}
@@ -226,7 +226,7 @@ func refreshDeployResultOneTime() {
 
 	wizardData := wizard.GetCurrentWizard()
 	wizardData.SetClusterDeploymentStatus(
-		convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(resp.GetStatus()),
+		computeClusterDeployStatus(resp),
 		convertDeployControllerErrorToFailureDetail(resp.GetErr()))
 
 	for _, item := range resp.Items {
@@ -259,6 +259,32 @@ func refreshDeployResultOneTime() {
 
 		fetchKubeConfigContent()
 	}
+}
+
+func computeClusterDeployStatus(resp *protos.GetDeployResultReply) wizard.DeployClusterStatus {
+
+	status := convertDeployControllerDeployClusterStatusToModelDeployClusterStatus(resp.GetStatus())
+	switch status {
+	case wizard.DeployClusterStatusPending, wizard.DeployClusterStatusRunning, wizard.DeployClusterStatusSuccessful, wizard.DeployClusterStatusDeployServiceUnknown:
+		return status
+	}
+
+	for _, deployItem := range resp.GetItems() {
+
+		if deployItem.GetDeployItem() == nil {
+			continue
+		}
+
+		if constant.MachineRole(deployItem.GetDeployItem().GetRole()) != constant.MachineRoleMaster {
+			continue
+		}
+
+		if convertDeployControllerDeployResultToModelDeployResult(deployItem.GetStatus()) == wizard.DeployStatusSuccessful {
+			return wizard.DeployClusterStatusWorkedButHaveError
+		}
+	}
+
+	return wizard.DeployClusterStatusFailed
 }
 
 func fetchKubeConfigContent() {

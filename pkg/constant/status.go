@@ -14,14 +14,14 @@
 
 package constant
 
-type (
-	CheckResult string // Check node result
-)
+// OperationStatus represents the status of check/deploy/.... operations
+type OperationStatus string
 
 const (
-	CheckResultPending              CheckResult = "pending"
-	CheckResultRunning              CheckResult = "running"
-	CheckResultSuccessful           CheckResult = "successful"
-	CheckResultFailed               CheckResult = "failed"
-	CheckResultDeployServiceUnknown CheckResult = "unknown(deploy)"
+	OperationStatusPending    OperationStatus = "pending"
+	OperationStatusRunning    OperationStatus = "running"
+	OperationStatusSuccessful OperationStatus = "successful"
+	OperationStatusFailed     OperationStatus = "failed"
+	OperationStatusAborted    OperationStatus = "aborted"
+	OperationStatusUnknown    OperationStatus = "unknown"
 )

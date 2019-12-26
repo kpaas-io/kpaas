@@ -21,6 +21,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/task"
 )
@@ -96,14 +97,14 @@ var _testConfig = DeployTestConfig{
 }
 
 type DeployTestConfig struct {
-	// Skip defines whether to skip the deploy system testing when using "go test"
+	// Skip defines whether to skip the deploy system testing when run "go test"
 	Skip bool `json:"skip,omitempty"`
 	// LaunchLocalServer defines whether to launch a local deploy server for deploy system testing
 	LaunchLocalServer bool `json:"launchLocalServer,omitempty"`
 	// RemoteServerAddress defines an already running deploy server for deploy system testing, it will
 	// only take effect if LaunchLocalServer is set to false.
 	RemoteServerAddress string `json:"remoteServerAddress,omitempty"`
-	// NodeCredential defines the
+	// Nodes defines the nodes (machines) information for testing.
 	Nodes []*pb.Node `json:"nodes,omitempty"`
 }
 
@@ -175,7 +176,7 @@ func getCheckNodesData() (request *pb.CheckNodesRequest, reply *pb.CheckNodesRep
 func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply *pb.GetCheckNodesResultReply) {
 	request = &pb.GetCheckNodesResultRequest{}
 	reply = &pb.GetCheckNodesResultReply{
-		Status: string(task.TaskDone),
+		Status: string(constant.OperationStatusSuccessful),
 		Err:    nil,
 		Nodes: map[string]*pb.NodeCheckResult{
 			_testConfig.Nodes[0].Name: &pb.NodeCheckResult{
@@ -400,7 +401,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 
 	request = &pb.GetDeployResultRequest{}
 	reply = &pb.GetDeployResultReply{
-		Status: string(task.TaskDone),
+		Status: string(constant.OperationStatusSuccessful),
 		Err:    nil,
 		Items:  deployItemResults,
 	}
