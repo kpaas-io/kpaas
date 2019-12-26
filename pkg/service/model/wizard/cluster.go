@@ -67,11 +67,12 @@ const (
 	KubeAPIServerConnectTypeKeepalived    KubeAPIServerConnectType = "keepalived"
 	KubeAPIServerConnectTypeLoadBalancer  KubeAPIServerConnectType = "loadbalancer"
 
-	DeployClusterStatusPending            DeployClusterStatus = "pending"
-	DeployClusterStatusRunning            DeployClusterStatus = "running"
-	DeployClusterStatusSuccessful         DeployClusterStatus = "successful"
-	DeployClusterStatusFailed             DeployClusterStatus = "failed"
-	DeployClusterStatusWorkedButHaveError DeployClusterStatus = "workedButHaveError"
+	DeployClusterStatusPending              DeployClusterStatus = "pending"
+	DeployClusterStatusRunning              DeployClusterStatus = "running"
+	DeployClusterStatusSuccessful           DeployClusterStatus = "successful"
+	DeployClusterStatusFailed               DeployClusterStatus = "failed"
+	DeployClusterStatusWorkedButHaveError   DeployClusterStatus = "workedButHaveError"
+	DeployClusterStatusDeployServiceUnknown DeployClusterStatus = "unknown(deploy)"
 
 	DefaultNodePortMinimum uint16 = 30000
 	DefaultNodePortMaximum uint16 = 32767
