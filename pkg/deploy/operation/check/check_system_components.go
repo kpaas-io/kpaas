@@ -57,10 +57,9 @@ func (ckops *CheckSystemComponentOperation) GetOperations(config *pb.NodeCheckCo
 
 // close ssh client
 func (ckops *CheckSystemComponentOperation) CloseSSH() {
-	if ckops.Machine == nil {
-		return
+	if ckops.Machine != nil {
+		ckops.Machine.Close()
 	}
-	ckops.Machine.Close()
 }
 
 // check is system manager is systemd

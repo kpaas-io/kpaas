@@ -55,10 +55,9 @@ func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (opera
 
 // close ssh client
 func (ckops *CheckCPUOperation) CloseSSH() {
-	if ckops.Machine == nil {
-		return
+	if ckops.Machine != nil {
+		ckops.Machine.Close()
 	}
-	ckops.Machine.Close()
 }
 
 // check if CPU numbers larger or equal than desired cores

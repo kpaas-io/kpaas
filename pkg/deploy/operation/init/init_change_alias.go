@@ -67,8 +67,7 @@ func (itOps *InitHostaliasOperation) GetOperations(node *pb.Node, initAction *op
 }
 
 func (itOps *InitHostaliasOperation) CloseSSH() {
-	if itOps.Machine == nil {
-		return
+	if itOps.Machine != nil {
+		itOps.Machine.Close()
 	}
-	itOps.Machine.Close()
 }

@@ -55,10 +55,9 @@ func (ckops *CheckKernelOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 // close ssh client
 func (ckops *CheckKernelOperation) CloseSSH() {
-	if ckops.Machine == nil {
-		return
+	if ckops.Machine != nil {
+		ckops.Machine.Close()
 	}
-	ckops.Machine.Close()
 }
 
 // check if kernel version larger or equal than standard version

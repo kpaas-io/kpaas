@@ -55,10 +55,9 @@ func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (
 
 // close ssh client
 func (ckops *CheckRootDiskOperation) CloseSSH() {
-	if ckops.Machine == nil {
-		return
+	if ckops.Machine != nil {
+		ckops.Machine.Close()
 	}
-	ckops.Machine.Close()
 }
 
 // check if root disk volume satisfied with desired disk volume

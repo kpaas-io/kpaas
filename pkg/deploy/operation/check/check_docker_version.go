@@ -55,10 +55,9 @@ func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 // close ssh client
 func (ckops *CheckDockerOperation) CloseSSH() {
-	if ckops.Machine == nil {
-		return
+	if ckops.Machine != nil {
+		ckops.Machine.Close()
 	}
-	ckops.Machine.Close()
 }
 
 // check docker version if version larger or equal than standard version

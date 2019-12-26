@@ -62,10 +62,9 @@ func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfi
 
 // close ssh client
 func (ckops *CheckDistributionOperation) CloseSSH() {
-	if ckops.Machine == nil {
-		return
+	if ckops.Machine != nil {
+		ckops.Machine.Close()
 	}
-	ckops.Machine.Close()
 }
 
 // check if system distribution can be supported
