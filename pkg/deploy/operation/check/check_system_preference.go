@@ -66,5 +66,8 @@ func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (o
 
 // close ssh client
 func (ckops *CheckSysPrefOperation) CloseSSH() {
+	if ckops.Machine == nil {
+		return
+	}
 	ckops.Machine.Close()
 }

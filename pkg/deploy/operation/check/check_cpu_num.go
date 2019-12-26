@@ -55,6 +55,9 @@ func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (opera
 
 // close ssh client
 func (ckops *CheckCPUOperation) CloseSSH() {
+	if ckops.Machine == nil {
+		return
+	}
 	ckops.Machine.Close()
 }
 

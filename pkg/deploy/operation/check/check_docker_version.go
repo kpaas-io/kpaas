@@ -55,6 +55,9 @@ func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 // close ssh client
 func (ckops *CheckDockerOperation) CloseSSH() {
+	if ckops.Machine == nil {
+		return
+	}
 	ckops.Machine.Close()
 }
 

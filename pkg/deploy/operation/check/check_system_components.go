@@ -57,6 +57,9 @@ func (ckops *CheckSystemComponentOperation) GetOperations(config *pb.NodeCheckCo
 
 // close ssh client
 func (ckops *CheckSystemComponentOperation) CloseSSH() {
+	if ckops.Machine == nil {
+		return
+	}
 	ckops.Machine.Close()
 }
 

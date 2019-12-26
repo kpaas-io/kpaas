@@ -55,6 +55,9 @@ func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 // close ssh client
 func (ckops *CheckMemoryOperation) CloseSSH() {
+	if ckops.Machine == nil {
+		return
+	}
 	ckops.Machine.Close()
 }
 

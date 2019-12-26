@@ -62,6 +62,9 @@ func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfi
 
 // close ssh client
 func (ckops *CheckDistributionOperation) CloseSSH() {
+	if ckops.Machine == nil {
+		return
+	}
 	ckops.Machine.Close()
 }
 

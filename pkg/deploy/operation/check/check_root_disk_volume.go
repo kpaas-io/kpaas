@@ -55,6 +55,9 @@ func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (
 
 // close ssh client
 func (ckops *CheckRootDiskOperation) CloseSSH() {
+	if ckops.Machine == nil {
+		return
+	}
 	ckops.Machine.Close()
 }
 
