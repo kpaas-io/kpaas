@@ -29,7 +29,7 @@ const (
 type CheckSysPrefOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Machine *machine.Machine
+	Machine machine.IMachine
 }
 
 func (ckops *CheckSysPrefOperation) getScript() string {

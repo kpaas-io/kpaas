@@ -35,7 +35,7 @@ const (
 type CheckDistributionOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Machine *machine.Machine
+	Machine machine.IMachine
 }
 
 func (ckops *CheckDistributionOperation) getScript() string {

@@ -25,14 +25,14 @@ import (
 
 // ShellCommand is a command execute by shell
 type ShellCommand struct {
-	machine          *machine.Machine
+	machine          machine.IMachine
 	cmd              string
 	args             []string
 	executeLogWriter io.Writer
 	description      string
 }
 
-func NewShellCommand(machine *machine.Machine, cmd string, args ...string) *ShellCommand {
+func NewShellCommand(machine machine.IMachine, cmd string, args ...string) *ShellCommand {
 	return &ShellCommand{
 		machine: machine,
 		cmd:     cmd,

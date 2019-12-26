@@ -83,7 +83,7 @@ type deployEtcdOperation struct {
 	caCrt                           *x509.Certificate
 	caKey                           crypto.Signer
 	encodedPeerCert, encodedPeerKey []byte
-	machine                         *machine.Machine
+	machine                         machine.IMachine
 	clusterNodes                    []*pb.Node
 }
 
@@ -99,7 +99,6 @@ func NewDeployEtcdOperation(config *DeployEtcdOperationConfig) (*deployEtcdOpera
 		return nil, err
 	}
 
-	m.SetDockerTunnel()
 	if err := m.SetDockerClient(); err != nil {
 		return nil, fmt.Errorf("failed to set dockerclient, error: %v", err)
 	}
@@ -111,8 +110,8 @@ func NewDeployEtcdOperation(config *DeployEtcdOperationConfig) (*deployEtcdOpera
 
 // PreDo generate etcd certs and put it to etcd node
 func (d *deployEtcdOperation) PreDo() error {
-	if err := d.machine.DockerTunnel.Start(); err != nil {
-		return fmt.Errorf("failed to start docker tunnel to remote node: %v, error: %v", d.machine.Name, err)
+	if err := d.machine.StartDockerTunnel(); err != nil {
+		return fmt.Errorf("failed to start docker tunnel to remote node: %v, error: %v", d.machine.GetName(), err)
 	}
 
 	// put ca cert and key to all cluster nodes
@@ -125,53 +124,53 @@ func (d *deployEtcdOperation) PreDo() error {
 	EtcdCAcrt = encodedCert
 
 	if err := d.machine.PutFile(bytes.NewReader(encodedCert), DefaultEtcdCACertPath); err != nil {
-		return fmt.Errorf("failed to put ca cert to:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to put ca cert to:%v, error: %v", d.machine.GetName(), err)
 	}
 	if err := d.machine.PutFile(bytes.NewReader(encodedKey), defaultEtcdCAKeyPath); err != nil {
-		return fmt.Errorf("failed to put ca key to:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to put ca key to:%v, error: %v", d.machine.GetName(), err)
 	}
 
 	// put server cert and key to all cluster nodes
-	config, err := GetServerCrtConfig(d.machine.Name, d.machine.Ip)
+	config, err := GetServerCrtConfig(d.machine.GetName(), d.machine.GetIp())
 	if err != nil {
-		return fmt.Errorf("failed to get etd server cert config for node:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to get etd server cert config for node:%v, error: %v", d.machine.GetName(), err)
 	}
 	encodedCert, encodedKey, err = CreateFromCA(config, d.caCrt, d.caKey)
 	if err != nil {
-		return fmt.Errorf("failed to generation etcd server key and cert for etcd node:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to generation etcd server key and cert for etcd node:%v, error: %v", d.machine.GetName(), err)
 	}
 	// set for later etcd client use
 	d.encodedPeerCert = encodedCert
 	d.encodedPeerKey = encodedKey
 
 	if err := d.machine.PutFile(bytes.NewReader(encodedCert), defaultEtcdServerCertPath); err != nil {
-		return fmt.Errorf("failed to put etcd server cert to:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to put etcd server cert to:%v, error: %v", d.machine.GetName(), err)
 	}
 	if err := d.machine.PutFile(bytes.NewReader(encodedKey), defaultEtcdServerKeyPath); err != nil {
-		return fmt.Errorf("failed to put etcd server key to:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to put etcd server key to:%v, error: %v", d.machine.GetName(), err)
 	}
 
 	// put peer cert and key to all cluster nodes
-	config, err = GetPeerCrtConfig(d.machine.Name, d.machine.Ip)
+	config, err = GetPeerCrtConfig(d.machine.GetName(), d.machine.GetIp())
 	if err != nil {
-		return fmt.Errorf("failed to get etd peer cert config for node:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to get etd peer cert config for node:%v, error: %v", d.machine.GetName(), err)
 	}
 	encodedCert, encodedKey, err = CreateFromCA(config, d.caCrt, d.caKey)
 	if err != nil {
-		return fmt.Errorf("failed to generation etcd peer key and cert for etcd node:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to generation etcd peer key and cert for etcd node:%v, error: %v", d.machine.GetName(), err)
 	}
 	if err := d.machine.PutFile(bytes.NewReader(encodedCert), defaultEtcdPeerCertPath); err != nil {
-		return fmt.Errorf("failed to put etcd peer cert to:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to put etcd peer cert to:%v, error: %v", d.machine.GetName(), err)
 	}
 	if err := d.machine.PutFile(bytes.NewReader(encodedKey), defaultEtcdPeerKeyPath); err != nil {
-		return fmt.Errorf("failed to put etcd peer key to:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to put etcd peer key to:%v, error: %v", d.machine.GetName(), err)
 	}
 
 	// put peer cert and key to all cluster nodes
 	config = GetAPIServerClientCrtConfig()
 	encodedCert, encodedKey, err = CreateFromCA(config, d.caCrt, d.caKey)
 	if err != nil {
-		return fmt.Errorf("failed to generation etcd apiserver client key and cert for etcd node:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to generation etcd apiserver client key and cert for etcd node:%v, error: %v", d.machine.GetName(), err)
 	}
 
 	// save for later apiserver use
@@ -202,7 +201,7 @@ func composeEtcdDockerCmd(d *deployEtcdOperation) []string {
 
 	cmd = append(cmd, fmt.Sprintf("--snapshot-count=%v)", 10000))
 
-	cmd = append(cmd, fmt.Sprintf("--name=%v)", d.machine.Name))
+	cmd = append(cmd, fmt.Sprintf("--name=%v)", d.machine.GetName()))
 	cmd = append(cmd, fmt.Sprintf("--data-dir=%v", defaultEtcdDataDir))
 	cmd = append(cmd, fmt.Sprintf("--key-file=%v", defaultEtcdServerKeyPath))
 	cmd = append(cmd, fmt.Sprintf("--cert-file=%v", defaultEtcdServerCertPath))
@@ -211,10 +210,10 @@ func composeEtcdDockerCmd(d *deployEtcdOperation) []string {
 	cmd = append(cmd, fmt.Sprintf("--trusted-ca-file=%v)", DefaultEtcdCACertPath))
 	cmd = append(cmd, fmt.Sprintf("--peer-trusted-ca-file=%v)", DefaultEtcdCACertPath))
 
-	cmd = append(cmd, fmt.Sprintf("--advertise-client-urls=https://%v:%v", d.machine.Ip, defaultEtcdServerPort))
-	cmd = append(cmd, fmt.Sprintf("--initial-advertise-peer-urls=https://%v:%v", d.machine.Ip, defaultEtcdPeerPort))
-	cmd = append(cmd, fmt.Sprintf("--listen-client-urls=https://127.0.0.1:2379,https://%v:%v", d.machine.Ip, defaultEtcdServerPort))
-	cmd = append(cmd, fmt.Sprintf("--listen-peer-urls=https://%v:%v", d.machine.Ip, defaultEtcdPeerPort))
+	cmd = append(cmd, fmt.Sprintf("--advertise-client-urls=https://%v:%v", d.machine.GetIp(), defaultEtcdServerPort))
+	cmd = append(cmd, fmt.Sprintf("--initial-advertise-peer-urls=https://%v:%v", d.machine.GetIp(), defaultEtcdPeerPort))
+	cmd = append(cmd, fmt.Sprintf("--listen-client-urls=https://127.0.0.1:2379,https://%v:%v", d.machine.GetIp(), defaultEtcdServerPort))
+	cmd = append(cmd, fmt.Sprintf("--listen-peer-urls=https://%v:%v", d.machine.GetIp(), defaultEtcdPeerPort))
 
 	//initial-cluster: infra0=https://10.0.0.6:2380,infra1=https://10.0.0.7:2380,infra2=https://10.0.0.8:2380
 	cmd = append(cmd, composeInitialClusterUrl(d.clusterNodes))
@@ -246,13 +245,13 @@ func (d *deployEtcdOperation) Do() error {
 	}
 
 	//create and start etcd containers
-	body, err := d.machine.DockerClient.ContainerCreate(context.Background(), config, hostConfig, nil, "")
+	body, err := d.machine.GetDockerClient().ContainerCreate(context.Background(), config, hostConfig, nil, "")
 	if err != nil {
-		return fmt.Errorf("failed to create etcd container on etcd node:%v, error: %v", d.machine.Name, err)
+		return fmt.Errorf("failed to create etcd container on etcd node:%v, error: %v", d.machine.GetName(), err)
 	}
 
-	if err := d.machine.DockerClient.ContainerStart(context.Background(), body.ID, types.ContainerStartOptions{}); err != nil {
-		return fmt.Errorf("failed to start etcd container on etcd node:%v, error: %v", d.machine.Name, err)
+	if err := d.machine.GetDockerClient().ContainerStart(context.Background(), body.ID, types.ContainerStartOptions{}); err != nil {
+		return fmt.Errorf("failed to start etcd container on etcd node:%v, error: %v", d.machine.GetName(), err)
 	}
 
 	// post do
@@ -266,7 +265,7 @@ func (d *deployEtcdOperation) Do() error {
 func (d *deployEtcdOperation) PostDo() error {
 	cli, err := newEtcdV3SecureClient(d)
 	if err != nil {
-		return fmt.Errorf("failed to get etcd client of etcd node:%v, error:%v", d.machine.Name, err)
+		return fmt.Errorf("failed to get etcd client of etcd node:%v, error:%v", d.machine.GetName(), err)
 	}
 	defer cli.Close()
 
