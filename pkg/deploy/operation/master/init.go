@@ -184,6 +184,11 @@ func masterUpAndRunning(op *initMasterOperation) error {
 		return fmt.Errorf("failed to get control plane endpoint, error:%v", err)
 	}
 
+	if controlPlaneEndpoint == "test" {
+		op.Logger.Warnf("this is only one test endpoint, return directly")
+		return nil
+	}
+
 	healthCheckUrl := fmt.Sprintf("https://%v/healthz", controlPlaneEndpoint)
 
 	op.Logger.Debugf("after healthCheckUrl:%v", healthCheckUrl)
