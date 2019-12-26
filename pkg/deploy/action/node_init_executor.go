@@ -21,6 +21,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	it "github.com/kpaas-io/kpaas/pkg/deploy/operation/init"
@@ -111,7 +112,7 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 		"init_item": item,
 	})
 
-	logrus.Debugf("Start to execute init")
+	logger.Debugf("Start to execute init")
 
 	initItemReport := newNodeInitItem()
 	initItemReport.Status = ItemActionDoing
@@ -119,9 +120,11 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 	if err != nil {
 		logger.Errorf("%v: %v", InitFailed, err)
 		initItemReport.Status = ItemActionFailed
+	} else {
+		initItemReport.Status = ItemActionDone
+		logger.Info(InitPassed)
 	}
 
-	logger.Info(InitPassed)
 	UpdateInitItems(ncAction, initItemReport)
 
 	wg.Done()
@@ -141,15 +144,25 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	logger.Debug("Start to execute node init action")
 
-	// init events include firewall, hostalias, hostname, network
-	// route, swap, timezone， kubetool
-	itemEnums := []it.ItemEnum{it.Swap, it.Route, it.Network, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // TODO it.Haproxy, it.Keepalived,
-	for _, item := range itemEnums {
-		wg.Add(1)
-		go InitAsyncExecutor(item, nodeInitAction, &wg)
+	// init events include firewall, hostalias, hostname, network, route, swap, timezone， kubetool
+	workerItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+	masterItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // cloud machine can not test it.Haproxy, it.Keepalived}
+
+	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
+		for _, item := range masterItemEnums {
+			wg.Add(1)
+			go InitAsyncExecutor(item, nodeInitAction, &wg)
+		}
+		wg.Wait()
+	} else if containsRole(nodeInitAction, constant.MachineRoleWorker) {
+		for _, item := range workerItemEnums {
+			wg.Add(1)
+			go InitAsyncExecutor(item, nodeInitAction, &wg)
+		}
+		wg.Wait()
 	}
 
-	wg.Wait()
+	// TODO if etcd and ingress needs init seperately
 
 	// If any of init item was failed, we should return an error
 	failedItems := getFailedInitItems(nodeInitAction)
@@ -181,4 +194,14 @@ func getFailedInitItems(initAction *NodeInitAction) []string {
 		}
 	}
 	return failedItemName
+}
+
+// separate roles
+func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) bool {
+	for _, role := range initAction.NodeInitConfig.Roles {
+		if role == string(wantRole) {
+			return true
+		}
+	}
+	return false
 }

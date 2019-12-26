@@ -36,6 +36,7 @@ var scripts http.FileSystem = filter.Keep(
 	http.Dir(relativeScriptsPath),
 	func(path string, fi os.FileInfo) bool {
 		return path == "/" ||
+			strings.HasPrefix(path, "/init_deploy_haproxy_keepalived") ||
 			strings.HasSuffix(path, ".sh")
 	},
 )

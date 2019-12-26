@@ -52,6 +52,8 @@ func (p *nodeInitProcessor) SplitTask(t Task) error {
 		actionCfg := &action.NodeInitActionConfig{
 			NodeInitConfig:  node,
 			LogFileBasePath: initTask.LogFileDir,
+			ClusterConfig:   initTask.ClusterConfig,
+			NodesConfig:     initTask.NodeConfigs,
 		}
 		act, err := action.NewNodeInitAction(actionCfg)
 		if err != nil {
