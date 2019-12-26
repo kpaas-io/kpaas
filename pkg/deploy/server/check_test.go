@@ -19,6 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/action"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
@@ -240,7 +241,7 @@ func TestGetNodeCheckResult(t *testing.T) {
 				},
 			},
 			wantReply: &pb.GetCheckNodesResultReply{
-				Status: string(task.TaskDone),
+				Status: string(constant.OperationStatusSuccessful),
 				Err:    nil,
 				Nodes: map[string]*pb.NodeCheckResult{
 					"node1": &pb.NodeCheckResult{
