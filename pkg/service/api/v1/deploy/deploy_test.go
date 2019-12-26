@@ -26,6 +26,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -202,6 +203,124 @@ func TestFetchKubeConfigContent(t *testing.T) {
 		wizardData.Nodes = test.OriginNodeList
 		fetchKubeConfigContent()
 		assert.Equal(t, test.WantKubeConfig, *wizardData.KubeConfig)
+	}
+}
+
+func TestComputeClusterDeployStatus(t *testing.T) {
+
+	tests := []struct {
+		Input *protos.GetDeployResultReply
+		Want  wizard.DeployClusterStatus
+	}{
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusSuccessful),
+				Err:    nil,
+				Items:  nil,
+			},
+			Want: wizard.DeployClusterStatusSuccessful,
+		},
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusPending),
+				Err:    nil,
+				Items:  nil,
+			},
+			Want: wizard.DeployClusterStatusPending,
+		},
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusRunning),
+				Err:    nil,
+				Items:  nil,
+			},
+			Want: wizard.DeployClusterStatusRunning,
+		},
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusUnknown),
+				Err:    nil,
+				Items:  nil,
+			},
+			Want: wizard.DeployClusterStatusDeployServiceUnknown,
+		},
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusFailed),
+				Err:    nil,
+				Items:  nil,
+			},
+			Want: wizard.DeployClusterStatusFailed,
+		},
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusFailed),
+				Err:    nil,
+				Items: []*protos.DeployItemResult{
+					{
+						DeployItem: &protos.DeployItem{
+							Role: string(constant.MachineRoleEtcd),
+						},
+						Status: string(constant.OperationStatusFailed),
+					},
+				},
+			},
+			Want: wizard.DeployClusterStatusFailed,
+		},
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusFailed),
+				Err:    nil,
+				Items: []*protos.DeployItemResult{
+					{
+						DeployItem: nil,
+						Status:     string(constant.OperationStatusFailed),
+					},
+				},
+			},
+			Want: wizard.DeployClusterStatusFailed,
+		},
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusFailed),
+				Err:    nil,
+				Items: []*protos.DeployItemResult{
+					{
+						DeployItem: &protos.DeployItem{
+							Role: string(constant.MachineRoleMaster),
+						},
+						Status: string(constant.OperationStatusFailed),
+					},
+				},
+			},
+			Want: wizard.DeployClusterStatusFailed,
+		},
+		{
+			Input: &protos.GetDeployResultReply{
+				Status: string(constant.OperationStatusFailed),
+				Err:    nil,
+				Items: []*protos.DeployItemResult{
+					{
+						DeployItem: &protos.DeployItem{
+							Role: string(constant.MachineRoleMaster),
+						},
+						Status: string(constant.OperationStatusSuccessful),
+					},
+					{
+						DeployItem: &protos.DeployItem{
+							Role: string(constant.MachineRoleMaster),
+						},
+						Status: string(constant.OperationStatusFailed),
+					},
+				},
+			},
+			Want: wizard.DeployClusterStatusWorkedButHaveError,
+		},
+	}
+
+	for _, test := range tests {
+
+		assert.Equal(t, test.Want, computeClusterDeployStatus(test.Input))
 	}
 }
 

@@ -19,8 +19,9 @@ type (
 )
 
 const (
-	CheckResultPending    CheckResult = "pending"
-	CheckResultRunning    CheckResult = "running"
-	CheckResultSuccessful CheckResult = "successful"
-	CheckResultFailed     CheckResult = "failed"
+	CheckResultPending              CheckResult = "pending"
+	CheckResultRunning              CheckResult = "running"
+	CheckResultSuccessful           CheckResult = "successful"
+	CheckResultFailed               CheckResult = "failed"
+	CheckResultDeployServiceUnknown CheckResult = "unknown(deploy)"
 )
