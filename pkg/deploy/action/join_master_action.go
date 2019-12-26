@@ -30,7 +30,7 @@ type JoinMasterActionConfig struct {
 	LogFileBasePath string
 }
 
-type JoinMasterTask struct {
+type JoinMasterAction struct {
 	Base
 	MasterNodes   []*pb.Node
 	ClusterConfig *pb.ClusterConfig
@@ -45,7 +45,7 @@ func NewJoinMasterAction(cfg *JoinMasterActionConfig) (Action, error) {
 	}
 
 	actionName := GenActionName(ActionTypeJoinMaster)
-	return &JoinMasterTask{
+	return &JoinMasterAction{
 		Base: Base{
 			Name:              actionName,
 			Node:              cfg.Node,

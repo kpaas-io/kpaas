@@ -18,10 +18,15 @@ import (
 	"crypto"
 	"crypto/x509"
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"os"
 
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/client-go/util/keyutil"
 	"k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
+
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
+	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 // CreateAsCA creates a certificate authority, returning the created CA so it can be used to sign child certs.
@@ -66,4 +71,38 @@ func ToByte(crt *x509.Certificate, key crypto.Signer) (encodedKey, encodedCrt []
 	}
 
 	return
+}
+
+func FetchEtcdCertAndKey(etcdNode *pb.Node, baseName string) (*x509.Certificate, crypto.Signer, error) {
+	certPath := fmt.Sprintf("%v/%v.crt", localEtcdCADir, baseName)
+	keyPath := fmt.Sprintf("%v/%v.key", localEtcdCADir, baseName)
+
+	localCert, err := os.Create(certPath)
+	localKey, err := os.Create(keyPath)
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create local %v cert path:%v, error:%v", baseName, certPath, err)
+	}
+
+	m, err := machine.NewMachine(etcdNode)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create exec client for first etcd node:%v, error:%v", m.GetName(), err)
+	}
+
+	if err := m.FetchFile(localCert, DefaultEtcdCACertPath); err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch etcd %v cert, error:%v", baseName, err)
+	}
+
+	if err := m.FetchFile(localKey, DefaultEtcdCAKeyPath); err != nil {
+		return nil, nil, fmt.Errorf("failed to fetch etcd %v key, error:%v", baseName, err)
+	}
+
+	etcdCACrt, etcCAKey, err := pkiutil.TryLoadCertAndKeyFromDisk(localEtcdCADir, baseName)
+	if err != nil {
+		err = fmt.Errorf("failed to load etcd %v cert and key from:%v, error:%v", baseName, localEtcdCADir, err)
+		logrus.Error(err)
+		return nil, nil, err
+	}
+
+	return etcdCACrt, etcCAKey, nil
 }

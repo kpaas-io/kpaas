@@ -15,7 +15,6 @@
 package init
 
 import (
-	"errors"
 	"fmt"
 	"net"
 
@@ -61,11 +60,6 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 
 	// we would use initAction's image repository in the future
 	imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
-
-	if node.GetIp() == "" {
-		return nil, errors.New("node ip can not be empty")
-	}
-	nodeIp = fmt.Sprintf("--node-ip %v", node.GetIp())
 
 	ops := &InitKubeToolOperation{}
 	m, err := machine.NewMachine(node)

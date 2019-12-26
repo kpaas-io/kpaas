@@ -95,6 +95,7 @@ func (p *deployMasterProcessor) createDeployMasterSubTask(index int, parent *dep
 		config := &JoinMasterTaskConfig{
 			node:            parent.Nodes[index],
 			masterNodes:     parent.Nodes,
+			clusterConfig:   parent.ClusterConfig,
 			logFileBasePath: parent.GetLogFileDir(),
 			priority:        int(JoinMasterPriority),
 			parent:          parent.GetName(),

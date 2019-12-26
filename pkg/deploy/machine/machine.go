@@ -24,6 +24,7 @@ import (
 type IMachine interface {
 	GetName() string
 	GetIp() string
+	GetNode() *pb.Node
 	Close()
 
 	Run(cmd string) (stdout, stderr []byte, err error)
@@ -65,4 +66,8 @@ func (m *Machine) GetName() string {
 
 func (m *Machine) GetIp() string {
 	return m.Ip
+}
+
+func (m *Machine) GetNode() *pb.Node {
+	return m.Node
 }

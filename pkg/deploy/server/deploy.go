@@ -24,6 +24,7 @@ import (
 )
 
 func (c *controller) getDeployResult(aTask task.Task, withLogs bool) (*pb.GetDeployResultReply, error) {
+	logrus.Debugf("aTask: %#v", aTask)
 	if aTask == nil {
 		return nil, fmt.Errorf("Task is nil")
 	}
@@ -32,6 +33,8 @@ func (c *controller) getDeployResult(aTask task.Task, withLogs bool) (*pb.GetDep
 
 	// Get all actions of the deploy task
 	actions := task.GetAllActions(aTask)
+	logrus.Debugf("actions: %#v", actions)
+
 	// Create a pb.DeployItemResult for each action
 	var items []*pb.DeployItemResult
 	for _, act := range actions {

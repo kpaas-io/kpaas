@@ -43,3 +43,7 @@ func (op *BaseOperation) Do() (stdout, stderr []byte, err error) {
 
 	return
 }
+
+func (op *BaseOperation) Reset() {
+	op.Commands = []command.Command{}
+}

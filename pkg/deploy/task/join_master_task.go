@@ -45,7 +45,7 @@ type JoinMasterTask struct {
 	Operation     Operation
 	Node          *pb.Node
 	MasterNodes   []*pb.Node
-	clusterConfig *pb.ClusterConfig
+	ClusterConfig *pb.ClusterConfig
 }
 
 func NewJoinMasterTask(taskName string, taskConfig *JoinMasterTaskConfig) (Task, error) {
@@ -73,7 +73,7 @@ func NewJoinMasterTask(taskName string, taskConfig *JoinMasterTaskConfig) (Task,
 		},
 		Node:          taskConfig.node,
 		MasterNodes:   taskConfig.masterNodes,
-		clusterConfig: taskConfig.clusterConfig,
+		ClusterConfig: taskConfig.clusterConfig,
 		Operation:     JointMasterOperation,
 	}
 

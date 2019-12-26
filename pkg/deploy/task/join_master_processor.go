@@ -46,6 +46,7 @@ func (p *joinMasterProcessor) SplitTask(t Task) error {
 	actionCfg := &action.JoinMasterActionConfig{
 		Node:            task.Node,
 		MasterNodes:     task.MasterNodes,
+		ClusterConfig:   task.ClusterConfig,
 		LogFileBasePath: task.LogFileDir,
 	}
 	act, err := action.NewJoinMasterAction(actionCfg)

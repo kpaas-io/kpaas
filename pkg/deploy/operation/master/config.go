@@ -17,14 +17,15 @@ package master
 import (
 	"bytes"
 	"fmt"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
 	"time"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/kubernetes/cmd/kubeadm/app/apis/kubeadm/v1beta2"
 	"sigs.k8s.io/yaml"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -61,8 +62,10 @@ func newInitConfig(op *initMasterOperation) (string, error) {
 		APIVersion: "kubeadm.k8s.io/v1beta2",
 	}
 
-	clusterConfig.KubernetesVersion = op.ClusterConfig.KubernetesVersion
-	clusterConfig.ImageRepository = op.ClusterConfig.ImageRepository
+	//clusterConfig.KubernetesVersion = op.ClusterConfig.KubernetesVersion
+	clusterConfig.KubernetesVersion = constant.DefaultKubeVersion
+	//clusterConfig.ImageRepository = op.ClusterConfig.ImageRepository
+	clusterConfig.ImageRepository = constant.DefaultImageRepository
 
 	clusterConfig.ControlPlaneEndpoint, err = deploy.GetControlPlaneEndpoint(op.ClusterConfig, op.MasterNodes)
 	if err != nil {
@@ -93,10 +96,12 @@ func newInitConfig(op *initMasterOperation) (string, error) {
 	return initYaml.String(), nil
 }
 
-func getExternalEtcd(etcdNodes []*pb.Node) (externalEtcd *v1beta2.ExternalEtcd) {
+func getExternalEtcd(etcdNodes []*pb.Node) *v1beta2.ExternalEtcd {
+	externalEtcd := new(v1beta2.ExternalEtcd)
+
 	for i := range etcdNodes {
 		// TODO: replace to use etcd const when pr merged
-		ep := fmt.Sprintf("https:%v:%v", etcdNodes[i].Ip, 2379)
+		ep := fmt.Sprintf("https://%v:%v", etcdNodes[i].Ip, 2379)
 		externalEtcd.Endpoints = append(externalEtcd.Endpoints, ep)
 	}
 
@@ -104,5 +109,5 @@ func getExternalEtcd(etcdNodes []*pb.Node) (externalEtcd *v1beta2.ExternalEtcd) 
 	externalEtcd.CertFile = defaultApiServerEtcdClientCertPath
 	externalEtcd.KeyFile = defaultApiServerEtcdClientKeyPath
 
-	return
+	return externalEtcd
 }
