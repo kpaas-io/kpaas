@@ -263,9 +263,9 @@ func (c *controller) storeTask(task task.Task) error {
 	}
 
 	// Currently, we have to use the same task name for some kinds of repeated requests,
-	// for example, multiple check nodes and deploy requests. That means we only keeps the latest
+	// for example, multiple check nodes and deploy requests. That means we only keep the latest
 	// result for the same kind request.
-	// TODO: review this desing when support multiple clusters.
+	// TODO: review this design when support multiple clusters.
 	return c.store.UpdateOrAddTask(task)
 }
 
