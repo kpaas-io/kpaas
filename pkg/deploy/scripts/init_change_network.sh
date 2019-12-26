@@ -19,6 +19,6 @@ grep "net.ipv4.ip_forward" /etc/sysctl.conf && {
     sed -i -E 's/(.*)net.ipv4.ip_forward(.*)/net.ipv4.ip_forward\2/1' /etc/sysctl.conf
 }
 
-sysctl -w net.ipv4.ip_forward = 1
+sysctl -w net.ipv4.ip_forward=1 1>/dev/null
 echo 1 > /proc/sys/net/ipv4/ip_forward
-sysctl -p /etc/sysctl.conf
+sysctl -p /etc/sysctl.conf 1>/dev/null

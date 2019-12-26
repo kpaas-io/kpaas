@@ -15,12 +15,15 @@
 
 set -Eeuo pipefail
 
+ROOT=$(unset CDPATH && cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+cd $ROOT
 DEBUG=false
 LSB_DIST=
 DIST_VERSION=
 ACTION=
 COMPONENT=
 VERSION=
+NODEIP=`ip route get 1 | awk /src/ | awk -F " uid" '{print $1}' | awk -F "src " '{print $2}'`
 IMAGE_REPOSITORY=reg.kpaas.io/kpaas
 DEVICE_MOUNTS=
 
@@ -263,8 +266,8 @@ kubelet::config() {
 
     echo '[Service]
     Environment="KUBELET_CGROUP_DRIVER=--cgroup-driver=cgroupfs"
-    Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf"
-    Environment="KUBELET_SYSTEM_PODS_ARGS=--pod-manifest-path=/etc/kubernetes/manifests --allow-privileged=true"
+    Environment="KUBELET_KUBECONFIG_ARGS=--bootstrap-kubeconfig=/etc/kubernetes/bootstrap-kubelet.conf --kubeconfig=/etc/kubernetes/kubelet.conf --node-ip='$NODEIP'"
+    Environment="KUBELET_SYSTEM_PODS_ARGS=--pod-manifest-path=/etc/kubernetes/manifests"
     Environment="KUBELET_NETWORK_ARGS=--network-plugin=cni --cni-conf-dir=/etc/cni/net.d --cni-bin-dir=/opt/cni/bin"
     Environment="KUBELET_DNS_ARGS=--cluster-dns='$CLUSTER_DNS' --cluster-domain=cluster.local"
     Environment="KUBELET_AUTHZ_ARGS=--authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/ca.crt"

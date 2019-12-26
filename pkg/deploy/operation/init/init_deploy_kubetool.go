@@ -50,19 +50,12 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 
 	var imageRepository string
 	var clusterDNSIP string
-	var nodeIP string
 
 	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", constant.DefaultPkgMirror)
 	kubernetesVersion := fmt.Sprintf("--version %v", constant.DefaultKubeVersion)
 
 	// we would use initAction's service subnet in the future
 	clusterDNSIP = fmt.Sprintf("--cluster-dns %v", getDNSIP(constant.DefaultServiceSubnet))
-
-	if initAction.NodeInitConfig.Node.Ip == "" {
-		return nil, fmt.Errorf("current node %v ip can not be empty", initAction.NodeInitConfig.Node.Name)
-	}
-
-	nodeIP = fmt.Sprintf("--node-ip %v", initAction.NodeInitConfig.Node.Ip)
 
 	// we would use initAction's image repository in the future
 	imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
@@ -75,6 +68,7 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
+	// copy init_deploy_kubetool.sh to target machine
 	scriptFile, err := assets.Assets.Open(itOps.getScript())
 	if err != nil {
 		return nil, err
@@ -85,15 +79,25 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 		return nil, err
 	}
 
+	// copy commmon lib.sh to target machine
+	scriptFile, err = assets.Assets.Open(DefaultCommonLibPath)
+	if err != nil {
+		return nil, err
+	}
+	defer scriptFile.Close()
+
+	if err := m.PutFile(scriptFile, itOps.getScriptPath()+DefaultCommonLibPath); err != nil {
+		return nil, err
+	}
+
 	// setup repos
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", itOps.getScriptPath()+itOps.getScript(),
 		pkgMirrorUrl)))
 
 	// install kubelet, kubeadm, kubectl
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", itOps.getScriptPath()+itOps.getScript(),
-		kubernetesVersion, nodeIP, imageRepository, clusterDNSIP)))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v", itOps.getScriptPath()+itOps.getScript(),
+		kubernetesVersion, imageRepository, clusterDNSIP)))
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
 	return ops, nil
 }
 
@@ -108,7 +112,7 @@ func (itOps *InitKubeToolOperation) CloseSSH() {
 func getDNSIP(serviceSubnet string) string {
 	dnsIP, err := parseServiceSubnet(serviceSubnet)
 	if err == nil {
-		return fmt.Sprintf("--cluster-dns %v", dnsIP.String())
+		return fmt.Sprintf("%v", dnsIP.String())
 	}
 	return ""
 }
