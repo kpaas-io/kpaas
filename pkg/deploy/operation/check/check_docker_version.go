@@ -28,7 +28,7 @@ const (
 type CheckDockerOperation struct {
 	operation.BaseOperation
 	CheckOperations
-	Machine *machine.Machine
+	Machine machine.IMachine
 }
 
 func (ckops *CheckDockerOperation) getScript() string {

@@ -29,7 +29,7 @@ import (
 )
 
 type JoinClusterConfig struct {
-	Machine          *deployMachine.Machine
+	Machine          deployMachine.IMachine
 	Node             *pb.NodeDeployConfig
 	Logger           *logrus.Entry
 	Cluster          *pb.ClusterConfig

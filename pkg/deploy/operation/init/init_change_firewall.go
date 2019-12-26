@@ -29,7 +29,7 @@ const (
 type InitFireWallOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine        *machine.Machine
+	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 

@@ -56,7 +56,7 @@ func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 type InitKeepalivedOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine        *machine.Machine
+	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 

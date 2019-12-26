@@ -32,7 +32,7 @@ import (
 type InitKubeToolOperation struct {
 	operation.BaseOperation
 	InitOperations
-	Machine        *machine.Machine
+	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
