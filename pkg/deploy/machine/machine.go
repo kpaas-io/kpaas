@@ -18,9 +18,6 @@ import (
 	"fmt"
 	"io"
 
-	dockerclient "github.com/docker/docker/client"
-
-	"github.com/kpaas-io/kpaas/pkg/deploy/machine/docker"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -29,22 +26,17 @@ type IMachine interface {
 	GetIp() string
 	Close()
 
-	StartDockerTunnel() error
 	Run(cmd string) (stdout, stderr []byte, err error)
 	FetchDir(localDir, remoteDir string, fileNeeded func(path string) bool) error
 	FetchFile(dst io.Writer, remotePath string) error
 	FetchFileToLocalPath(localPath, remotePath string) error
 	PutDir(localDir, remoteDir string, fileNeeded func(path string) bool) error
 	PutFile(content io.Reader, remotePath string) error
-	SetDockerClient() error
-	GetDockerClient() *dockerclient.Client
 }
 
 type Machine struct {
 	*ExecClient
 	*pb.Node
-	DockerTunnel *docker.Tunnel
-	DockerClient *dockerclient.Client
 }
 
 func NewMachine(node *pb.Node) (IMachine, error) {
@@ -59,38 +51,12 @@ func NewMachine(node *pb.Node) (IMachine, error) {
 	}, nil
 }
 
-func (m *Machine) SetDockerClient() error {
-	client, err := docker.NewTunneledClient(m.Name)
-	if err != nil {
-		return fmt.Errorf("failed to create tunneled docker client to machine: %v, error: %v", m.Name, err)
-	}
-
-	m.DockerClient = client
-
-	return nil
-}
-
 func (m *Machine) Close() {
 
 	if m.ExecClient != nil {
 		m.ExecClient.Close()
 	}
 
-	if m.DockerClient != nil {
-		m.DockerClient.Close()
-	}
-
-	if m.DockerTunnel != nil {
-		m.DockerTunnel.Close()
-	}
-}
-
-func (m *Machine) StartDockerTunnel() error {
-	if m.DockerTunnel == nil {
-		m.DockerTunnel = docker.NewTunnel(m.SSHClient, m.Name)
-	}
-
-	return m.DockerTunnel.Start()
 }
 
 func (m *Machine) GetName() string {
@@ -99,8 +65,4 @@ func (m *Machine) GetName() string {
 
 func (m *Machine) GetIp() string {
 	return m.Ip
-}
-
-func (m *Machine) GetDockerClient() *dockerclient.Client {
-	return m.DockerClient
 }
