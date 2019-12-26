@@ -21,7 +21,7 @@ import (
 type (
 	GetCheckingResultResponse struct {
 		Nodes  []CheckingResultResponseData `json:"nodes"`
-		Result constant.CheckResult         `json:"result" enums:"notRunning,checking,passed,failed"` // Overall inspection status
+		Result constant.CheckResult         `json:"result" enums:"pending,running,successful,failed"` // Overall inspection status
 	}
 
 	CheckingResultResponseData struct {
@@ -31,7 +31,7 @@ type (
 
 	CheckingItem struct {
 		CheckingPoint string               `json:"point"`                                            // Check point
-		Result        constant.CheckResult `json:"result" enums:"notRunning,checking,passed,failed"` // Checking Result
+		Result        constant.CheckResult `json:"result" enums:"pending,running,successful,failed"` // Checking Result
 		Error         *Error               `json:"error,omitempty"`
 	}
 )

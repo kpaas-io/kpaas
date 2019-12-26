@@ -1025,9 +1025,9 @@
                     "description": "Checking Result",
                     "type": "string",
                     "enum": [
-                        "notRunning",
-                        "checking",
-                        "passed",
+                        "pending",
+                        "running",
+                        "successful",
                         "failed"
                     ]
                 }
@@ -1177,8 +1177,8 @@
                     "type": "string",
                     "enum": [
                         "pending",
-                        "deploying",
-                        "completed",
+                        "running",
+                        "successful",
                         "failed",
                         "aborted"
                     ]
@@ -1238,9 +1238,9 @@
                     "description": "Overall inspection status",
                     "type": "string",
                     "enum": [
-                        "notRunning",
-                        "checking",
-                        "passed",
+                        "pending",
+                        "running",
+                        "successful",
                         "failed"
                     ]
                 }
@@ -1258,7 +1258,7 @@
                     "description": "The cluster deployment status",
                     "type": "string",
                     "enum": [
-                        "notRunning",
+                        "pending",
                         "running",
                         "successful",
                         "failed",
@@ -1303,9 +1303,9 @@
                     "description": "Nodes check result",
                     "type": "string",
                     "enum": [
-                        "notRunning",
-                        "checking",
-                        "passed",
+                        "pending",
+                        "running",
+                        "successful",
                         "failed"
                     ]
                 },
@@ -1325,7 +1325,7 @@
                     "description": "Cluster deployment status",
                     "type": "string",
                     "enum": [
-                        "notRunning",
+                        "pending",
                         "running",
                         "successful",
                         "failed",

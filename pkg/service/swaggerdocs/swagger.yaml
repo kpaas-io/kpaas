@@ -21,9 +21,9 @@ definitions:
       result:
         description: Checking Result
         enum:
-        - notRunning
-        - checking
-        - passed
+        - pending
+        - running
+        - successful
         - failed
         type: string
     type: object
@@ -137,8 +137,8 @@ definitions:
         description: Checking Result
         enum:
         - pending
-        - deploying
-        - completed
+        - running
+        - successful
         - failed
         - aborted
         type: string
@@ -180,9 +180,9 @@ definitions:
       result:
         description: Overall inspection status
         enum:
-        - notRunning
-        - checking
-        - passed
+        - pending
+        - running
+        - successful
         - failed
         type: string
     type: object
@@ -195,7 +195,7 @@ definitions:
       deployClusterStatus:
         description: The cluster deployment status
         enum:
-        - notRunning
+        - pending
         - running
         - successful
         - failed
@@ -226,9 +226,9 @@ definitions:
       checkResult:
         description: Nodes check result
         enum:
-        - notRunning
-        - checking
-        - passed
+        - pending
+        - running
+        - successful
         - failed
         type: string
       checkingData:
@@ -243,7 +243,7 @@ definitions:
       deployClusterStatus:
         description: Cluster deployment status
         enum:
-        - notRunning
+        - pending
         - running
         - successful
         - failed
