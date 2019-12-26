@@ -362,6 +362,7 @@ func TestCluster_UpdateNode(t *testing.T) {
 						AuthenticationType: AuthenticationTypePassword,
 						Password:           "45678",
 					},
+					DockerRootDirectory: DefaultDockerRootDirectory,
 				},
 			},
 			Want: struct {
@@ -379,6 +380,7 @@ func TestCluster_UpdateNode(t *testing.T) {
 								AuthenticationType: AuthenticationTypePassword,
 								Password:           "45678",
 							},
+							DockerRootDirectory: DefaultDockerRootDirectory,
 						},
 					},
 					lock: new(sync.RWMutex),
