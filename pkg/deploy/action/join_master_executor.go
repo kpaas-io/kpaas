@@ -51,14 +51,14 @@ func (a *joinMasterExecutor) Execute(act Action) *pb.Error {
 	op, err := master.NewJoinMasterOperation(config)
 	if err != nil {
 		return &pb.Error{
-			Reason: "failed to get etcd operation",
+			Reason: "failed to get join master operation",
 			Detail: err.Error(),
 		}
 	}
 
 	if err := op.Do(); err != nil {
 		return &pb.Error{
-			Reason:     "failed to get etcd operation",
+			Reason:     "failed to do join master operation",
 			Detail:     err.Error(),
 			FixMethods: "",
 		}

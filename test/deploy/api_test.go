@@ -180,6 +180,21 @@ func TestDeploy(t *testing.T) {
 	assert.Equal(t, expetecdResultReply, actualResultReply)
 }
 
+func TestFetchKubeConfig(t *testing.T) {
+	if _testConfig.Skip {
+		t.SkipNow()
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	request, _ := getFetchKubeConfigData()
+	actualReply, err := client.FetchKubeConfig(ctx, request)
+	assert.NoError(t, err)
+	assert.NotNil(t, actualReply)
+	// Just a simple check on the content of kube config
+	assert.Equal(t, true, len(actualReply.KubeConfig) > 1000)
+}
+
 func sortItemCheckResults(results []*pb.ItemCheckResult) {
 	sort.Slice(results, func(i, j int) bool {
 		return results[i].Item.Name <= results[j].Item.Name
