@@ -17,6 +17,10 @@ package init
 import (
 	"errors"
 	"fmt"
+	"net"
+
+	"k8s.io/kubernetes/pkg/registry/core/service/ipallocator"
+
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -24,8 +28,6 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-	"k8s.io/kubernetes/pkg/registry/core/service/ipallocator"
-	"net"
 )
 
 type InitKubeToolOperation struct {
