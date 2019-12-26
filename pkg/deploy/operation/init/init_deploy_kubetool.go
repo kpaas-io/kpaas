@@ -15,11 +15,8 @@
 package init
 
 import (
+	"errors"
 	"fmt"
-	"net"
-
-	"k8s.io/kubernetes/pkg/registry/core/service/ipallocator"
-
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -27,6 +24,8 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"k8s.io/kubernetes/pkg/registry/core/service/ipallocator"
+	"net"
 )
 
 type InitKubeToolOperation struct {
@@ -50,6 +49,7 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 
 	var imageRepository string
 	var clusterDNSIP string
+	var nodeIp string
 
 	pkgMirrorUrl := fmt.Sprintf("--pkg-mirror %v", constant.DefaultPkgMirror)
 	kubernetesVersion := fmt.Sprintf("--version %v", constant.DefaultKubeVersion)
@@ -59,6 +59,11 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 
 	// we would use initAction's image repository in the future
 	imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
+
+	if node.GetIp() == "" {
+		return nil, errors.New("node ip can not be empty")
+	}
+	nodeIp = fmt.Sprintf("--node-ip %v", node.GetIp())
 
 	ops := &InitKubeToolOperation{}
 	m, err := machine.NewMachine(node)
@@ -95,8 +100,8 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 		pkgMirrorUrl)))
 
 	// install kubelet, kubeadm, kubectl
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v", itOps.getScriptPath()+itOps.getScript(),
-		kubernetesVersion, imageRepository, clusterDNSIP)))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", itOps.getScriptPath()+itOps.getScript(),
+		kubernetesVersion, imageRepository, clusterDNSIP, nodeIp)))
 
 	return ops, nil
 }
