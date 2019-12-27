@@ -80,6 +80,7 @@ func (p *deployMasterProcessor) createDeployMasterSubTask(index int, parent *dep
 	switch index {
 	case 0:
 		config := &InitMasterTaskConfig{
+			certKey:         parent.CertKey,
 			node:            parent.Nodes[index],
 			etcdNodes:       parent.EtcdNodes,
 			MasterNodes:     parent.Nodes,
@@ -93,8 +94,10 @@ func (p *deployMasterProcessor) createDeployMasterSubTask(index int, parent *dep
 		return NewInitMasterTask(taskName, config)
 	default:
 		config := &JoinMasterTaskConfig{
+			certKey:         parent.CertKey,
 			node:            parent.Nodes[index],
 			masterNodes:     parent.Nodes,
+			clusterConfig:   parent.ClusterConfig,
 			logFileBasePath: parent.GetLogFileDir(),
 			priority:        int(JoinMasterPriority),
 			parent:          parent.GetName(),

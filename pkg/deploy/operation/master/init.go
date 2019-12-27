@@ -46,6 +46,7 @@ const (
 
 type InitMasterOperationConfig struct {
 	Logger        *logrus.Entry
+	CertKey       string
 	Node          *pb.Node
 	MasterNodes   []*pb.Node
 	EtcdNodes     []*pb.Node
@@ -54,6 +55,7 @@ type InitMasterOperationConfig struct {
 
 type initMasterOperation struct {
 	operation.BaseOperation
+	CertKey       string
 	Logger        *logrus.Entry
 	EtcdNodes     []*pb.Node
 	MasterNodes   []*pb.Node
@@ -64,6 +66,7 @@ type initMasterOperation struct {
 func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOperation, error) {
 	ops := &initMasterOperation{
 		Logger:        config.Logger,
+		CertKey:       config.CertKey,
 		EtcdNodes:     config.EtcdNodes,
 		MasterNodes:   config.MasterNodes,
 		ClusterConfig: config.ClusterConfig,
@@ -80,30 +83,31 @@ func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOpera
 }
 
 func (op *initMasterOperation) PreDo() error {
-	etcdCACrt := etcd.EtcdCAcrt
-	if len(etcdCACrt) == 0 {
-		return fmt.Errorf("failed go obtain etcd ca cert, it's empty")
-	}
-	apiServerEtcdClientCert := etcd.ApiServerClientCrt
-	if len(apiServerEtcdClientCert) == 0 {
-		return fmt.Errorf("failed go obtain apiserver client etcd cert, it's empty")
-	}
-	apiServerEtcdClientKey := etcd.ApiServerClientKey
-	if len(apiServerEtcdClientKey) == 0 {
-		return fmt.Errorf("failed go obtain apiserver client cert key, it's empty")
+	etcdCACrt, etcCAKey, err := etcd.FetchEtcdCertAndKey(op.EtcdNodes[0], "ca")
+	if err != nil {
+		return err
 	}
 
-	if err := op.machine.PutFile(bytes.NewReader(etcdCACrt), etcd.DefaultEtcdCACertPath); err != nil {
+	// put peer cert and key to all cluster nodes
+	config := etcd.GetAPIServerClientCrtConfig()
+	encodedAPIServerKey, encodedAPIServerCert, err := etcd.CreateFromCA(config, etcdCACrt, etcCAKey)
+	if err != nil {
+		return fmt.Errorf("failed to generation etcd apiserver client key and cert for apiserver node:%v, error: %v", op.machine.GetName(), err)
+	}
+
+	_, encodedEtcdCACrt, err := etcd.ToByte(etcdCACrt, nil)
+
+	if err := op.machine.PutFile(bytes.NewReader(encodedEtcdCACrt), etcd.DefaultEtcdCACertPath); err != nil {
 		return fmt.Errorf("failed to put etcd ca cert to %v:%v, error: %v", op.machine.GetName(), etcd.DefaultEtcdCACertPath, err)
 	}
-	if err := op.machine.PutFile(bytes.NewReader(apiServerEtcdClientCert), defaultApiServerEtcdClientCertPath); err != nil {
+	if err := op.machine.PutFile(bytes.NewReader(encodedAPIServerCert), defaultApiServerEtcdClientCertPath); err != nil {
 		return fmt.Errorf("failed to put apiserver etcd client cert to %v:%v, error: %v", op.machine.GetName(), defaultApiServerEtcdClientCertPath, err)
 	}
-	if err := op.machine.PutFile(bytes.NewReader(apiServerEtcdClientKey), defaultApiServerEtcdClientKeyPath); err != nil {
+	if err := op.machine.PutFile(bytes.NewReader(encodedAPIServerKey), defaultApiServerEtcdClientKeyPath); err != nil {
 		return fmt.Errorf("failed to put apiserver etcd client key to %v:%v, error: %v", op.machine.GetName(), defaultApiServerEtcdClientKeyPath, err)
 	}
 
-	kubeadmConfig, err := newInitConfig(op)
+	kubeadmConfig, err := newInitConfig(op, op.CertKey)
 	if err != nil {
 		return fmt.Errorf("failed to generate %v, error: %v", kubeadmConfigPath, err)
 	}
@@ -124,19 +128,34 @@ func (op *initMasterOperation) PreDo() error {
 func (op *initMasterOperation) Do() error {
 	defer op.machine.Close()
 
+	if err := masterUpAndRunning(op); err == nil {
+		op.Logger.Infof("master1 already up and running, skipping init")
+		return nil
+	} else {
+		op.Logger.Debugf("master not running, error:%v", err)
+	}
+
 	if err := op.PreDo(); err != nil {
 		return err
 	}
 
+	op.Logger.Debug("predo of init master done")
+
 	// init first master
-	stdErr, _, err := op.BaseOperation.Do()
+	stdOut, stdErr, err := op.BaseOperation.Do()
+	op.Logger.Debugf("init master result:%s\n%s\n%v", stdOut, stdErr, err)
+
 	if err != nil {
 		return fmt.Errorf("failed to initilize first master, error:%s", stdErr)
 	}
 
+	op.Logger.Debug("init master done, start post do")
+
 	if err := op.PostDo(); err != nil {
 		return err
 	}
+
+	op.Logger.Debug("post do done")
 
 	return nil
 }
@@ -159,11 +178,15 @@ func (op *initMasterOperation) PostDo() error {
 
 func masterUpAndRunning(op *initMasterOperation) error {
 	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(op.ClusterConfig, op.MasterNodes)
+	op.Logger.Debugf("controlPlaneEndpoint: %v", controlPlaneEndpoint)
+
 	if err != nil {
 		return fmt.Errorf("failed to get control plane endpoint, error:%v", err)
 	}
 
 	healthCheckUrl := fmt.Sprintf("https://%v/healthz", controlPlaneEndpoint)
+
+	op.Logger.Debugf("after healthCheckUrl:%v", healthCheckUrl)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -181,6 +204,9 @@ func masterUpAndRunning(op *initMasterOperation) error {
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
+
+	op.Logger.Debugf("after get(%v):%s, %v", healthCheckUrl, body, err)
+
 	if err != nil {
 		return err
 	}

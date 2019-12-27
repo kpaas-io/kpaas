@@ -31,6 +31,7 @@ const (
 )
 
 type InitMasterTaskConfig struct {
+	certKey         string
 	operation       Operation
 	etcdNodes       []*pb.Node
 	MasterNodes     []*pb.Node
@@ -43,6 +44,7 @@ type InitMasterTaskConfig struct {
 
 type InitMasterTask struct {
 	Base
+	CertKey       string
 	Operation     Operation
 	EtcdNodes     []*pb.Node
 	MasterNodes   []*pb.Node
@@ -77,6 +79,7 @@ func NewInitMasterTask(taskName string, taskConfig *InitMasterTaskConfig) (Task,
 			Priority:          taskConfig.Priority,
 			Parent:            taskConfig.parent,
 		},
+		CertKey:       taskConfig.certKey,
 		Node:          taskConfig.node,
 		EtcdNodes:     taskConfig.etcdNodes,
 		MasterNodes:   taskConfig.MasterNodes,

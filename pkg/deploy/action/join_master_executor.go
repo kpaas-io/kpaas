@@ -30,9 +30,9 @@ type joinMasterExecutor struct {
 }
 
 func (a *joinMasterExecutor) Execute(act Action) *pb.Error {
-	action, ok := act.(*JoinMasterTask)
+	action, ok := act.(*JoinMasterAction)
 	if !ok {
-		return errOfTypeMismatched(new(JoinMasterTask), act)
+		return errOfTypeMismatched(new(JoinMasterAction), act)
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
@@ -43,6 +43,7 @@ func (a *joinMasterExecutor) Execute(act Action) *pb.Error {
 
 	config := &master.JoinMasterOperationConfig{
 		Logger:        logger,
+		CertKey:       action.CertKey,
 		Node:          action.Node,
 		MasterNodes:   action.MasterNodes,
 		ClusterConfig: action.ClusterConfig,

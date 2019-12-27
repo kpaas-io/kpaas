@@ -24,6 +24,7 @@ import (
 const ActionTypeInitMaster Type = "InitMaster"
 
 type InitMasterActionConfig struct {
+	CertKey         string
 	Node            *pb.Node
 	MasterNodes     []*pb.Node
 	EtcdNodes       []*pb.Node
@@ -33,6 +34,7 @@ type InitMasterActionConfig struct {
 
 type InitMasterAction struct {
 	Base
+	CertKey       string
 	MasterNodes   []*pb.Node
 	EtcdNodes     []*pb.Node
 	ClusterConfig *pb.ClusterConfig
@@ -57,7 +59,7 @@ func NewInitMasterAction(cfg *InitMasterActionConfig) (Action, error) {
 			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.Node.Name),
 			CreationTimestamp: time.Now(),
 		},
-
+		CertKey:       cfg.CertKey,
 		MasterNodes:   cfg.MasterNodes,
 		EtcdNodes:     cfg.EtcdNodes,
 		ClusterConfig: cfg.ClusterConfig,

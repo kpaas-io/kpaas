@@ -3,6 +3,7 @@ module github.com/kpaas-io/kpaas
 go 1.13
 
 require (
+	github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/containerd/containerd v1.3.1 // indirect
@@ -32,7 +33,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/swaggo/gin-swagger v1.2.0
 	github.com/swaggo/swag v1.6.3
-	golang.org/x/crypto v0.0.0-20191219195013-becbf705a915
+	golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c
 	golang.org/x/net v0.0.0-20191116160921-f9c825593386
 	golang.org/x/sys v0.0.0-20191223224216-5a3cf8467b4e // indirect
 	golang.org/x/tools v0.0.0-20191118051429-5a76f03bc7c3 // indirect

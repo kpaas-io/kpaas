@@ -28,16 +28,6 @@ var (
 		CommonName: "etcd-ca",
 	}
 
-	serverCertConfig = &certutil.Config{
-		// TODO: etcd 3.2 introduced an undocumented requirement for ClientAuth usage on the
-		// server cert: https://github.com/coreos/etcd/issues/9785#issuecomment-396715692
-		// Once the upstream issue is resolved, this should be returned to only allowing
-		// ServerAuth usage.
-		Usages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
-	}
-
-	peerCertConfig = serverCertConfig
-
 	apiserverClientCertConfig = &certutil.Config{
 		CommonName:   kubeadmconstants.APIServerEtcdClientCertCommonName,
 		Organization: []string{kubeadmconstants.SystemPrivilegedGroup},
@@ -56,6 +46,13 @@ func GetServerCrtConfig(hostName, IP string) (*certutil.Config, error) {
 		return nil, fmt.Errorf("failed to parse etcd node ip: %v, possiblly invalid ip", IP)
 	}
 
+	serverCertConfig := &certutil.Config{
+		// TODO: etcd 3.2 introduced an undocumented requirement for ClientAuth usage on the
+		// server cert: https://github.com/coreos/etcd/issues/9785#issuecomment-396715692
+		// Once the upstream issue is resolved, this should be returned to only allowing
+		// ServerAuth usage.
+		Usages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+	}
 	// create AltNames with defaults DNSNames/IPs
 	serverCertConfig.AltNames = certutil.AltNames{
 		DNSNames: []string{hostName, "localhost"},
@@ -74,6 +71,13 @@ func GetPeerCrtConfig(hostName, IP string) (*certutil.Config, error) {
 		return nil, fmt.Errorf("failed to parse etcd node ip: %v, possiblly invalid ip", IP)
 	}
 
+	peerCertConfig := &certutil.Config{
+		// TODO: etcd 3.2 introduced an undocumented requirement for ClientAuth usage on the
+		// server cert: https://github.com/coreos/etcd/issues/9785#issuecomment-396715692
+		// Once the upstream issue is resolved, this should be returned to only allowing
+		// ServerAuth usage.
+		Usages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+	}
 	// create AltNames with defaults DNSNames/IPs
 	peerCertConfig.AltNames = certutil.AltNames{
 		DNSNames: []string{hostName, "localhost"},

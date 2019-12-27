@@ -32,6 +32,7 @@ func (c *controller) getDeployResult(aTask task.Task, withLogs bool) (*pb.GetDep
 
 	// Get all actions of the deploy task
 	actions := task.GetAllActions(aTask)
+
 	// Create a pb.DeployItemResult for each action
 	var items []*pb.DeployItemResult
 	for _, act := range actions {

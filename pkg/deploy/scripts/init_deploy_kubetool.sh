@@ -24,7 +24,7 @@ ACTION=
 COMPONENT=
 VERSION=
 NODEIP=
-IMAGE_REPOSITORY=reg.kpaas.io/kpaas
+IMAGE_REPOSITORY=docker.io/kpaas
 DEVICE_MOUNTS=
 
 # kubelet specific
@@ -253,14 +253,16 @@ kubelet::install() {
     local kubeadm_version=$(echo $KUBELET_VERSION | awk -F'[_-]' '{print $1}')
 
     $KUBELET_INSTALLED || {
-        command::exec "$PKG_MGR install ${INSTALL_OPTIONS} kubelet${VERSION_SYMBOL}${KUBELET_VERSION}* --node-ip '$NODEIP'"
+        command::exec "$PKG_MGR install ${INSTALL_OPTIONS} kubelet${VERSION_SYMBOL}${KUBELET_VERSION}*"
 
         $DEBUG && log::deploy D "installing kubectl${VERSION_SYMBOL}${kubeadm_version} and kubeadm${VERSION_SYMBOL}${kubeadm_version}"
-        command::exec "$PKG_MGR install ${INSTALL_OPTIONS} kubectl${VERSION_SYMBOL}${kubeadm_version}* --node-ip '$NODEIP' kubeadm${VERSION_SYMBOL}${kubeadm_version}*"
+        command::exec "$PKG_MGR install ${INSTALL_OPTIONS} kubectl${VERSION_SYMBOL}${kubeadm_version}* kubeadm${VERSION_SYMBOL}${kubeadm_version}*"
     }
 }
 
 kubelet::config() {
+    # TODO: remove this line when release
+    NODEIP=`ip -f inet a | awk -F'[ /]+' '/,UP,/{getline; if ($3 ~ /^10./ || $3 ~ /^192.168./ || $3 ~ /^172.(1[6-9]|2[0-9]|3[01])./) {print $3;exit 0}}'`
     log::deploy I "generate config for kubelet${VERSION_SYMBOL}${KUBELET_VERSION}"
     [[ -d /etc/systemd/system/kubelet.service.d/ ]] || mkdir /etc/systemd/system/kubelet.service.d/
 
@@ -274,7 +276,7 @@ kubelet::config() {
     #Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"
     Environment="KUBELET_CERTIFICATE_ARGS=--rotate-certificates=true --cert-dir=/var/lib/kubelet/pki"
     Environment="KUBELET_POD_INFRA_ARGS=--pod-infra-container-image='${IMAGE_REPOSITORY%*/}'/pause-amd64:3.0"
-    Environment="KUBELET_FEATURE_GATES=--feature-gates=DevicePlugins=true,MountPropagation=true"
+    Environment="KUBELET_FEATURE_GATES=--feature-gates=DevicePlugins=true"
     Environment="KUBELET_LOG_LEVEL=-v=4"
     ExecStart=
     ExecStart=/usr/bin/kubelet $KUBELET_CGROUP_DRIVER $KUBELET_KUBECONFIG_ARGS $KUBELET_SYSTEM_PODS_ARGS $KUBELET_NETWORK_ARGS $KUBELET_DNS_ARGS $KUBELET_AUTHZ_ARGS $KUBELET_CADVISOR_ARGS $KUBELET_CERTIFICATE_ARGS $KUBELET_EXTRA_ARGS $KUBELET_POD_INFRA_ARGS $KUBELET_NODE_IP_ARGS $KUBELET_FEATURE_GATES $KUBELET_LOG_LEVEL $KUBELET_RESERVE_COMPUTE_RESOURCE_ARGS
@@ -312,7 +314,7 @@ usage() {
 cat <<EOF
 Usage:
     $0 setup repos [--local-repo-addr http://10.10.0.1:8880/localrepo --pkg-mirror mirrors.aliyun.com] [--debug]
-    $0 setup kubelet --cluster-dns 169.169.0.10 --version 1.11.0 --image-repository index.qiniu.com/library [--debug]
+    $0 setup kubelet --cluster-dns 169.169.0.10 --version 1.11.0 --image-repository docker.io/kpaas [--debug]
     $0 join --token 845e36.bc466480ab621387 --master 10.10.0.1:6443 [--control-plane] [--debug]
     $0 clean [--debug]
 EOF
@@ -329,13 +331,7 @@ main() {
         VERSION_SYMBOL='='
         DIST_VERSION=$(. /etc/os-release && echo $UBUNTU_CODENAME)
     ;;
-    centos)
-        PKG_MGR=yum
-        INSTALL_OPTIONS=' -y --setopt=obsoletes=0 --nogpgcheck'
-        VERSION_SYMBOL='-'
-        DIST_VERSION=$(. /etc/os-release && echo $VERSION_ID)
-    ;;
-    rhel)
+    centos|rhel)
         PKG_MGR=yum
         INSTALL_OPTIONS=' -y --setopt=obsoletes=0 --nogpgcheck'
         VERSION_SYMBOL='-'

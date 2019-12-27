@@ -31,6 +31,7 @@ const (
 )
 
 type JoinMasterTaskConfig struct {
+	certKey         string
 	operation       Operation
 	node            *pb.Node
 	masterNodes     []*pb.Node
@@ -42,10 +43,11 @@ type JoinMasterTaskConfig struct {
 
 type JoinMasterTask struct {
 	Base
+	CertKey       string
 	Operation     Operation
 	Node          *pb.Node
 	MasterNodes   []*pb.Node
-	clusterConfig *pb.ClusterConfig
+	ClusterConfig *pb.ClusterConfig
 }
 
 func NewJoinMasterTask(taskName string, taskConfig *JoinMasterTaskConfig) (Task, error) {
@@ -71,9 +73,10 @@ func NewJoinMasterTask(taskName string, taskConfig *JoinMasterTaskConfig) (Task,
 			Priority:          taskConfig.priority,
 			Parent:            taskConfig.parent,
 		},
+		CertKey:       taskConfig.certKey,
 		Node:          taskConfig.node,
 		MasterNodes:   taskConfig.masterNodes,
-		clusterConfig: taskConfig.clusterConfig,
+		ClusterConfig: taskConfig.clusterConfig,
 		Operation:     JointMasterOperation,
 	}
 

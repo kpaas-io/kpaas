@@ -19,7 +19,7 @@ OS ?= $(shell go env GOOS)
 
 .PHONY: all
 
-IMAGE_REPOSITORY_URL = reg.kpaas.io/kpaas
+IMAGE_REPOSITORY_URL = docker.io/kpaas
 BUILD_NUMBER = $(shell git rev-parse --short HEAD)
 BUILD_TAG := $(shell date +%Y%m%d%H%M%S)
 

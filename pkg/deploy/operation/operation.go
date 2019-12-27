@@ -25,15 +25,15 @@ type Operation interface {
 }
 
 type BaseOperation struct {
-	commands []command.Command
+	Commands []command.Command
 }
 
 func (op *BaseOperation) AddCommands(commands ...command.Command) {
-	op.commands = append(op.commands, commands...)
+	op.Commands = append(op.Commands, commands...)
 }
 
 func (op *BaseOperation) Do() (stdout, stderr []byte, err error) {
-	for _, cmd := range op.commands {
+	for _, cmd := range op.Commands {
 		stdout, stderr, err = cmd.Execute()
 		if err != nil {
 			err = fmt.Errorf("run cmd %v error: %v", cmd, err)
@@ -42,4 +42,8 @@ func (op *BaseOperation) Do() (stdout, stderr []byte, err error) {
 	}
 
 	return
+}
+
+func (op *BaseOperation) ResetCommands() {
+	op.Commands = []command.Command{}
 }

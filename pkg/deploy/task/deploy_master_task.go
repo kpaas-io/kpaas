@@ -27,7 +27,8 @@ const TaskTypeDeployMaster Type = "DeployMaster"
 
 // DeploymasterTaskConfig represents the config for a deploy master task.
 type DeployMasterTaskConfig struct {
-	etcdNodes       []*pb.Node
+	CertKey         string
+	EtcdNodes       []*pb.Node
 	Nodes           []*pb.Node
 	ClusterConfig   *pb.ClusterConfig
 	LogFileBasePath string
@@ -37,6 +38,7 @@ type DeployMasterTaskConfig struct {
 
 type deployMasterTask struct {
 	Base
+	CertKey       string
 	Nodes         []*pb.Node
 	EtcdNodes     []*pb.Node
 	ClusterConfig *pb.ClusterConfig
@@ -50,7 +52,7 @@ func NewDeployMasterTask(taskName string, taskConfig *DeployMasterTaskConfig) (T
 		err = fmt.Errorf("invalid task config: nil")
 	} else if len(taskConfig.Nodes) == 0 {
 		err = fmt.Errorf("invalid task config: nodes is empty")
-	} else if len(taskConfig.etcdNodes) == 0 {
+	} else if len(taskConfig.EtcdNodes) == 0 {
 		err = fmt.Errorf("invalid task config: etcd nodes is empty")
 	} else if taskConfig.ClusterConfig == nil {
 		err = fmt.Errorf("nil cluster config")
@@ -71,8 +73,9 @@ func NewDeployMasterTask(taskName string, taskConfig *DeployMasterTaskConfig) (T
 			Priority:          taskConfig.Priority,
 			Parent:            taskConfig.Parent,
 		},
+		CertKey:       taskConfig.CertKey,
 		Nodes:         taskConfig.Nodes,
-		EtcdNodes:     taskConfig.etcdNodes,
+		EtcdNodes:     taskConfig.EtcdNodes,
 		ClusterConfig: taskConfig.ClusterConfig,
 	}
 

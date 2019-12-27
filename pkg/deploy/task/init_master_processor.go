@@ -43,8 +43,9 @@ func (p *initMasterProcessor) SplitTask(t Task) error {
 	logger.Debug("Start to split init master task into action")
 
 	//task := t.(*InitMasterTask)
-	actions := make([]action.Action, 1)
+	var actions []action.Action
 	actionCfg := &action.InitMasterActionConfig{
+		CertKey:         task.CertKey,
 		Node:            task.Node,
 		EtcdNodes:       task.EtcdNodes,
 		MasterNodes:     task.MasterNodes,
