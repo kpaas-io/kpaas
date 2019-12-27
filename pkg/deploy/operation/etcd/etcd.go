@@ -50,15 +50,15 @@ const (
 	DefaultPKIDir    = "/etc/kubernetes/pki/"
 	defautEtcdPKIDir = DefaultPKIDir + "etcd"
 
-	DefaultEtcdCACertName     = "ca.crt"
-	DefaultEtcdCAKeyName      = "ca.key"
+	defaultEtcdCACertName     = "ca.crt"
+	defaultEtcdCAKeyName      = "ca.key"
 	defaultEtcdServerCertName = "server.crt"
 	defaultEtcdServerKeyName  = "server.key"
 	defaultEtcdPeerCertName   = "peer.crt"
 	defaultEtcdPeerKeyName    = "peer.key"
 
-	DefaultEtcdCACertPath     = defautEtcdPKIDir + "/" + DefaultEtcdCACertName
-	DefaultEtcdCAKeyPath      = defautEtcdPKIDir + "/" + DefaultEtcdCAKeyName
+	DefaultEtcdCACertPath     = defautEtcdPKIDir + "/" + defaultEtcdCACertName
+	defaultEtcdCAKeyPath      = defautEtcdPKIDir + "/" + defaultEtcdCAKeyName
 	defaultEtcdServerCertPath = defautEtcdPKIDir + "/" + defaultEtcdServerCertName
 	defaultEtcdServerKeyPath  = defautEtcdPKIDir + "/" + defaultEtcdServerKeyName
 	defaultEtcdPeerCertPath   = defautEtcdPKIDir + "/" + defaultEtcdPeerCertName
@@ -182,7 +182,7 @@ func (d *deployEtcdOperation) PreDo() (err error) {
 	if err := d.machine.PutFile(bytes.NewReader(encodedCACert), DefaultEtcdCACertPath); err != nil {
 		return fmt.Errorf("failed to put ca cert to:%v, error: %v", d.machine.GetName(), err)
 	}
-	if err := d.machine.PutFile(bytes.NewReader(encodedCAKey), DefaultEtcdCAKeyPath); err != nil {
+	if err := d.machine.PutFile(bytes.NewReader(encodedCAKey), defaultEtcdCAKeyPath); err != nil {
 		return fmt.Errorf("failed to put ca key to:%v, error: %v", d.machine.GetName(), err)
 	}
 

@@ -96,7 +96,7 @@ func FetchEtcdCertAndKey(etcdNode *pb.Node, baseName string) (*x509.Certificate,
 		return nil, nil, fmt.Errorf("failed to fetch etcd %v cert, error:%v", baseName, err)
 	}
 
-	if err := m.FetchFile(localKey, DefaultEtcdCAKeyPath); err != nil {
+	if err := m.FetchFile(localKey, defaultEtcdCAKeyPath); err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch etcd %v key, error:%v", baseName, err)
 	}
 

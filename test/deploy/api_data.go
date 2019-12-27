@@ -267,7 +267,7 @@ var clusterConfig = &pb.ClusterConfig{
 	NodeLabels:      map[string]string{"nodelabelkey": "nodelabelvalue"},
 	NodeAnnotations: map[string]string{"nodeannokey": "nodeannovalue"},
 	// TODO: the following paramters are using default value for now.
-	// ImageRepository: "https://docker.io/kpaas",
+	// ImageRepository: "docker.io/kpaas",
 	// PodSubnet: "",
 	// ServiceSubnet: "",
 	// KubernetesVersion: "",
