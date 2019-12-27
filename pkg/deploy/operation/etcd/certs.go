@@ -18,9 +18,9 @@ import (
 	"crypto"
 	"crypto/x509"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	certutil "k8s.io/client-go/util/cert"
 	"k8s.io/client-go/util/keyutil"
 	"k8s.io/kubernetes/cmd/kubeadm/app/util/pkiutil"
@@ -78,10 +78,13 @@ func FetchEtcdCertAndKey(etcdNode *pb.Node, baseName string) (*x509.Certificate,
 	keyPath := fmt.Sprintf("%v/%v.key", localEtcdCADir, baseName)
 
 	localCert, err := os.Create(certPath)
-	localKey, err := os.Create(keyPath)
-
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create local %v cert path:%v, error:%v", baseName, certPath, err)
+	}
+
+	localKey, err := os.Create(keyPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create local %v key path:%v, error:%v", baseName, keyPath, err)
 	}
 
 	m, err := machine.NewMachine(etcdNode)

@@ -102,37 +102,3 @@ func ReturnWithUnit(size float64) (valueWithUnit string) {
 	}
 	return
 }
-
-//func FetchEtcdCertAndKey(etcdNode *pb.Node, baseName string) (*x509.Certificate, crypto.Signer, error) {
-//	certPath := fmt.Sprintf("%v/%v.crt", localEtcdCADir, baseName)
-//	keyPath := fmt.Sprintf("%v/%v.key", localEtcdCADir, baseName)
-//
-//	localCert, err := os.Create(certPath)
-//	localKey, err := os.Create(keyPath)
-//
-//	if err != nil {
-//		return nil, nil, fmt.Errorf("failed to create local %v cert path:%v, error:%v", baseName, certPath, err)
-//	}
-//
-//	m, err := machine.NewMachine(etcdNode)
-//	if err != nil {
-//		return nil, nil, fmt.Errorf("failed to create exec client for first etcd node:%v, error:%v", m.GetName(), err)
-//	}
-//
-//	if err := m.FetchFile(localCert, etcd.DefaultEtcdCACertPath); err != nil {
-//		return nil, nil, fmt.Errorf("failed to fetch etcd %v cert, error:%v", baseName, err)
-//	}
-//
-//	if err := m.FetchFile(localKey, etcd.DefaultEtcdCAKeyPath); err != nil {
-//		return nil, nil, fmt.Errorf("failed to fetch etcd %v key, error:%v", baseName, err)
-//	}
-//
-//	etcdCACrt, etcCAKey, err := pkiutil.TryLoadCertAndKeyFromDisk(localEtcdCADir, baseName)
-//	if err != nil {
-//		err = fmt.Errorf("failed to load etcd %v cert and key from:%v, error:%v", baseName, localEtcdCADir, err)
-//		logrus.Error(err)
-//		return nil, nil, err
-//	}
-//
-//	return etcdCACrt, etcCAKey, nil
-//}

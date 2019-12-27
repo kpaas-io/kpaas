@@ -44,6 +44,6 @@ func (op *BaseOperation) Do() (stdout, stderr []byte, err error) {
 	return
 }
 
-func (op *BaseOperation) Reset() {
+func (op *BaseOperation) ResetCommands() {
 	op.Commands = []command.Command{}
 }

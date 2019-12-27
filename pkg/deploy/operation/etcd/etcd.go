@@ -41,8 +41,8 @@ const (
 	defaultEtcdPeerPort   = 2380
 	defaultEtcdDataDir    = "/var/lib/etcd"
 	// TODO: registry should be obtained from cluster config
-	defaultRegistry      = "reg.kpaas.io"
-	defaultEtcdImageRepo = "kpaas"
+	defaultRegistry      = "hub.docker.com"
+	defaultEtcdImageRepo = "u/kpaas"
 	defaultEtcdImageTag  = "3.3.15-0"
 	defaultEtcdImageName = "etcd"
 	defaultEtcdImageUrl  = defaultRegistry + "/" + defaultEtcdImageRepo + "/" + defaultEtcdImageName + ":" + defaultEtcdImageTag
@@ -136,7 +136,7 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 	}
 
 	// reset d.Commands
-	d.Reset()
+	d.ResetCommands()
 
 	d.logger.Debugf("remove existing ectd container: %s", stdOut)
 
@@ -152,11 +152,11 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 
 	stdOut, stdErr, err = d.BaseOperation.Do()
 	if err != nil {
-		return fmt.Errorf("failed to get existing docker container, error:%s", stdErr)
+		return fmt.Errorf("failed to remove existing docker container, error:%s", stdErr)
 	}
 
 	// reset d.Commands
-	d.Reset()
+	d.ResetCommands()
 
 	return nil
 
@@ -359,7 +359,7 @@ func etcdUpAndRunning(d *deployEtcdOperation) error {
 
 	resp, err := cli.MemberList(context.Background())
 
-	d.logger.Debugf("member list done, result:%#v, error: err", resp, err)
+	d.logger.Debugf("member list done, result:%#v, error: %v", resp, err)
 
 	if len(resp.Members) == len(d.clusterNodes) {
 		d.logger.Infof("%v members detected", len(resp.Members))

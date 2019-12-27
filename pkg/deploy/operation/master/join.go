@@ -92,7 +92,7 @@ func (op *joinMasterOperation) Do() error {
 		return fmt.Errorf("failed to join master:%v to cluster, error:%s", op.machine.GetName(), stdErr)
 	}
 
-	op.Logger.Debugf("join %v done, result:%s\n%s\n%v", stdOut, stdErr, err)
+	op.Logger.Debugf("join %v done, result:%s\n%s\n%v", op.machine.GetName(), stdOut, stdErr, err)
 
 	return nil
 }

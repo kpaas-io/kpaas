@@ -183,7 +183,7 @@ func masterUpAndRunning(op *initMasterOperation) error {
 
 	healthCheckUrl := fmt.Sprintf("https://%v/healthz", controlPlaneEndpoint)
 
-	op.Logger.Debug("after healthCheckUrl:%v", healthCheckUrl)
+	op.Logger.Debugf("after healthCheckUrl:%v", healthCheckUrl)
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -202,7 +202,7 @@ func masterUpAndRunning(op *initMasterOperation) error {
 
 	body, err := ioutil.ReadAll(resp.Body)
 
-	op.Logger.Debug("after get(%v):%s, %v", healthCheckUrl, body, err)
+	op.Logger.Debugf("after get(%v):%s, %v", healthCheckUrl, body, err)
 
 	if err != nil {
 		return err
