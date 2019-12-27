@@ -61,7 +61,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 	initItem := it.NewInitOperations().CreateOperations(item, initAction)
 	if initItem == nil {
 		logger.Error("can not create operation")
-		initItemReport.Status = ItemActionFailed
+		initItemReport.Status = ItemFailed
 		initItemReport.Err.Reason = ItemErrEmpty
 		initItemReport.Err.Detail = ItemErrEmpty
 		initItemReport.Err.FixMethods = ItemHelperEmpty
@@ -74,7 +74,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 	op, err := initItem.GetOperations(action.Node, initAction)
 	if err != nil {
 		logger.Errorf("can not create operation command, err: %v", err)
-		initItemReport.Status = ItemActionFailed
+		initItemReport.Status = ItemFailed
 		initItemReport.Err.Reason = ItemErrOperation
 		initItemReport.Err.Detail = err.Error()
 		initItemReport.Err.FixMethods = ItemHelperOperation
@@ -84,7 +84,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 	stdOut, stdErr, err := op.Do()
 	if err != nil {
 		logger.Errorf("can not execute operation command, err: %v", err)
-		initItemReport.Status = ItemActionFailed
+		initItemReport.Status = ItemFailed
 		initItemReport.Err.Reason = ItemErrScript
 		initItemReport.Err.Detail = string(stdErr)
 		initItemReport.Err.FixMethods = ItemHelperScript
@@ -99,7 +99,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 func newNodeInitItem() *NodeInitItem {
 
 	return &NodeInitItem{
-		Status: ItemActionPending,
+		Status: ItemPending,
 		Err:    &pb.Error{},
 	}
 }
@@ -115,13 +115,13 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 	logger.Debugf("Start to execute init")
 
 	initItemReport := newNodeInitItem()
-	initItemReport.Status = ItemActionDoing
+	initItemReport.Status = ItemDoing
 	_, initItemReport, err := ExecuteInitScript(item, ncAction, initItemReport)
 	if err != nil {
 		logger.Errorf("%v: %v", InitFailed, err)
-		initItemReport.Status = ItemActionFailed
+		initItemReport.Status = ItemFailed
 	} else {
-		initItemReport.Status = ItemActionDone
+		initItemReport.Status = ItemDone
 		logger.Info(InitPassed)
 	}
 

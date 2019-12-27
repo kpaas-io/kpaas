@@ -151,7 +151,7 @@ func makeConnectivityCheckActionCalico(
 						Name:        fmt.Sprintf("connectivity-check-BGP"),
 						Description: "check connectivity to BGP port",
 					},
-					Status: action.ItemActionPending,
+					Status: string(action.ItemPending),
 				},
 			},
 			action.ConnectivityCheckItem{
@@ -162,7 +162,7 @@ func makeConnectivityCheckActionCalico(
 						Name:        fmt.Sprintf("connectivity-check-kube-API"),
 						Description: "check connectivity to kubernetes API port",
 					},
-					Status: action.ItemActionPending,
+					Status: string(action.ItemPending),
 				},
 			},
 			action.ConnectivityCheckItem{
@@ -173,7 +173,7 @@ func makeConnectivityCheckActionCalico(
 						Name:        fmt.Sprintf("connectivity-check-vxlan"),
 						Description: "check connectivity for vxlan packets",
 					},
-					Status: action.ItemActionPending,
+					Status: string(action.ItemPending),
 				},
 			},
 		},

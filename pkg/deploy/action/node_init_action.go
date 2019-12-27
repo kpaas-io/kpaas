@@ -51,12 +51,10 @@ type NodeInitAction struct {
 	InitItems      []*NodeInitItem
 }
 
-type NodeInitItemStatus string
-
 type NodeInitItem struct {
 	Name        string
 	Description string
-	Status      NodeInitItemStatus
+	Status      ItemStatus
 	Err         *pb.Error
 }
 

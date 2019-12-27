@@ -39,7 +39,7 @@ func TestCheckItemToItemCheckResult(t *testing.T) {
 			input: &action.NodeCheckItem{
 				Name:        "test checkitem name",
 				Description: "test checkitem description",
-				Status:      action.ItemActionDone,
+				Status:      action.ItemDone,
 				Err: &pb.Error{
 					Reason: "checkitem reason",
 					Detail: "checkitem detail",
@@ -50,7 +50,7 @@ func TestCheckItemToItemCheckResult(t *testing.T) {
 					Name:        "test checkitem name",
 					Description: "test checkitem description",
 				},
-				Status: action.ItemActionDone,
+				Status: string(constant.OperationStatusSuccessful),
 				Err: &pb.Error{
 					Reason: "checkitem reason",
 					Detail: "checkitem detail",
@@ -99,19 +99,19 @@ func TestCheckActionToNodeCheckResult(t *testing.T) {
 					&action.NodeCheckItem{
 						Name:        "check cpucore",
 						Description: "check cpucore description",
-						Status:      action.ItemActionDone,
+						Status:      action.ItemDone,
 					},
 					&action.NodeCheckItem{
 						Name:        "check memroy",
 						Description: "check memroy description",
-						Status:      action.ItemActionFailed,
+						Status:      action.ItemFailed,
 						Err:         memCheckItemError,
 					},
 				},
 			},
 			want: &pb.NodeCheckResult{
 				NodeName: "node1",
-				Status:   string(action.ActionDone),
+				Status:   string(constant.OperationStatusSuccessful),
 				Err:      nil,
 				Items: []*pb.ItemCheckResult{
 					&pb.ItemCheckResult{
@@ -119,7 +119,7 @@ func TestCheckActionToNodeCheckResult(t *testing.T) {
 							Name:        "check cpucore",
 							Description: "check cpucore description",
 						},
-						Status: action.ItemActionDone,
+						Status: string(constant.OperationStatusSuccessful),
 						Err:    nil,
 					},
 					&pb.ItemCheckResult{
@@ -127,7 +127,7 @@ func TestCheckActionToNodeCheckResult(t *testing.T) {
 							Name:        "check memroy",
 							Description: "check memroy description",
 						},
-						Status: action.ItemActionFailed,
+						Status: string(constant.OperationStatusFailed),
 						Err:    memCheckItemError,
 					},
 				},
@@ -172,7 +172,7 @@ func TestConnectivityCheckToNodeCheckResult(t *testing.T) {
 						Port:     uint16(1234),
 						CheckResult: &pb.ItemCheckResult{
 							Item:   &pb.CheckItem{Name: "tcp-1234", Description: "check TCP port 1234"},
-							Status: action.ItemActionDone,
+							Status: string(constant.OperationStatusSuccessful),
 							Err:    nil,
 						},
 					},
@@ -180,12 +180,12 @@ func TestConnectivityCheckToNodeCheckResult(t *testing.T) {
 			},
 			want: &pb.NodeCheckResult{
 				NodeName: "node1",
-				Status:   "Done",
+				Status:   string(constant.OperationStatusSuccessful),
 				Err:      nil,
 				Items: []*pb.ItemCheckResult{
 					&pb.ItemCheckResult{
 						Item:   &pb.CheckItem{Name: "tcp-1234", Description: "check TCP port 1234"},
-						Status: "done",
+						Status: string(constant.OperationStatusSuccessful),
 						Err:    nil,
 					},
 				},
@@ -216,12 +216,12 @@ func TestGetNodeCheckResult(t *testing.T) {
 			&action.NodeCheckItem{
 				Name:        "check cpucore",
 				Description: "check cpucore description",
-				Status:      action.ItemActionDone,
+				Status:      action.ItemDone,
 			},
 			&action.NodeCheckItem{
 				Name:        "check memroy",
 				Description: "check memroy description",
-				Status:      action.ItemActionFailed,
+				Status:      action.ItemFailed,
 				Err:         memCheckItemError,
 			},
 		},
@@ -246,7 +246,7 @@ func TestGetNodeCheckResult(t *testing.T) {
 				Nodes: map[string]*pb.NodeCheckResult{
 					"node1": &pb.NodeCheckResult{
 						NodeName: "node1",
-						Status:   string(action.ActionDone),
+						Status:   string(constant.OperationStatusSuccessful),
 						Err:      nil,
 						Items: []*pb.ItemCheckResult{
 							&pb.ItemCheckResult{
@@ -254,7 +254,7 @@ func TestGetNodeCheckResult(t *testing.T) {
 									Name:        "check cpucore",
 									Description: "check cpucore description",
 								},
-								Status: action.ItemActionDone,
+								Status: string(constant.OperationStatusSuccessful),
 								Err:    nil,
 							},
 							&pb.ItemCheckResult{
@@ -262,7 +262,7 @@ func TestGetNodeCheckResult(t *testing.T) {
 									Name:        "check memroy",
 									Description: "check memroy description",
 								},
-								Status: action.ItemActionFailed,
+								Status: string(constant.OperationStatusFailed),
 								Err:    memCheckItemError,
 							},
 						},

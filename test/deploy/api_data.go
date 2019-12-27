@@ -23,7 +23,6 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-	"github.com/kpaas-io/kpaas/pkg/deploy/task"
 )
 
 // This file along with the following local config file contains the env and test data to test the deploy gRPC API.
@@ -181,25 +180,25 @@ func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply
 		Nodes: map[string]*pb.NodeCheckResult{
 			_testConfig.Nodes[0].Name: &pb.NodeCheckResult{
 				NodeName: _testConfig.Nodes[0].Name,
-				Status:   string(task.TaskDone),
+				Status:   string(constant.OperationStatusSuccessful),
 				Err:      nil,
 				Items:    nil,
 			},
 			_testConfig.Nodes[1].Name: &pb.NodeCheckResult{
 				NodeName: _testConfig.Nodes[1].Name,
-				Status:   string(task.TaskDone),
+				Status:   string(constant.OperationStatusSuccessful),
 				Err:      nil,
 				Items:    nil,
 			},
 			_testConfig.Nodes[2].Name: &pb.NodeCheckResult{
 				NodeName: _testConfig.Nodes[2].Name,
-				Status:   string(task.TaskDone),
+				Status:   string(constant.OperationStatusSuccessful),
 				Err:      nil,
 				Items:    nil,
 			},
 			_testConfig.Nodes[3].Name: &pb.NodeCheckResult{
 				NodeName: _testConfig.Nodes[3].Name,
-				Status:   string(task.TaskDone),
+				Status:   string(constant.OperationStatusSuccessful),
 				Err:      nil,
 				Items:    nil,
 			},
@@ -245,7 +244,7 @@ func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply
 	for _, checkItem := range checkItems {
 		result := &pb.ItemCheckResult{
 			Item:   checkItem,
-			Status: "done",
+			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
 		}
 		itemsResult = append(itemsResult, result)
@@ -346,7 +345,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 				Role:     "etcd",
 				NodeName: _testConfig.Nodes[0].Name,
 			},
-			Status: "done",
+			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
 		},
 		&pb.DeployItemResult{
@@ -354,7 +353,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 				Role:     "etcd",
 				NodeName: _testConfig.Nodes[1].Name,
 			},
-			Status: "done",
+			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
 		},
 		&pb.DeployItemResult{
@@ -362,7 +361,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 				Role:     "etcd",
 				NodeName: _testConfig.Nodes[2].Name,
 			},
-			Status: "done",
+			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
 		},
 		&pb.DeployItemResult{
@@ -370,7 +369,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 				Role:     "master",
 				NodeName: _testConfig.Nodes[0].Name,
 			},
-			Status: "done",
+			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
 		},
 		&pb.DeployItemResult{
@@ -378,7 +377,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 				Role:     "master",
 				NodeName: _testConfig.Nodes[1].Name,
 			},
-			Status: "done",
+			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
 		},
 		&pb.DeployItemResult{
@@ -386,7 +385,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 				Role:     "master",
 				NodeName: _testConfig.Nodes[2].Name,
 			},
-			Status: "done",
+			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
 		},
 		&pb.DeployItemResult{
@@ -394,7 +393,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 				Role:     "worker",
 				NodeName: _testConfig.Nodes[3].Name,
 			},
-			Status: "done",
+			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
 		},
 	}

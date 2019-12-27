@@ -174,7 +174,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			}
 		}
 		if checkItem.CheckResult != nil {
-			checkItem.CheckResult.Status = ItemActionDoing
+			checkItem.CheckResult.Status = string(ItemDoing)
 		}
 
 		executeLogBuf := act.GetExecuteLogBuffer()
@@ -211,7 +211,7 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 					sendCommand[0], srcNode.Name),
 			}
 			if checkItem.CheckResult != nil {
-				checkItem.CheckResult.Status = ItemActionFailed
+				checkItem.CheckResult.Status = string(ItemFailed)
 				checkItem.CheckResult.Err = checkErr
 				continue
 			}
@@ -230,13 +230,13 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 				FixMethods: "configure network or firewall to allow these packets",
 			}
 			if checkItem.CheckResult != nil {
-				checkItem.CheckResult.Status = ItemActionFailed
+				checkItem.CheckResult.Status = string(ItemFailed)
 				checkItem.CheckResult.Err = checkErr
 			}
 			// does not return here to continue to check other items
 		} else {
 			if checkItem.CheckResult != nil {
-				checkItem.CheckResult.Status = ItemActionDone
+				checkItem.CheckResult.Status = string(ItemDone)
 			}
 		}
 	} // end of for in range chekItems

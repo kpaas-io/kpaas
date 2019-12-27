@@ -40,12 +40,10 @@ type NodeCheckAction struct {
 	CheckItems      []*NodeCheckItem
 }
 
-type NodeCheckItemStatus string
-
 type NodeCheckItem struct {
 	Name        string
 	Description string
-	Status      NodeCheckItemStatus
+	Status      ItemStatus
 	Err         *pb.Error
 }
 
