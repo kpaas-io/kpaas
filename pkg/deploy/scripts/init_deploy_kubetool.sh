@@ -24,7 +24,7 @@ ACTION=
 COMPONENT=
 VERSION=
 NODEIP=
-IMAGE_REPOSITORY=hub.docker.com/u/kpaas
+IMAGE_REPOSITORY=reg.kpaas.io/kpaas
 DEVICE_MOUNTS=
 
 # kubelet specific
@@ -314,7 +314,7 @@ usage() {
 cat <<EOF
 Usage:
     $0 setup repos [--local-repo-addr http://10.10.0.1:8880/localrepo --pkg-mirror mirrors.aliyun.com] [--debug]
-    $0 setup kubelet --cluster-dns 169.169.0.10 --version 1.11.0 --image-repository hub.docker.com/u/kpaas [--debug]
+    $0 setup kubelet --cluster-dns 169.169.0.10 --version 1.11.0 --image-repository reg.kpaas.io/kpaas [--debug]
     $0 join --token 845e36.bc466480ab621387 --master 10.10.0.1:6443 [--control-plane] [--debug]
     $0 clean [--debug]
 EOF

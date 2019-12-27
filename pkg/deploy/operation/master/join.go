@@ -28,6 +28,7 @@ import (
 
 type JoinMasterOperationConfig struct {
 	Logger        *logrus.Entry
+	CertKey       string
 	Node          *pb.Node
 	MasterNodes   []*pb.Node
 	ClusterConfig *pb.ClusterConfig
@@ -36,6 +37,7 @@ type JoinMasterOperationConfig struct {
 type joinMasterOperation struct {
 	operation.BaseOperation
 	Logger        *logrus.Entry
+	CertKey       string
 	MasterNodes   []*pb.Node
 	machine       machine.IMachine
 	ClusterConfig *pb.ClusterConfig
@@ -44,6 +46,7 @@ type joinMasterOperation struct {
 func NewJoinMasterOperation(config *JoinMasterOperationConfig) (*joinMasterOperation, error) {
 	ops := &joinMasterOperation{
 		Logger:        config.Logger,
+		CertKey:       config.CertKey,
 		MasterNodes:   config.MasterNodes,
 		ClusterConfig: config.ClusterConfig,
 	}
@@ -67,13 +70,18 @@ func (op *joinMasterOperation) PreDo() error {
 		return fmt.Errorf("failed to get control plane endpoint addr, error: %v", err)
 	}
 
+	op.Logger.Debugf("join certificate key:%v", op.CertKey)
+
 	op.AddCommands(
 		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
 		command.NewShellCommand(op.machine, "kubeadm", "join", endpoint,
 			"--token", Token,
 			"--control-plane",
+			"--certificate-key", op.CertKey,
 			"--discovery-token-unsafe-skip-ca-verification"),
 	)
+	op.Logger.Debugf("join commnnd:%#v", op.Commands)
+
 	return nil
 }
 
@@ -92,7 +100,7 @@ func (op *joinMasterOperation) Do() error {
 		return fmt.Errorf("failed to join master:%v to cluster, error:%s", op.machine.GetName(), stdErr)
 	}
 
-	op.Logger.Debugf("join %v done, result:%s\n%s\n%v", op.machine.GetName(), stdOut, stdErr, err)
+	op.Logger.Debugf("join %v done, command:%#v, result:%s\n%s\n%v", op.Commands, op.machine.GetName(), stdOut, stdErr, err)
 
 	return nil
 }

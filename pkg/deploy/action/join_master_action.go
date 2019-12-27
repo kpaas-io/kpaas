@@ -24,6 +24,7 @@ import (
 const ActionTypeJoinMaster Type = "JoinMaster"
 
 type JoinMasterActionConfig struct {
+	CertKey         string
 	Node            *pb.Node
 	MasterNodes     []*pb.Node
 	ClusterConfig   *pb.ClusterConfig
@@ -32,6 +33,7 @@ type JoinMasterActionConfig struct {
 
 type JoinMasterAction struct {
 	Base
+	CertKey       string
 	MasterNodes   []*pb.Node
 	ClusterConfig *pb.ClusterConfig
 }
@@ -54,6 +56,7 @@ func NewJoinMasterAction(cfg *JoinMasterActionConfig) (Action, error) {
 			LogFilePath:       GenActionLogFilePath(cfg.LogFileBasePath, actionName, cfg.Node.Name),
 			CreationTimestamp: time.Now(),
 		},
+		CertKey:       cfg.CertKey,
 		MasterNodes:   cfg.MasterNodes,
 		ClusterConfig: cfg.ClusterConfig,
 	}, nil

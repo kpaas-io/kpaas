@@ -44,6 +44,7 @@ func (p *joinMasterProcessor) SplitTask(t Task) error {
 
 	var actions []action.Action
 	actionCfg := &action.JoinMasterActionConfig{
+		CertKey:         task.CertKey,
 		Node:            task.Node,
 		MasterNodes:     task.MasterNodes,
 		ClusterConfig:   task.ClusterConfig,

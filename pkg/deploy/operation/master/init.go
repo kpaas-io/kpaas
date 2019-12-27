@@ -46,6 +46,7 @@ const (
 
 type InitMasterOperationConfig struct {
 	Logger        *logrus.Entry
+	CertKey       string
 	Node          *pb.Node
 	MasterNodes   []*pb.Node
 	EtcdNodes     []*pb.Node
@@ -54,6 +55,7 @@ type InitMasterOperationConfig struct {
 
 type initMasterOperation struct {
 	operation.BaseOperation
+	CertKey       string
 	Logger        *logrus.Entry
 	EtcdNodes     []*pb.Node
 	MasterNodes   []*pb.Node
@@ -64,6 +66,7 @@ type initMasterOperation struct {
 func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOperation, error) {
 	ops := &initMasterOperation{
 		Logger:        config.Logger,
+		CertKey:       config.CertKey,
 		EtcdNodes:     config.EtcdNodes,
 		MasterNodes:   config.MasterNodes,
 		ClusterConfig: config.ClusterConfig,
@@ -104,7 +107,7 @@ func (op *initMasterOperation) PreDo() error {
 		return fmt.Errorf("failed to put apiserver etcd client key to %v:%v, error: %v", op.machine.GetName(), defaultApiServerEtcdClientKeyPath, err)
 	}
 
-	kubeadmConfig, err := newInitConfig(op)
+	kubeadmConfig, err := newInitConfig(op, op.CertKey)
 	if err != nil {
 		return fmt.Errorf("failed to generate %v, error: %v", kubeadmConfigPath, err)
 	}
@@ -129,7 +132,7 @@ func (op *initMasterOperation) Do() error {
 		op.Logger.Infof("master1 already up and running, skipping init")
 		return nil
 	} else {
-		op.Logger.Errorf("master not running, error:%v", err)
+		op.Logger.Debugf("master not running, error:%v", err)
 	}
 
 	if err := op.PreDo(); err != nil {

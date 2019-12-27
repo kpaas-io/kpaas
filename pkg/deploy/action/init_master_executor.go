@@ -43,6 +43,7 @@ func (a *initMasterExecutor) Execute(act Action) *pb.Error {
 
 	config := &master.InitMasterOperationConfig{
 		Logger:        logger,
+		CertKey:       action.CertKey,
 		Node:          action.Node,
 		MasterNodes:   action.MasterNodes,
 		EtcdNodes:     action.EtcdNodes,

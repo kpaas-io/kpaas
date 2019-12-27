@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
+	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
@@ -168,8 +169,16 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 		task, err = NewDeployEtcdTask(fmt.Sprintf("deploy-%s", role), config)
 
 	case constant.MachineRoleMaster:
+		certificateKey, err := copycerts.CreateCertificateKey()
+		if err != nil {
+			return nil, err
+		}
+
+		logrus.Debugf("certificateKey:%v", certificateKey)
+
 		config := &DeployMasterTaskConfig{
-			etcdNodes:       p.unwrapNodes(rn[constant.MachineRoleEtcd]),
+			CertKey:         certificateKey,
+			EtcdNodes:       p.unwrapNodes(rn[constant.MachineRoleEtcd]),
 			Nodes:           p.unwrapNodes(rn[role]),
 			ClusterConfig:   parent.ClusterConfig,
 			LogFileBasePath: parent.GetLogFileDir(),

@@ -33,7 +33,7 @@ const (
 	Token = "4a996f.8f1da0db96f8e50e"
 )
 
-func newInitConfig(op *initMasterOperation) (string, error) {
+func newInitConfig(op *initMasterOperation, certKey string) (string, error) {
 	var (
 		err           error
 		initYaml      bytes.Buffer
@@ -56,6 +56,8 @@ func newInitConfig(op *initMasterOperation) (string, error) {
 	initConfig.BootstrapTokens[0].TTL = &metav1.Duration{
 		Duration: time.Duration(0),
 	}
+
+	initConfig.CertificateKey = certKey
 
 	clusterConfig.TypeMeta = metav1.TypeMeta{
 		Kind:       "ClusterConfiguration",

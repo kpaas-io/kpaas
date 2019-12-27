@@ -43,6 +43,7 @@ func (a *joinMasterExecutor) Execute(act Action) *pb.Error {
 
 	config := &master.JoinMasterOperationConfig{
 		Logger:        logger,
+		CertKey:       action.CertKey,
 		Node:          action.Node,
 		MasterNodes:   action.MasterNodes,
 		ClusterConfig: action.ClusterConfig,

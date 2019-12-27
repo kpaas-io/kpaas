@@ -19,7 +19,7 @@ const (
 	DefaultServiceSubnet   = "10.112.0.0/16"
 	DefaultPodSubnet       = "10.120.0.0/16"
 	DefaultPkgMirror       = "mirrors.aliyun.com"
-	DefaultImageRepository = "hub.docker.com/u/kpaas"
+	DefaultImageRepository = "reg.kpaas.io/kpaas"
 
 	// TODO local-repo-dir, docker registry in the future
 )
