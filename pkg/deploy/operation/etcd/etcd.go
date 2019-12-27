@@ -299,6 +299,9 @@ func (d *deployEtcdOperation) Do() error {
 		}
 	}
 
+	d.logger.Debugf("fetch ca error:%v, fetch peer error:%v, ToByte error:%v", caErr, peerErr, toByteErr)
+	//d.logger.Debugf("restoring cert:\nca cert:\n%s\nca key:\n%s\npeer cert:\n%s\npeer key:\n%s\n", originCACrt, originCAKey, originEncodedPeerCert, originEncodedPeerKey)
+
 	// restore and clear etcd if any error occurred
 	d.caCrt, d.caKey, d.encodedPeerCert, d.encodedPeerKey = originCACrt, originCAKey, originEncodedPeerCert, originEncodedPeerKey
 
@@ -308,7 +311,7 @@ func (d *deployEtcdOperation) Do() error {
 
 	d.composeEtcdDockerCmd()
 
-	d.logger.Debugf("start command: %v", d.Commands)
+	d.logger.Debug("start docker run etcd")
 
 	stdOut, stdErr, err := d.BaseOperation.Do()
 	if err != nil {
@@ -351,9 +354,12 @@ func etcdUpAndRunning(d *deployEtcdOperation) error {
 	}
 	defer cli.Close()
 
-	d.logger.Debugf("etcd client:%#v", cli)
+	//d.logger.Debugf("etcd client:%#v", cli)
 
-	resp, err := cli.MemberList(context.Background())
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	resp, err := cli.MemberList(ctx)
 
 	d.logger.Debugf("member list done, result:%#v, error: %v", resp, err)
 
