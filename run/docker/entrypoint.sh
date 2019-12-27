@@ -14,12 +14,12 @@
 ## limitations under the License.
 
 logLevel="${LOG_LEVEL}"
-if [ -n "${logLevel}" ]; then
+if [ -z "${logLevel}" ]; then
   logLevel="info"
 fi
 
 serviceId="${SERVICE_ID}"
-if [ -n "${serviceId}" ]; then
+if [ -z "${serviceId}" ]; then
   serviceId="0"
 fi
 
