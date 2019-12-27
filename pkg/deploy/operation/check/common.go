@@ -47,8 +47,8 @@ const (
 	Memory                ItemEnum = "memory"
 	Disk                  ItemEnum = "disk"
 	Distribution          ItemEnum = "distribution"
-	SystemPreference      ItemEnum = "systempreference"
-	SystemComponent       ItemEnum = "systemcomponent"
+	SystemPreference      ItemEnum = "system-preference"
+	SystemComponent       ItemEnum = "system-component"
 )
 
 func NewCheckOperations() *OperationsGenerator {

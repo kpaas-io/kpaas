@@ -208,36 +208,36 @@ func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply
 
 	var checkItems = []*pb.CheckItem{
 		&pb.CheckItem{
-			Name:        "docker check",
-			Description: "docker check",
+			Name:        "check docker",
+			Description: "检查 docker 环境",
 		},
 		&pb.CheckItem{
-			Name:        "cpu check",
-			Description: "cpu check",
+			Name:        "check cpu",
+			Description: "检查 cpu 环境",
 		},
 		&pb.CheckItem{
-			Name:        "kernel check",
-			Description: "kernel check",
+			Name:        "check kernel",
+			Description: "检查 kernel 环境",
 		},
 		&pb.CheckItem{
-			Name:        "memory check",
-			Description: "memory check",
+			Name:        "check memory",
+			Description: "检查 memory 环境",
 		},
 		&pb.CheckItem{
-			Name:        "disk check",
-			Description: "disk check",
+			Name:        "check disk",
+			Description: "检查 disk 环境",
 		},
 		&pb.CheckItem{
-			Name:        "distribution check",
-			Description: "distribution check",
+			Name:        "check distribution",
+			Description: "检查 distribution 环境",
 		},
 		&pb.CheckItem{
-			Name:        "systempreference check",
-			Description: "systempreference check",
+			Name:        "check system-preference",
+			Description: "检查 system-preference 环境",
 		},
 		&pb.CheckItem{
-			Name:        "systemcomponent check",
-			Description: "systemcomponent check",
+			Name:        "check system-component",
+			Description: "检查 system-component 环境",
 		},
 	}
 	var itemsResult []*pb.ItemCheckResult
