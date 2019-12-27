@@ -59,7 +59,7 @@ func (c *controller) getCheckNodeResult(aTask task.Task, withLogs bool) (*pb.Get
 	}
 
 	result := &pb.GetCheckNodesResultReply{
-		Status: string(getOperationStatus(aTask.GetStatus())),
+		Status: string(taskStatusToOperationStatus(aTask.GetStatus())),
 		Err:    aTask.GetErr(),
 		Nodes:  nodeResults,
 	}
@@ -79,7 +79,7 @@ func checkItemToItemCheckResult(actionItem *action.NodeCheckItem) *pb.ItemCheckR
 			Name:        actionItem.Name,
 			Description: actionItem.Description,
 		},
-		Status: string(actionItem.Status),
+		Status: string(itemStatusToOperationStatus(actionItem.Status)),
 		Err:    actionItem.Err,
 	}
 }
@@ -104,7 +104,7 @@ func checkActionToNodeCheckResult(checkAction *action.NodeCheckAction) *pb.NodeC
 
 	return &pb.NodeCheckResult{
 		NodeName: node.GetName(),
-		Status:   string(checkAction.GetStatus()),
+		Status:   string(actionStatusToOperationStatus(checkAction.GetStatus())),
 		Err:      checkAction.GetErr(),
 		Items:    nodeItems,
 	}
@@ -121,7 +121,7 @@ func connectivityCheckToNodeCheckResult(
 	}
 	result := &pb.NodeCheckResult{
 		NodeName: checkAction.GetNode().Name,
-		Status:   string(checkAction.GetStatus()),
+		Status:   string(actionStatusToOperationStatus(checkAction.GetStatus())),
 		Err:      checkAction.GetErr(),
 	}
 	itemCheckResults := []*pb.ItemCheckResult{}

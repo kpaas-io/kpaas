@@ -21,6 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/deploy/action"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/deploy/task"
@@ -330,8 +331,8 @@ func getTestConnectionTaskName(nodeName string) string {
 	return fmt.Sprintf("testconnection-%v-%v", nodeName, idcreator.NextString())
 }
 
-func getOperationStatus(taskStatus task.Status) constant.OperationStatus {
-	switch taskStatus {
+func taskStatusToOperationStatus(status task.Status) constant.OperationStatus {
+	switch status {
 	case task.TaskPending:
 		return constant.OperationStatusPending
 	case task.TaskDoing, task.TaskSplitting, task.TaskSplitted:
@@ -339,6 +340,36 @@ func getOperationStatus(taskStatus task.Status) constant.OperationStatus {
 	case task.TaskDone:
 		return constant.OperationStatusSuccessful
 	case task.TaskFailed:
+		return constant.OperationStatusFailed
+	default:
+		return constant.OperationStatusUnknown
+	}
+}
+
+func actionStatusToOperationStatus(status action.Status) constant.OperationStatus {
+	switch status {
+	case action.ActionPending:
+		return constant.OperationStatusPending
+	case action.ActionDoing:
+		return constant.OperationStatusRunning
+	case action.ActionDone:
+		return constant.OperationStatusSuccessful
+	case action.ActionFailed:
+		return constant.OperationStatusFailed
+	default:
+		return constant.OperationStatusUnknown
+	}
+}
+
+func itemStatusToOperationStatus(status action.ItemStatus) constant.OperationStatus {
+	switch status {
+	case action.ItemPending:
+		return constant.OperationStatusPending
+	case action.ItemDoing:
+		return constant.OperationStatusRunning
+	case action.ItemDone:
+		return constant.OperationStatusSuccessful
+	case action.ItemFailed:
 		return constant.OperationStatusFailed
 	default:
 		return constant.OperationStatusUnknown

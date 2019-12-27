@@ -31,10 +31,20 @@ type Type string
 type Status string
 
 const (
-	ActionPending Status = "Pending"
-	ActionDoing   Status = "Doing"
-	ActionDone    Status = "Done" // means success
-	ActionFailed  Status = "Failed"
+	ActionPending Status = "pending"
+	ActionDoing   Status = "doing"
+	ActionDone    Status = "done" // means success
+	ActionFailed  Status = "failed"
+)
+
+// ItemStatus represents the status of an action item
+type ItemStatus string
+
+const (
+	ItemPending ItemStatus = "pending"
+	ItemDoing   ItemStatus = "doing"
+	ItemDone    ItemStatus = "done" // means success
+	ItemFailed  ItemStatus = "failed"
 )
 
 // Action repsents the definition of executable command(s) in a node,

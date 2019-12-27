@@ -41,14 +41,14 @@ func (c *controller) getDeployResult(aTask task.Task, withLogs bool) (*pb.GetDep
 					Role:     string(act.GetType()),
 					NodeName: node.GetName(),
 				},
-				Status: string(act.GetStatus()),
+				Status: string(actionStatusToOperationStatus(act.GetStatus())),
 				Err:    act.GetErr(),
 			})
 		}
 	}
 
 	result := &pb.GetDeployResultReply{
-		Status: string(getOperationStatus(aTask.GetStatus())),
+		Status: string(taskStatusToOperationStatus(aTask.GetStatus())),
 		Err:    aTask.GetErr(),
 		Items:  items,
 	}
