@@ -129,7 +129,7 @@ func (op *initMasterOperation) Do() error {
 	defer op.machine.Close()
 
 	if err := masterUpAndRunning(op); err == nil {
-		op.Logger.Infof("master1 already up and running, skipping init")
+		op.Logger.Infof("master already up and running, skipping init")
 		return nil
 	} else {
 		op.Logger.Debugf("master not running, error:%v", err)
@@ -191,8 +191,6 @@ func masterUpAndRunning(op *initMasterOperation) error {
 
 	healthCheckUrl := fmt.Sprintf("https://%v/healthz", controlPlaneEndpoint)
 
-	op.Logger.Debugf("after healthCheckUrl:%v", healthCheckUrl)
-
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -209,8 +207,6 @@ func masterUpAndRunning(op *initMasterOperation) error {
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
-
-	op.Logger.Debugf("after get(%v):%s, %v", healthCheckUrl, body, err)
 
 	if err != nil {
 		return err

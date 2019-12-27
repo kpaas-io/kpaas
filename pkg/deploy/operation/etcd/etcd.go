@@ -65,11 +65,6 @@ const (
 	defaultEtcdPeerKeyPath    = defautEtcdPKIDir + "/" + defaultEtcdPeerKeyName
 )
 
-var (
-	// reserve for later apiserver usage
-	EtcdCAcrt, ApiServerClientCrt, ApiServerClientKey []byte
-)
-
 type DeployEtcdOperationConfig struct {
 	Logger       *logrus.Entry
 	CACrt        *x509.Certificate
@@ -176,9 +171,6 @@ func (d *deployEtcdOperation) PreDo() (err error) {
 		return fmt.Errorf("failed to convert key and cert to byte, error: %v", err)
 	}
 
-	// save for later use
-	EtcdCAcrt = encodedCACert
-
 	if err := d.machine.PutFile(bytes.NewReader(encodedCACert), DefaultEtcdCACertPath); err != nil {
 		return fmt.Errorf("failed to put ca cert to:%v, error: %v", d.machine.GetName(), err)
 	}
@@ -276,6 +268,8 @@ func (d *deployEtcdOperation) composeEtcdDockerCmd() {
 			"--net=host",
 			"-v",
 			"/etc/kubernetes/pki/etcd:/etc/kubernetes/pki/etcd",
+			"-v",
+			"/var/lib/etcd:/var/lib/etcd",
 			nameArg,
 			defaultEtcdImageUrl,
 			strings.Join(cmd, " "),
