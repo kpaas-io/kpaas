@@ -41,7 +41,7 @@ func (itOps *InitTimeZoneOperation) getScript() string {
 }
 
 func (itOps *InitTimeZoneOperation) getScriptPath() string {
-	itOps.ScriptPath = RemoteScriptPath
+	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
 }
 
