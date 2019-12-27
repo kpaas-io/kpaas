@@ -55,7 +55,9 @@ func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (op
 
 // close ssh client
 func (ckops *CheckMemoryOperation) CloseSSH() {
-	ckops.Machine.Close()
+	if ckops.Machine != nil {
+		ckops.Machine.Close()
+	}
 }
 
 // check if memory capacity satisfied with minimal requirement

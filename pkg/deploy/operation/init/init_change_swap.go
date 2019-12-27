@@ -67,8 +67,7 @@ func (itOps *InitSwapOperation) GetOperations(node *pb.Node, initAction *operati
 }
 
 func (itOps *InitSwapOperation) CloseSSH() {
-	if itOps.Machine == nil {
-		return
+	if itOps.Machine != nil {
+		itOps.Machine.Close()
 	}
-	itOps.Machine.Close()
 }
