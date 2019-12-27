@@ -39,7 +39,7 @@ func (itOps *InitRouteOperation) getScript() string {
 }
 
 func (itOps *InitRouteOperation) getScriptPath() string {
-	itOps.ScriptPath = RemoteScriptPath
+	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
 }
 

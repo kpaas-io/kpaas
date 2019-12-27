@@ -40,7 +40,7 @@ func (itOps *InitHostNameOperation) getScript() string {
 }
 
 func (itOps *InitHostNameOperation) getScriptPath() string {
-	itOps.ScriptPath = RemoteScriptPath
+	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
 }
 

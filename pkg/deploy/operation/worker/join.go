@@ -24,7 +24,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	op "github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -38,7 +38,7 @@ type JoinClusterConfig struct {
 }
 
 type JoinCluster struct {
-	operation.BaseOperation
+	op.BaseOperation
 	config *JoinClusterConfig
 }
 
@@ -66,7 +66,7 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(
 			operation.config.Machine,
-			fmt.Sprintf("/bin/bash %s", consts.DefaultKubeToolScript),
+			fmt.Sprintf("/bin/bash %s/%s", op.InitRemoteScriptPath, consts.DefaultKubeToolScript),
 			"join",
 			"--token="+consts.KubernetesToken,
 			"--master="+controlPlaneEndpoint,

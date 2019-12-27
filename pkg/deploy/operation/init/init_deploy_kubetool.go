@@ -42,7 +42,7 @@ func (itOps *InitKubeToolOperation) getScript() string {
 }
 
 func (itOps *InitKubeToolOperation) getScriptPath() string {
-	itOps.ScriptPath = RemoteScriptPath
+	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
 }
 

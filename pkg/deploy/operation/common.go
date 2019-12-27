@@ -44,6 +44,10 @@ const (
 	GiByteUnits      float64 = 1000 * 1000 * 1000
 )
 
+const (
+	InitRemoteScriptPath = "/tmp"
+)
+
 type NodeInitAction struct {
 	NodeInitConfig *pb.NodeDeployConfig
 	NodesConfig    []*pb.NodeDeployConfig
