@@ -24,7 +24,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	op "github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -38,7 +38,7 @@ type JoinClusterConfig struct {
 }
 
 type JoinCluster struct {
-	operation.BaseOperation
+	op.BaseOperation
 	config *JoinClusterConfig
 }
 
@@ -48,10 +48,10 @@ func NewJoinCluster(config *JoinClusterConfig) *JoinCluster {
 	}
 }
 
-func (operator *JoinCluster) JoinKubernetes() *pb.Error {
+func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 
-	operator.config.Logger.Debug("Start to compute control panel endpoint")
-	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(operator.config.Cluster, operator.config.MasterNodes)
+	operation.config.Logger.Debug("Start to compute control panel endpoint")
+	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(operation.config.Cluster, operation.config.MasterNodes)
 	if err != nil {
 		return &pb.Error{
 			Reason:     "Get control panel endpoint error",
@@ -59,14 +59,14 @@ func (operator *JoinCluster) JoinKubernetes() *pb.Error {
 			FixMethods: "Please create issues for us.",
 		}
 	}
-	operator.config.Logger.
-		WithField("node", operator.config.Node.GetNode().GetName()).
+	operation.config.Logger.
+		WithField("node", operation.config.Node.GetNode().GetName()).
 		Debugf("control panel endpoint: %s", controlPlaneEndpoint)
 
-	return NewCommandRunner(operator.config.ExecuteLogWriter).RunCommand(
+	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(
-			operator.config.Machine,
-			fmt.Sprintf("/bin/bash %s/%s", operation.InitRemoteScriptPath, consts.DefaultKubeToolScript),
+			operation.config.Machine,
+			fmt.Sprintf("/bin/bash %s/%s", op.InitRemoteScriptPath, consts.DefaultKubeToolScript),
 			"join",
 			"--token="+consts.KubernetesToken,
 			"--master="+controlPlaneEndpoint,
