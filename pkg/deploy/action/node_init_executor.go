@@ -48,7 +48,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 
 	initItemReport = &NodeInitItem{
 		Name:        fmt.Sprintf("init %v", item),
-		Description: fmt.Sprintf("init %v", item),
+		Description: fmt.Sprintf("初始化 %v 环境", item),
 		Err:         new(pb.Error),
 	}
 

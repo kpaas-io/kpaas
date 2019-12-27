@@ -68,8 +68,8 @@ type nodeCheckExecutor struct {
 func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkItemReport *NodeCheckItem) (string, *NodeCheckItem, error) {
 
 	checkItemReport = &NodeCheckItem{
-		Name:        fmt.Sprintf("%v check", item),
-		Description: fmt.Sprintf("%v check", item),
+		Name:        fmt.Sprintf("check %v", item),
+		Description: fmt.Sprintf("检查 %v 环境", item),
 	}
 
 	// create item operation
