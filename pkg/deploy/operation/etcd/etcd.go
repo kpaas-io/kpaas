@@ -116,12 +116,16 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 		command.NewShellCommand(d.machine,
 			"docker",
 			"ps",
+			"-q",
 			"--filter",
 			filterArg,
 		),
 	)
 
 	stdOut, stdErr, err := d.BaseOperation.Do()
+	// reset d.Commands
+	d.ResetCommands()
+
 	if err != nil {
 		return fmt.Errorf("failed to get existing docker container, error:%s", stdErr)
 	}
@@ -130,8 +134,7 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 		return nil
 	}
 
-	// reset d.Commands
-	d.ResetCommands()
+	containerID := string(stdOut)
 
 	d.logger.Debugf("remove existing ectd container: %s", stdOut)
 
@@ -141,20 +144,19 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 			"docker",
 			"rm",
 			"-f",
-			d.containerName,
+			containerID,
 		),
 	)
 
 	stdOut, stdErr, err = d.BaseOperation.Do()
+	// reset d.Commands
+	d.ResetCommands()
+
 	if err != nil {
 		return fmt.Errorf("failed to remove existing docker container, error:%s", stdErr)
 	}
 
-	// reset d.Commands
-	d.ResetCommands()
-
 	return nil
-
 }
 
 // PreDo generate etcd certs and put it to etcd node
