@@ -65,11 +65,6 @@ const (
 	defaultEtcdPeerKeyPath    = defautEtcdPKIDir + "/" + defaultEtcdPeerKeyName
 )
 
-var (
-	// reserve for later apiserver usage
-	EtcdCAcrt, ApiServerClientCrt, ApiServerClientKey []byte
-)
-
 type DeployEtcdOperationConfig struct {
 	Logger       *logrus.Entry
 	CACrt        *x509.Certificate
@@ -276,6 +271,8 @@ func (d *deployEtcdOperation) composeEtcdDockerCmd() {
 			"--net=host",
 			"-v",
 			"/etc/kubernetes/pki/etcd:/etc/kubernetes/pki/etcd",
+			"-v",
+			"/var/lib/etcd:/var/lib/etcd",
 			nameArg,
 			defaultEtcdImageUrl,
 			strings.Join(cmd, " "),
