@@ -67,8 +67,7 @@ func (itOps *InitFireWallOperation) GetOperations(node *pb.Node, initAction *ope
 }
 
 func (itOps *InitFireWallOperation) CloseSSH() {
-	if itOps.Machine == nil {
-		return
+	if itOps.Machine != nil {
+		itOps.Machine.Close()
 	}
-	itOps.Machine.Close()
 }

@@ -107,39 +107,54 @@ func ExecuteTask(t Task) error {
 
 	logger.Debug("Start to execute Task")
 
+	var err error
+	defer func() {
+		// No matter what happened, we have to summary the task status.
+		logger.Debug("Last Step: Stat Task")
+		if errState := statTask(t); errState != nil {
+			logger.Errorf("Failed in the Last Step: %v", errState)
+		}
+		// If there was an error during task execution, we need to set
+		// the task's status to failed.
+		if err != nil && t.GetStatus() != TaskFailed {
+			t.SetStatus(TaskFailed)
+			// statTask() will collect the task error, set it only if it is nil.
+			if t.GetErr() == nil {
+				t.SetErr(&pb.Error{
+					Reason: "failed to execute the task",
+					Detail: err.Error(),
+				})
+			}
+		}
+	}()
+
 	logger.Debug("Step 1: Setup")
-	if err := setup(t); err != nil {
+	if err = setup(t); err != nil {
 		logger.Errorf("Failed in Step 1: %v", err)
 		return err
 	}
 
 	logger.Debug("Step 2: Split Task")
-	if err := splitTask(t); err != nil {
+	if err = splitTask(t); err != nil {
 		logger.Errorf("Failed in Step 2: %v", err)
 		return err
 	}
 
 	logger.Debug("Step 3: Execute Sub Tasks")
-	if err := executeSubTasks(t); err != nil {
+	if err = executeSubTasks(t); err != nil {
 		logger.Errorf("Failed in Step 3: %v", err)
 		return err
 	}
 
 	logger.Debug("Step 4: Execute Actions")
-	if err := executeActions(t); err != nil {
+	if err = executeActions(t); err != nil {
 		logger.Errorf("Failed in Step 4: %v", err)
 		return err
 	}
 
-	logger.Debug("Step 5: Stat Task")
-	if err := statTask(t); err != nil {
+	logger.Debug("Step 5: Process Extra Result")
+	if err = processExtraResult(t); err != nil {
 		logger.Errorf("Failed in Step 5: %v", err)
-		return err
-	}
-
-	logger.Debug("Step 6: Process Extra Result")
-	if err := processExtraResult(t); err != nil {
-		logger.Errorf("Failed in Step 6: %v", err)
 		return err
 	}
 
@@ -356,7 +371,7 @@ func statTask(t Task) error {
 	if failed > 0 {
 		t.SetStatus(TaskFailed)
 		t.SetErr(&pb.Error{
-			Reason:     "one or more checks failed",
+			Reason:     "one or more operations failed",
 			Detail:     fmt.Sprintf("%v", errMsgs),
 			FixMethods: "check the detail mssage",
 		})

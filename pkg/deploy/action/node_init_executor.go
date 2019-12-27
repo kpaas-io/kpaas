@@ -162,7 +162,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 		wg.Wait()
 	}
 
-	// TODO if etcd and ingress needs init seperately
+	// TODO if etcd and ingress needs init separately
 
 	// If any of init item was failed, we should return an error
 	failedItems := getFailedInitItems(nodeInitAction)
