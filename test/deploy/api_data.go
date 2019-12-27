@@ -407,3 +407,11 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 	}
 	return
 }
+
+func getFetchKubeConfigData() (request *pb.FetchKubeConfigRequest, reply *pb.FetchKubeConfigReply) {
+	request = &pb.FetchKubeConfigRequest{
+		Node: _testConfig.Nodes[0],
+	}
+	reply = &pb.FetchKubeConfigReply{}
+	return
+}
