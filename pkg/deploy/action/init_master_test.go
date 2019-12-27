@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -54,9 +53,6 @@ func TestInitMaster(t *testing.T) {
 			},
 		},
 	})
-	etcd.EtcdCAcrt = []byte("etcdcert")
-	etcd.ApiServerClientCrt = []byte("apiseverclientcert")
-	etcd.ApiServerClientKey = []byte("apiserverclientkey")
 	assert.NoError(t, err)
 	assert.NotNil(t, normalAction)
 
