@@ -39,7 +39,7 @@ func (itOps *InitHostaliasOperation) getScript() string {
 }
 
 func (itOps *InitHostaliasOperation) getScriptPath() string {
-	itOps.ScriptPath = RemoteScriptPath
+	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
 }
 

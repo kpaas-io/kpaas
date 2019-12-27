@@ -48,10 +48,10 @@ func NewJoinCluster(config *JoinClusterConfig) *JoinCluster {
 	}
 }
 
-func (operation *JoinCluster) JoinKubernetes() *pb.Error {
+func (operator *JoinCluster) JoinKubernetes() *pb.Error {
 
-	operation.config.Logger.Debug("Start to compute control panel endpoint")
-	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(operation.config.Cluster, operation.config.MasterNodes)
+	operator.config.Logger.Debug("Start to compute control panel endpoint")
+	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(operator.config.Cluster, operator.config.MasterNodes)
 	if err != nil {
 		return &pb.Error{
 			Reason:     "Get control panel endpoint error",
@@ -59,14 +59,14 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 			FixMethods: "Please create issues for us.",
 		}
 	}
-	operation.config.Logger.
-		WithField("node", operation.config.Node.GetNode().GetName()).
+	operator.config.Logger.
+		WithField("node", operator.config.Node.GetNode().GetName()).
 		Debugf("control panel endpoint: %s", controlPlaneEndpoint)
 
-	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
+	return NewCommandRunner(operator.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(
-			operation.config.Machine,
-			fmt.Sprintf("/bin/bash %s", consts.DefaultKubeToolScript),
+			operator.config.Machine,
+			fmt.Sprintf("/bin/bash %s/%s", operation.InitRemoteScriptPath, consts.DefaultKubeToolScript),
 			"join",
 			"--token="+consts.KubernetesToken,
 			"--master="+controlPlaneEndpoint,
