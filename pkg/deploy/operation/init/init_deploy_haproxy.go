@@ -69,7 +69,7 @@ func (itOps *InitHaproxyOperation) getScript() string {
 }
 
 func (itOps *InitHaproxyOperation) getScriptPath() string {
-	itOps.ScriptPath = RemoteScriptPath
+	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
 }
 

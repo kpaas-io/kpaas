@@ -65,7 +65,7 @@ func (itOps *InitKeepalivedOperation) getScript() string {
 }
 
 func (itOps *InitKeepalivedOperation) getScriptPath() string {
-	itOps.ScriptPath = RemoteScriptPath
+	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
 }
 

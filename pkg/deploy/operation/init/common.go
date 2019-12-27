@@ -52,7 +52,6 @@ const (
 )
 
 const (
-	RemoteScriptPath     = "/tmp"
 	DefaultCommonLibPath = "/scripts/lib.sh"
 	HaDockerFilePath     = "/scripts/init_deploy_haproxy_keepalived/docker.sh"
 	HaLibFilePath        = "/scripts/init_deploy_haproxy_keepalived/lib.sh"
