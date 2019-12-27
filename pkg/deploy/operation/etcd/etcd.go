@@ -41,7 +41,7 @@ const (
 	defaultEtcdPeerPort   = 2380
 	defaultEtcdDataDir    = "/var/lib/etcd"
 	// TODO: registry should be obtained from cluster config
-	defaultRegistry      = "reg.kpaas.io"
+	defaultRegistry      = "docker.io"
 	defaultEtcdImageRepo = "kpaas"
 	defaultEtcdImageTag  = "3.3.15-0"
 	defaultEtcdImageName = "etcd"

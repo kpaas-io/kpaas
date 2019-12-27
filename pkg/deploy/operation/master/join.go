@@ -66,11 +66,10 @@ func (op *joinMasterOperation) PreDo() error {
 	//kubeadm join 192.168.0.200:6443 --token 9vr73a.a8uxyaju799qwdjv --control-plane --discovery-token-unsafe-skip-ca-verification
 	endpoint, err := deploy.GetControlPlaneEndpoint(op.ClusterConfig, op.MasterNodes)
 	op.Logger.Debugf("control plane endpoint:%v", endpoint)
+
 	if err != nil {
 		return fmt.Errorf("failed to get control plane endpoint addr, error: %v", err)
 	}
-
-	op.Logger.Debugf("join certificate key:%v", op.CertKey)
 
 	op.AddCommands(
 		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
@@ -80,7 +79,6 @@ func (op *joinMasterOperation) PreDo() error {
 			"--certificate-key", op.CertKey,
 			"--discovery-token-unsafe-skip-ca-verification"),
 	)
-	op.Logger.Debugf("join commnnd:%#v", op.Commands)
 
 	return nil
 }
@@ -100,7 +98,7 @@ func (op *joinMasterOperation) Do() error {
 		return fmt.Errorf("failed to join master:%v to cluster, error:%s", op.machine.GetName(), stdErr)
 	}
 
-	op.Logger.Debugf("join %v done, command:%#v, result:%s\n%s\n%v", op.Commands, op.machine.GetName(), stdOut, stdErr, err)
+	op.Logger.Debugf("join %v done, stdout:%s\nstderr:%s\nerr:%v", op.machine.GetName(), stdOut, stdErr, err)
 
 	return nil
 }

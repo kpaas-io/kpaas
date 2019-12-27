@@ -73,7 +73,7 @@ jobs:
             git log --oneline "${commitHash}"... > CHANGELOG.txt
           fi
 
-          echo "\n\nDocker Image: https://reg.kpaas.io/r/kpaas/kpaas\n\`\`\`bash\ndocker pull kpaas/kpaas:${TAG}\n\`\`\`" >> CHANGELOG.txt
+          echo "\n\nDocker Image: https://hub.docker.com/r/kpaas/kpaas\n\`\`\`bash\ndocker pull kpaas/kpaas:${TAG}\n\`\`\`" >> CHANGELOG.txt
 
         env:
           TAG: ${{ steps.calc-tag.outputs.TAG }}

@@ -174,8 +174,6 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 			return nil, err
 		}
 
-		logrus.Debugf("certificateKey:%v", certificateKey)
-
 		config := &DeployMasterTaskConfig{
 			CertKey:         certificateKey,
 			EtcdNodes:       p.unwrapNodes(rn[constant.MachineRoleEtcd]),
