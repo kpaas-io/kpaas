@@ -119,6 +119,7 @@ github.com/checkpoint-restore/go-criu v0.0.0-20190109184317-bdb7599cd87b/go.mod 
 github.com/cheekybits/genny v0.0.0-20170328200008-9127e812e1e9/go.mod h1:+tQajlRqAUrPI7DOSpB0XAqZYtQakVtB7wXkRAgjxjQ=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
+github.com/cloudflare/cfssl v0.0.0-20180726162950-56268a613adf h1:eOyFuj3h/Vj5e4voOM16NNrHsUR3jhD0duh76LHMj6Y=
 github.com/cloudflare/cfssl v0.0.0-20180726162950-56268a613adf/go.mod h1:yMWuSON2oQp+43nFtAV/uvKQIFpSPerB57DCt9t8sSA=
 github.com/clusterhq/flocker-go v0.0.0-20160920122132-2b8b7259d313/go.mod h1:P1wt9Z3DP8O6W3rvwCt0REIlshg1InHImaLW0t3ObY0=
 github.com/codegangsta/negroni v1.0.0/go.mod h1:v0y3T5G7Y1UlFfyxFn/QLRU4a2EuNau2iZY63YTKWo0=
@@ -364,6 +365,7 @@ github.com/google/btree v0.0.0-20180813153112-4030bb1f1f0c/go.mod h1:lNA+9X1NB3Z
 github.com/google/btree v1.0.0 h1:0udJVsspx3VBr5FwtLhQQtuAsVc79tTq0ocGIPAU6qo=
 github.com/google/btree v1.0.0/go.mod h1:lNA+9X1NB3Zf8V7Ke586lFgjr2dZNuvo3lPJSGZ5JPQ=
 github.com/google/cadvisor v0.34.0/go.mod h1:1nql6U13uTHaLYB8rLS5x9IJc2qT6Xd/Tr1sTX6NE48=
+github.com/google/certificate-transparency-go v1.0.21 h1:Yf1aXowfZ2nuboBsg7iYGLmwsOARdV86pfH3g95wXmE=
 github.com/google/certificate-transparency-go v1.0.21/go.mod h1:QeJfpSbVSfYc7RgB3gJFj9cbuQMMchQxrWXz8Ruopmg=
 github.com/google/go-cmp v0.2.0 h1:+dTQ8DZQJz0Mb/HjFlkptS1FeQ4cWSnN941F8aEG4SQ=
 github.com/google/go-cmp v0.2.0 h1:+dTQ8DZQJz0Mb/HjFlkptS1FeQ4cWSnN941F8aEG4SQ=
@@ -761,6 +763,7 @@ github.com/xenolf/lego v0.3.2-0.20160613233155-a9d8cec0e656/go.mod h1:fwiGnfsIjG
 github.com/xiang90/probing v0.0.0-20160813154853-07dd2e8dfe18 h1:MPPkRncZLN9Kh4MEFmbnK4h3BD7AUmskWv2+EeZJCCs=
 github.com/xiang90/probing v0.0.0-20160813154853-07dd2e8dfe18/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xiang90/probing v0.0.0-20160813154853-07dd2e8dfe18/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
+github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1 h1:j2hhcujLRHAg872RWAV5yaUrEjHEObwDv3aImCaNLek=
 github.com/xlab/handysort v0.0.0-20150421192137-fb3537ed64a1/go.mod h1:QcJo0QPSfTONNIgpN5RA8prR7fF8nkF6cTWTcNerRO8=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
@@ -804,8 +807,6 @@ golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7/go.mod h1:yigFU9vqHzYiE8U
 golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c h1:/nJuwDLoL/zrqY6gf57vxC+Pi+pZ8bfhpPkicO5H7W4=
 golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
-golang.org/x/crypto v0.0.0-20191219195013-becbf705a915 h1:aJ0ex187qoXrJHPo8ZasVTASQB7llQP6YeNzgDALPRk=
-golang.org/x/crypto v0.0.0-20191219195013-becbf705a915/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190125153040-c74c464bbbf2/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190312203227-4b39c73a6495/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
@@ -894,8 +895,6 @@ golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20191008105621-543471e840be/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191010194322-b09406accb47/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191028164358-195ce5e7f934/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
-golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e h1:N7DeIrjYszNmSW409R3frPPwglRwMkXSBzwVbkOjLLA=
-golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191223224216-5a3cf8467b4e h1:z2Flw7sLy7DxaQi3zDOvI9X+Kb06+G9iZJlkEyHvujE=
 golang.org/x/sys v0.0.0-20191223224216-5a3cf8467b4e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.0.0-20160726164857-2910a502d2bf/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
@@ -1062,10 +1061,12 @@ k8s.io/kubernetes/staging/src/k8s.io/cri-api v0.0.0-20191207073709-d9a258903170/
 k8s.io/kubernetes/staging/src/k8s.io/csi-translation-lib v0.0.0-20191207073709-d9a258903170/go.mod h1:w51XnEBJkmGEjUGylUXL1TezQIc0JYndQCsVkQMHjKA=
 k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator v0.0.0-20191207073709-d9a258903170/go.mod h1:ttKFRQ6/4l0mjLwPJ/Ccn9k/vc/6y5dJ98r88NLLiGw=
 k8s.io/kubernetes/staging/src/k8s.io/kube-controller-manager v0.0.0-20191207073709-d9a258903170/go.mod h1:Wm4X9LSXr3uszFEajh8M75iyxHdjOKSp0LCL4TIp7UQ=
+k8s.io/kubernetes/staging/src/k8s.io/kube-proxy v0.0.0-20191207073709-d9a258903170 h1:vda2eM+AApSNkoP9dicOX9aMwdM99qkEDsXQ+iNDcW0=
 k8s.io/kubernetes/staging/src/k8s.io/kube-proxy v0.0.0-20191207073709-d9a258903170/go.mod h1:8btekvQmHgyy4XTchusVAW/mQIPE+hVLn61sZ/epsAA=
 k8s.io/kubernetes/staging/src/k8s.io/kube-scheduler v0.0.0-20191207073709-d9a258903170/go.mod h1:sBq5nR6KVpfnkBsj4RjOQhw0j5yOtLHXIX2Dz5uZQmw=
 k8s.io/kubernetes/staging/src/k8s.io/kubectl v0.0.0-20191207073709-d9a258903170 h1:xhhnMORl1nLoF496uEGgMSrWEsMZkH0Q9VySOlUTCkU=
 k8s.io/kubernetes/staging/src/k8s.io/kubectl v0.0.0-20191207073709-d9a258903170/go.mod h1:b4UoBV6BbZRU3F2VDqLsXqWFeNUhT2EtirOINqUzgOs=
+k8s.io/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20191207073709-d9a258903170 h1:BuJwIqId1PxdWMizcNP7BijRPivVKxIkdoMQ0LC4peU=
 k8s.io/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20191207073709-d9a258903170/go.mod h1:4Sbo2Vn3tAIZpwx4YIp+SushTtzzzabVrg9Tq4rrImM=
 k8s.io/kubernetes/staging/src/k8s.io/legacy-cloud-providers v0.0.0-20191207073709-d9a258903170/go.mod h1:OpqDei2/Qdg+5YGQYPiEuQ4vlFoiAJy0Ysn8aLKP7Cs=
 k8s.io/kubernetes/staging/src/k8s.io/metrics v0.0.0-20191207073709-d9a258903170/go.mod h1:vQHTmz0IaEb7/OXPSor1uga8Er0V+2M5aSdXG832NbU=
