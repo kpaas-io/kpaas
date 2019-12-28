@@ -33,6 +33,11 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
 )
 
+const (
+	localKubeConfigDir = "/tmp"
+	kubeConfigFileName = "admin.conf"
+)
+
 type JoinMasterOperationConfig struct {
 	Logger        *logrus.Entry
 	CertKey       string
