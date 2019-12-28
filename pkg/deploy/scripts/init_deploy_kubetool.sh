@@ -275,7 +275,7 @@ kubelet::config() {
     Environment="KUBELET_AUTHZ_ARGS=--authorization-mode=Webhook --client-ca-file=/etc/kubernetes/pki/ca.crt"
     #Environment="KUBELET_CADVISOR_ARGS=--cadvisor-port=0"
     Environment="KUBELET_CERTIFICATE_ARGS=--rotate-certificates=true --cert-dir=/var/lib/kubelet/pki"
-    Environment="KUBELET_POD_INFRA_ARGS=--pod-infra-container-image='${IMAGE_REPOSITORY%*/}'/pause-amd64:3.0"
+    Environment="KUBELET_POD_INFRA_ARGS=--pod-infra-container-image='${IMAGE_REPOSITORY%*/}'/pause:3.1"
     Environment="KUBELET_FEATURE_GATES=--feature-gates=DevicePlugins=true"
     Environment="KUBELET_LOG_LEVEL=-v=4"
     ExecStart=
