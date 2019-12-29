@@ -65,11 +65,6 @@ const (
 	defaultEtcdPeerKeyPath    = defautEtcdPKIDir + "/" + defaultEtcdPeerKeyName
 )
 
-var (
-	// reserve for later apiserver usage
-	EtcdCAcrt, ApiServerClientCrt, ApiServerClientKey []byte
-)
-
 type DeployEtcdOperationConfig struct {
 	Logger       *logrus.Entry
 	CACrt        *x509.Certificate
@@ -121,12 +116,16 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 		command.NewShellCommand(d.machine,
 			"docker",
 			"ps",
+			"-q",
 			"--filter",
 			filterArg,
 		),
 	)
 
 	stdOut, stdErr, err := d.BaseOperation.Do()
+	// reset d.Commands
+	d.ResetCommands()
+
 	if err != nil {
 		return fmt.Errorf("failed to get existing docker container, error:%s", stdErr)
 	}
@@ -135,8 +134,7 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 		return nil
 	}
 
-	// reset d.Commands
-	d.ResetCommands()
+	containerID := string(stdOut)
 
 	d.logger.Debugf("remove existing ectd container: %s", stdOut)
 
@@ -146,20 +144,19 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 			"docker",
 			"rm",
 			"-f",
-			d.containerName,
+			containerID,
 		),
 	)
 
 	stdOut, stdErr, err = d.BaseOperation.Do()
+	// reset d.Commands
+	d.ResetCommands()
+
 	if err != nil {
 		return fmt.Errorf("failed to remove existing docker container, error:%s", stdErr)
 	}
 
-	// reset d.Commands
-	d.ResetCommands()
-
 	return nil
-
 }
 
 // PreDo generate etcd certs and put it to etcd node
@@ -175,9 +172,6 @@ func (d *deployEtcdOperation) PreDo() (err error) {
 	if err != nil {
 		return fmt.Errorf("failed to convert key and cert to byte, error: %v", err)
 	}
-
-	// save for later use
-	EtcdCAcrt = encodedCACert
 
 	if err := d.machine.PutFile(bytes.NewReader(encodedCACert), DefaultEtcdCACertPath); err != nil {
 		return fmt.Errorf("failed to put ca cert to:%v, error: %v", d.machine.GetName(), err)
@@ -276,6 +270,8 @@ func (d *deployEtcdOperation) composeEtcdDockerCmd() {
 			"--net=host",
 			"-v",
 			"/etc/kubernetes/pki/etcd:/etc/kubernetes/pki/etcd",
+			"-v",
+			"/var/lib/etcd:/var/lib/etcd",
 			nameArg,
 			defaultEtcdImageUrl,
 			strings.Join(cmd, " "),
@@ -303,6 +299,8 @@ func (d *deployEtcdOperation) Do() error {
 		}
 	}
 
+	d.logger.Debugf("fetch ca error:%v, fetch peer error:%v, ToByte error:%v", caErr, peerErr, toByteErr)
+
 	// restore and clear etcd if any error occurred
 	d.caCrt, d.caKey, d.encodedPeerCert, d.encodedPeerKey = originCACrt, originCAKey, originEncodedPeerCert, originEncodedPeerKey
 
@@ -312,7 +310,7 @@ func (d *deployEtcdOperation) Do() error {
 
 	d.composeEtcdDockerCmd()
 
-	d.logger.Debugf("start command: %v", d.Commands)
+	d.logger.Debug("start docker run etcd")
 
 	stdOut, stdErr, err := d.BaseOperation.Do()
 	if err != nil {
@@ -355,11 +353,16 @@ func etcdUpAndRunning(d *deployEtcdOperation) error {
 	}
 	defer cli.Close()
 
-	d.logger.Debugf("etcd client:%#v", cli)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
 
-	resp, err := cli.MemberList(context.Background())
+	resp, err := cli.MemberList(ctx)
 
 	d.logger.Debugf("member list done, result:%#v, error: %v", resp, err)
+
+	if err != nil {
+		return err
+	}
 
 	if len(resp.Members) == len(d.clusterNodes) {
 		d.logger.Infof("%v members detected", len(resp.Members))

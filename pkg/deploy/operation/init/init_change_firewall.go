@@ -39,7 +39,7 @@ func (itOps *InitFireWallOperation) getScript() string {
 }
 
 func (itOps *InitFireWallOperation) getScriptPath() string {
-	itOps.ScriptPath = RemoteScriptPath
+	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
 }
 
