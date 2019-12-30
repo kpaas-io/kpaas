@@ -29,7 +29,7 @@ import (
 )
 
 type AppendAnnotationConfig struct {
-	Machine          deployMachine.IMachine
+	MasterMachine    deployMachine.IMachine
 	Logger           *logrus.Entry
 	Node             *pb.NodeDeployConfig
 	Cluster          *pb.ClusterConfig
@@ -59,8 +59,8 @@ func (operation *AppendAnnotation) append() *pb.Error {
 		Debug("append annotation")
 
 	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
-		command.NewKubectlCommand(operation.config.Machine, consts.KubeConfigPath, "",
-			"annotation", "node", operation.config.Node.GetNode().GetName(),
+		command.NewKubectlCommand(operation.config.MasterMachine, consts.KubeConfigPath, "",
+			"annotate", "node", operation.config.Node.GetNode().GetName(),
 			strings.Join(annotations, " "),
 		),
 		"Append annotation to node error", // 节点添加Annotation错误
