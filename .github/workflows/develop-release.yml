@@ -135,11 +135,11 @@ jobs:
       - name: move builds
         shell: bash
         run: |
-          mkdir ./builds/release
+          mkdir -p ./builds/release
           mv builds-${{ github.sha }}-service/* builds/release
           mv builds-${{ github.sha }}-dashboard/* builds/release
           mv builds/release/main /builds/release/dashboard
-          mkdir ./builds/docker
+          mkdir -p ./builds/docker
           mv builds-${{ github.sha }}-docker/* builds/docker
           mv builds-${{ github.sha }}-entrypoint/entrypoint.sh builds/docker
 
