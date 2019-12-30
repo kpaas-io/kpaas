@@ -60,20 +60,27 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Set up node 12.x
       - uses: actions/setup-node@v1
         with:
           node-version: '12.x'
+
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
 
       - name: Check out kpaas-dashboard
         uses: actions/checkout@v2
         with:
           repository: kpaas-io/kpaas-dashboard
           token: ${{ secrets.GITHUBTOKEN }}
+          ref: develop
 
       - uses: actions/cache@v1
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
 
