@@ -229,8 +229,8 @@ message CalicoOptions {
   uint32 vxlanPort = 10;
   string initialPodIPs  = 11;
   uint32 vethMtu  = 12;
-  string nodeIPDetectionMethod = 20;
-  string nodeIPDetectionInterface = 21;
+  string IPDetectionMethod = 20;
+  string IPDetectionInterface = 21;
 }
 
 // NetworkOptions options for deploying network. affects checked items.

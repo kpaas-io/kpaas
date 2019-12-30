@@ -24,6 +24,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
+	"github.com/kpaas-io/kpaas/pkg/utils/validator"
 )
 
 const (
@@ -34,8 +35,9 @@ const (
 // @Summary install network components
 // @Description install network components
 // @Tags deploy
+// @Param networkOptions body protos.NetworkOptions false "options for installing network components"
 // @Success 201 {object} api.SuccessfulOption
-// @Failure 404 {object} h.AppErr
+// @Failure 400 {object} h.AppErr
 // @Router /api/v1/deploy/wizard/networks [post]
 // InstallNetwork installs network components in installed kubernetes cluster
 func InstallNetwork(c *gin.Context) {
@@ -75,6 +77,9 @@ func installNetworkCalico(
 
 	// fill in calicoValues from options
 	if options != nil {
+		if validateErr := validateCalicoOptions(options); validateErr != nil {
+			return validateErr
+		}
 		calicoValues["veth_mtu"] = options.VethMtu
 
 		// TODO: get initial pod range from wizardData
@@ -82,9 +87,9 @@ func installNetworkCalico(
 
 		calicoValues["encap_mode"] = "vxlan"
 		calicoValues["vxlan_port"] = options.VxlanPort
-		calicoValues["ip_detection.method"] = options.NodeIPDetectionMethod
-		if options.NodeIPDetectionMethod == "interface" {
-			calicoValues["ip_detection.interface"] = options.NodeIPDetectionInterface
+		calicoValues["ip_detection.method"] = options.IPDetectionMethod
+		if options.IPDetectionMethod == "interface" {
+			calicoValues["ip_detection.interface"] = options.IPDetectionInterface
 		}
 	}
 
@@ -97,4 +102,30 @@ func installNetworkCalico(
 	}
 	_, err := helm.RunInstallReleaseAction(c, r)
 	return err
+}
+
+func validateCalicoOptions(options *protos.CalicoOptions) error {
+	validateCalicoEncapMode := validator.ValidateStringOptions(
+		options.EncapsulationMode,
+		"calicoOptions.encapsulationMode",
+		[]string{"vxlan", "ipip", "none"},
+	)
+	validateIPDetectionMethod := validator.ValidateStringOptions(
+		options.IPDetectionMethod,
+		"calicoOptions.IPDetectionMethod",
+		[]string{"from_kubernetes", "first-found", "interface"},
+	)
+
+	calicoOptionsValidator := validator.NewWrapper(
+		validateCalicoEncapMode,
+		validateIPDetectionMethod,
+	)
+	// validate initial IPs if specified.
+	if options.InitialPodIPs != "" {
+		calicoOptionsValidator.AddValidateFunc(
+			validator.ValidateIP(options.InitialPodIPs, "calicoOptions.initialPodIPs"),
+		)
+	}
+
+	return calicoOptionsValidator.Validate()
 }

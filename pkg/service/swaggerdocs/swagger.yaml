@@ -470,6 +470,36 @@ definitions:
       payload:
         type: object
     type: object
+  protos.CalicoOptions:
+    properties:
+      IPDetectionInterface:
+        type: string
+      IPDetectionMethod:
+        type: string
+      checkConnectivityAll:
+        description: if checkConnectivityAll = true, check connectivity between each
+          pair of nodes bidirectionally.
+        type: boolean
+      encapsulationMode:
+        description: EncapsulationMode could be ["vxlan","ipip","none"].
+        type: string
+      initialPodIPs:
+        type: string
+      vethMtu:
+        type: integer
+      vxlanPort:
+        type: integer
+    type: object
+  protos.NetworkOptions:
+    properties:
+      NetworkType:
+        type: string
+      calicoOptions:
+        $ref: '#/definitions/protos.CalicoOptions'
+        description: options for a specified network type. Starts from 10 to reserve
+          field 2-9.
+        type: object
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -664,13 +694,20 @@ paths:
     post:
       description: install network components
       operationId: InstallNetwork
+      parameters:
+      - description: options for installing network components
+        in: body
+        name: networkOptions
+        schema:
+          $ref: '#/definitions/protos.NetworkOptions'
+          type: object
       responses:
         "201":
           description: Created
           schema:
             $ref: '#/definitions/api.SuccessfulOption'
-        "404":
-          description: Not Found
+        "400":
+          description: Bad Request
           schema:
             $ref: '#/definitions/h.AppErr'
       summary: install network components

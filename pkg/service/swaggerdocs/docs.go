@@ -302,6 +302,17 @@ var doc = `{
                 ],
                 "summary": "install network components",
                 "operationId": "InstallNetwork",
+                "parameters": [
+                    {
+                        "description": "options for installing network components",
+                        "name": "networkOptions",
+                        "in": "body",
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/protos.NetworkOptions"
+                        }
+                    }
+                ],
                 "responses": {
                     "201": {
                         "description": "Created",
@@ -309,8 +320,8 @@ var doc = `{
                             "$ref": "#/definitions/api.SuccessfulOption"
                         }
                     },
-                    "404": {
-                        "description": "Not Found",
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
                             "$ref": "#/definitions/h.AppErr"
                         }
@@ -1674,6 +1685,47 @@ var doc = `{
                 },
                 "payload": {
                     "type": "object"
+                }
+            }
+        },
+        "protos.CalicoOptions": {
+            "type": "object",
+            "properties": {
+                "IPDetectionInterface": {
+                    "type": "string"
+                },
+                "IPDetectionMethod": {
+                    "type": "string"
+                },
+                "checkConnectivityAll": {
+                    "description": "if checkConnectivityAll = true, check connectivity between each pair of nodes bidirectionally.",
+                    "type": "boolean"
+                },
+                "encapsulationMode": {
+                    "description": "EncapsulationMode could be [\"vxlan\",\"ipip\",\"none\"].",
+                    "type": "string"
+                },
+                "initialPodIPs": {
+                    "type": "string"
+                },
+                "vethMtu": {
+                    "type": "integer"
+                },
+                "vxlanPort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "protos.NetworkOptions": {
+            "type": "object",
+            "properties": {
+                "NetworkType": {
+                    "type": "string"
+                },
+                "calicoOptions": {
+                    "description": "options for a specified network type. Starts from 10 to reserve field 2-9.",
+                    "type": "object",
+                    "$ref": "#/definitions/protos.CalicoOptions"
                 }
             }
         }
