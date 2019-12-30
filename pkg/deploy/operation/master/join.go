@@ -122,36 +122,33 @@ func (op *joinMasterOperation) Do() error {
 	return nil
 }
 
-func alreadyJoined(hostname string, masterNode *pb.Node) (joined bool, err error) {
+func alreadyJoined(hostname string, masterNode *pb.Node) (bool, error) {
 	path, err := fetchKubeConfig(masterNode)
 	if err != nil {
-		return
+		return false, err
 	}
 
 	config, err := clientcmd.BuildConfigFromFlags("", path)
 	if err != nil {
-		err = fmt.Errorf("faield to build kube client config, error:%v", err)
-		return
+		return false, fmt.Errorf("faield to build kube client config, error:%v", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return
+		return false, err
 	}
 
 	node, err := clientset.CoreV1().Nodes().Get(hostname, metav1.GetOptions{})
 
 	if node.Name == hostname && err == nil {
-		joined = true
-		return
+		return true, nil
 	}
 
 	if errors.IsNotFound(err) {
-		joined = false
-		return
+		return false, nil
 	}
 
-	return
+	return false, err
 }
 
 func fetchKubeConfig(masterNode *pb.Node) (localKubeConfigPath string, err error) {
