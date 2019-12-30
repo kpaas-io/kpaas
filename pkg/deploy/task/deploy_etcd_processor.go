@@ -16,12 +16,12 @@ package task
 
 import (
 	"fmt"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/action"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation/etcd"
 )
 
 func init() {

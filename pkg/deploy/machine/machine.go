@@ -41,6 +41,14 @@ type Machine struct {
 }
 
 func NewMachine(node *pb.Node) (IMachine, error) {
+	if IsTesting {
+		return newMockMachine(node)
+	}
+
+	return newMachine(node)
+}
+
+func newMachine(node *pb.Node) (IMachine, error) {
 	client, err := NewExecClient(node)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create execution client for machine: %v(%v), error: %v", node.Name, node.Ip, err)
