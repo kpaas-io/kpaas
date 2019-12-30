@@ -51,7 +51,11 @@ func (operation *AppendTaint) append() *pb.Error {
 
 	taints := make([]string, len(operation.config.Node.GetTaints()))
 	for _, taint := range operation.config.Node.GetTaints() {
-		taints = append(taints, fmt.Sprintf("%s=%s:%s", taint.GetKey(), taint.GetValue(), taint.GetEffect()))
+		taints = append(taints, fmt.Sprintf("%s'='%s:%s", taint.GetKey(), taint.GetValue(), taint.GetEffect()))
+	}
+
+	if len(taints) == 0 {
+		return nil
 	}
 
 	operation.config.Logger.

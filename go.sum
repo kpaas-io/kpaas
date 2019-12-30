@@ -804,8 +804,6 @@ golang.org/x/crypto v0.0.0-20190911031432-227b76d455e7/go.mod h1:yigFU9vqHzYiE8U
 golang.org/x/crypto v0.0.0-20191028145041-f83a4685e152/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c h1:/nJuwDLoL/zrqY6gf57vxC+Pi+pZ8bfhpPkicO5H7W4=
 golang.org/x/crypto v0.0.0-20191122220453-ac88ee75c92c/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
-golang.org/x/crypto v0.0.0-20191219195013-becbf705a915 h1:aJ0ex187qoXrJHPo8ZasVTASQB7llQP6YeNzgDALPRk=
-golang.org/x/crypto v0.0.0-20191219195013-becbf705a915/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/exp v0.0.0-20190121172915-509febef88a4/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190125153040-c74c464bbbf2/go.mod h1:CJ0aWSM057203Lf6IL+f9T1iT9GByDxfZKAQTCR3kQA=
 golang.org/x/exp v0.0.0-20190312203227-4b39c73a6495/go.mod h1:ZjyILWgesfNpC6sMxTJOJm9Kp84zZh5NQWvqDGG3Qr8=
@@ -894,8 +892,6 @@ golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20191008105621-543471e840be/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191010194322-b09406accb47/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191028164358-195ce5e7f934/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
-golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e h1:N7DeIrjYszNmSW409R3frPPwglRwMkXSBzwVbkOjLLA=
-golang.org/x/sys v0.0.0-20191120155948-bd437916bb0e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20191223224216-5a3cf8467b4e h1:z2Flw7sLy7DxaQi3zDOvI9X+Kb06+G9iZJlkEyHvujE=
 golang.org/x/sys v0.0.0-20191223224216-5a3cf8467b4e/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.0.0-20160726164857-2910a502d2bf/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
@@ -1062,10 +1058,12 @@ k8s.io/kubernetes/staging/src/k8s.io/cri-api v0.0.0-20191207073709-d9a258903170/
 k8s.io/kubernetes/staging/src/k8s.io/csi-translation-lib v0.0.0-20191207073709-d9a258903170/go.mod h1:w51XnEBJkmGEjUGylUXL1TezQIc0JYndQCsVkQMHjKA=
 k8s.io/kubernetes/staging/src/k8s.io/kube-aggregator v0.0.0-20191207073709-d9a258903170/go.mod h1:ttKFRQ6/4l0mjLwPJ/Ccn9k/vc/6y5dJ98r88NLLiGw=
 k8s.io/kubernetes/staging/src/k8s.io/kube-controller-manager v0.0.0-20191207073709-d9a258903170/go.mod h1:Wm4X9LSXr3uszFEajh8M75iyxHdjOKSp0LCL4TIp7UQ=
+k8s.io/kubernetes/staging/src/k8s.io/kube-proxy v0.0.0-20191207073709-d9a258903170 h1:vda2eM+AApSNkoP9dicOX9aMwdM99qkEDsXQ+iNDcW0=
 k8s.io/kubernetes/staging/src/k8s.io/kube-proxy v0.0.0-20191207073709-d9a258903170/go.mod h1:8btekvQmHgyy4XTchusVAW/mQIPE+hVLn61sZ/epsAA=
 k8s.io/kubernetes/staging/src/k8s.io/kube-scheduler v0.0.0-20191207073709-d9a258903170/go.mod h1:sBq5nR6KVpfnkBsj4RjOQhw0j5yOtLHXIX2Dz5uZQmw=
 k8s.io/kubernetes/staging/src/k8s.io/kubectl v0.0.0-20191207073709-d9a258903170 h1:xhhnMORl1nLoF496uEGgMSrWEsMZkH0Q9VySOlUTCkU=
 k8s.io/kubernetes/staging/src/k8s.io/kubectl v0.0.0-20191207073709-d9a258903170/go.mod h1:b4UoBV6BbZRU3F2VDqLsXqWFeNUhT2EtirOINqUzgOs=
+k8s.io/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20191207073709-d9a258903170 h1:BuJwIqId1PxdWMizcNP7BijRPivVKxIkdoMQ0LC4peU=
 k8s.io/kubernetes/staging/src/k8s.io/kubelet v0.0.0-20191207073709-d9a258903170/go.mod h1:4Sbo2Vn3tAIZpwx4YIp+SushTtzzzabVrg9Tq4rrImM=
 k8s.io/kubernetes/staging/src/k8s.io/legacy-cloud-providers v0.0.0-20191207073709-d9a258903170/go.mod h1:OpqDei2/Qdg+5YGQYPiEuQ4vlFoiAJy0Ysn8aLKP7Cs=
 k8s.io/kubernetes/staging/src/k8s.io/metrics v0.0.0-20191207073709-d9a258903170/go.mod h1:vQHTmz0IaEb7/OXPSor1uga8Er0V+2M5aSdXG832NbU=

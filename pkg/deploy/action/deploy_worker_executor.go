@@ -159,9 +159,20 @@ func (executor *deployWorkerExecutor) appendLabel() *protos.Error {
 
 	executor.logger.Debug("Start to append label")
 
+	// pick up first master machine as IMachine
+	masterMachine, err := deployMachine.NewMachine(executor.action.config.MasterNodes[0])
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"error": err}).Error("failed to form master machine node")
+		return &protos.Error{
+			Reason:     "create new master IMachine failed",
+			Detail:     fmt.Sprintf("failed to create master node, err: %s", err),
+			FixMethods: "please check deploy worker config to ensure master node can be created successfully",
+		}
+	}
+
 	operation := worker.NewAppendLabel(
 		&worker.AppendLabelConfig{
-			Machine:          executor.machine,
+			MasterMachine:    masterMachine,
 			Logger:           executor.logger,
 			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
@@ -182,9 +193,20 @@ func (executor *deployWorkerExecutor) appendAnnotation() *protos.Error {
 
 	executor.logger.Debug("Start to append annotation")
 
+	// pick up first master machine as IMachine
+	masterMachine, err := deployMachine.NewMachine(executor.action.config.MasterNodes[0])
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"error": err}).Error("failed to form master machine node")
+		return &protos.Error{
+			Reason:     "create new master IMachine failed",
+			Detail:     fmt.Sprintf("failed to create master node, err: %s", err),
+			FixMethods: "please check deploy worker config to ensure master node can be created successfully",
+		}
+	}
+
 	operation := worker.NewAppendAnnotation(
 		&worker.AppendAnnotationConfig{
-			Machine:          executor.machine,
+			MasterMachine:    masterMachine,
 			Logger:           executor.logger,
 			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
@@ -205,9 +227,20 @@ func (executor *deployWorkerExecutor) appendTaint() *protos.Error {
 
 	executor.logger.Debug("Start to append taint")
 
+	// pick up first master machine as IMachine
+	masterMachine, err := deployMachine.NewMachine(executor.action.config.MasterNodes[0])
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"error": err}).Error("failed to form master machine node")
+		return &protos.Error{
+			Reason:     "create new master IMachine failed",
+			Detail:     fmt.Sprintf("failed to create master node, err: %s", err),
+			FixMethods: "please check deploy worker config to ensure master node can be created successfully",
+		}
+	}
+
 	operation := worker.NewAppendTaint(
 		&worker.AppendTaintConfig{
-			Machine:          executor.machine,
+			Machine:          masterMachine,
 			Logger:           executor.logger,
 			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
