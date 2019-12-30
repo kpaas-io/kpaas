@@ -24,6 +24,6 @@ fi
 
 /app/service --log-level="${logLevel}" --service-id="${serviceId}" >>/var/log/kpaas.log 2>&1 &
 /app/deploy --log-level="${logLevel}" >>/var/log/kpaas.log 2>&1 &
-/app/dashboard --config-file=/app/config/dashboard.conf --server-addr="0.0.0.0:${dashboardPort}" "${dashboardOptions}" >>/var/log/kpaas.log 2>&1 &
+/app/dashboard --config-path=/app/config/dashboard.conf --server-addr="0.0.0.0:${dashboardPort}" "${dashboardOptions}" >>/var/log/kpaas.log 2>&1 &
 
 tail -f /var/log/kpaas.log
