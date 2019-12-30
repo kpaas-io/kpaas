@@ -29,7 +29,7 @@ import (
 )
 
 type AppendLabelConfig struct {
-	Machine          deployMachine.IMachine
+	MasterMachine    deployMachine.IMachine
 	Logger           *logrus.Entry
 	Node             *pb.NodeDeployConfig
 	Cluster          *pb.ClusterConfig
@@ -74,7 +74,7 @@ func (operation *AppendLabel) append() *pb.Error {
 		Debugf("append labels")
 
 	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
-		command.NewKubectlCommand(operation.config.Machine, consts.KubeConfigPath, "",
+		command.NewKubectlCommand(operation.config.MasterMachine, consts.KubeConfigPath, "",
 			"label", "node", operation.config.Node.GetNode().GetName(),
 			strings.Join(labels, " "),
 		),

@@ -36,6 +36,7 @@ func init() {
 type deployWorkerExecutor struct {
 	logger           *logrus.Entry
 	machine          deployMachine.IMachine
+	masterMachine    deployMachine.IMachine
 	action           *DeployWorkerAction
 	executeLogWriter io.Writer
 }
@@ -60,6 +61,11 @@ func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
 		return err
 	}
 	defer executor.disconnectSSH()
+
+	if err := executor.connectMasterNode(); err != nil {
+		return err
+	}
+	defer executor.disconnectMasterNode()
 
 	operations := []func() *protos.Error{
 		executor.startKubelet,
@@ -99,6 +105,26 @@ func (executor *deployWorkerExecutor) connectSSH() *protos.Error {
 
 	executor.logger.Debug("ssh connected")
 	return nil
+}
+
+func (executor *deployWorkerExecutor) connectMasterNode() *protos.Error {
+	var err error
+	executor.masterMachine, err = deployMachine.NewMachine(executor.action.config.MasterNodes[0])
+	if err != nil {
+		logrus.WithFields(logrus.Fields{"error": err}).Error("failed to connect master node")
+		return &protos.Error{
+			Reason:     "connecting failed",
+			Detail:     fmt.Sprintf("failed to connect master node, err: %s", err),
+			FixMethods: "please check deploy worker config to ensure master node can be connected successfully",
+		}
+	}
+	return nil
+}
+
+func (executor *deployWorkerExecutor) disconnectMasterNode() {
+	if executor.masterMachine != nil {
+		executor.masterMachine.Close()
+	}
 }
 
 func (executor *deployWorkerExecutor) initLogger() {
@@ -161,7 +187,7 @@ func (executor *deployWorkerExecutor) appendLabel() *protos.Error {
 
 	operation := worker.NewAppendLabel(
 		&worker.AppendLabelConfig{
-			Machine:          executor.machine,
+			MasterMachine:    executor.masterMachine,
 			Logger:           executor.logger,
 			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
@@ -184,7 +210,7 @@ func (executor *deployWorkerExecutor) appendAnnotation() *protos.Error {
 
 	operation := worker.NewAppendAnnotation(
 		&worker.AppendAnnotationConfig{
-			Machine:          executor.machine,
+			MasterMachine:    executor.masterMachine,
 			Logger:           executor.logger,
 			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
@@ -207,7 +233,7 @@ func (executor *deployWorkerExecutor) appendTaint() *protos.Error {
 
 	operation := worker.NewAppendTaint(
 		&worker.AppendTaintConfig{
-			Machine:          executor.machine,
+			Machine:          executor.masterMachine,
 			Logger:           executor.logger,
 			Node:             executor.action.config.NodeCfg,
 			Cluster:          executor.action.config.ClusterConfig,
