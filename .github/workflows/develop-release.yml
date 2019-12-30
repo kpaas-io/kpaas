@@ -6,9 +6,9 @@ on:
 
 jobs:
 
-  build:
+  build-services:
     if: github.repository == 'kpaas-io/kpaas'
-    name: make execution file
+    name: make services execution file
     runs-on: ubuntu-latest
     steps:
 
@@ -18,6 +18,13 @@ jobs:
           go-version: 1.13
         id: go
 
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
 
@@ -25,6 +32,71 @@ jobs:
         run: |
           go get -v -t -d ./...
 
+      - name: Make service file
+        run: |
+          make build
+
+      - name: Upload service execution
+        uses: actions/upload-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-service
+          path: builds/release
+
+      - name: Upload dockerfiles
+        uses: actions/upload-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-docker
+          path: builds/docker/kpaas
+
+      - name: Upload entrypoint.sh
+        uses: actions/upload-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-entrypoint.sh
+          path: run/docker/entrypoint.sh
+
+  build-node:
+    if: github.repository == 'kpaas-io/kpaas'
+    name: make execution file
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      - name: Check out kpaas-dashboard
+        uses: actions/checkout@v2
+        with:
+          repository: kpaas-io/kpaas-dashboard
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Get dashboard dependencies
+        run: |
+          go get -v -t -d ./...
+          make install-client
+
+      - name: Make dashboard file
+        run: |
+          make build-cross
+
+      - name: Upload service execution
+        uses: actions/upload-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-dashboard
+          path: build
+
+  publish:
+    if: github.repository == 'kpaas-io/kpaas'
+    needs: [build-services, build-node]
+    name: publish image
+    runs-on: ubuntu-latest
+    steps:
       - name: calc tag
         run: |
           tag=`date +%Y%m%d%H%M%S`
@@ -32,9 +104,35 @@ jobs:
           echo "::set-output name=TAG::${tag}"
         id: calc-tag
 
-      - name: Make file
+      - name: Download dockerfiles
+          uses: actions/download-artifact@v1
+          with:
+            name: builds-${{ github.sha }}-docker
+
+      - name: Download service builds
+          uses: actions/download-artifact@v1
+          with:
+            name: builds-${{ github.sha }}-service
+
+      - name: Download dashboard builds
+          uses: actions/download-artifact@v1
+          with:
+            name: builds-${{ github.sha }}-dashboard
+
+      - name: Download entrypoint
+          uses: actions/download-artifact@v1
+          with:
+            name: builds-${{ github.sha }}-entrypoint.sh
+
+      - name: move builds
+        shell: bash
         run: |
-          make build
+          - mkdir ./builds/release
+          - mv builds-${{ github.sha }}-service/builds/* builds/release
+          - mv builds-${{ github.sha }}-dashboard/build/* builds/release
+          - mkdir ./builds/docker
+          - mv builds-${{ github.sha }}-docker/kpaas/* builds/docker
+          - mv builds-${{ github.sha }}-entrypoint.sh builds/docker
 
       - name: Build image and publish
         uses: mr-smithers-excellent/docker-build-push@v1.0
