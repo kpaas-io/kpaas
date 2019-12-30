@@ -138,6 +138,7 @@ jobs:
           mkdir -p ./builds/release
           mv builds-${{ github.sha }}-service/* builds/release
           mv builds-${{ github.sha }}-dashboard/* builds/release
+          ls -l builds/release
           mv builds/release/main /builds/release/dashboard
           mkdir -p ./builds/docker
           mv builds-${{ github.sha }}-docker/* builds/docker
