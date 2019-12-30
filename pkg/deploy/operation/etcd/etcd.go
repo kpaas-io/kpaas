@@ -319,10 +319,13 @@ func (d *deployEtcdOperation) Do() error {
 
 	d.logger.Debugf("exec command: %#v done, %s, %s, %v", d.Commands, stdOut, stdErr, err)
 
-	// post do
-	if err := d.PostDo(); err != nil {
-		d.logger.Errorf("post do error:%v", err)
-		return err
+	_, needPostDo := d.machine.(*machine.Machine)
+	if needPostDo {
+		// post do
+		if err := d.PostDo(); err != nil {
+			d.logger.Errorf("post do error:%v", err)
+			return err
+		}
 	}
 
 	d.logger.Debug("deploy etcd done")
