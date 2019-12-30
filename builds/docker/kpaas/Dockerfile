@@ -1,6 +1,6 @@
 FROM alpine:latest
 
-COPY builds/release/* /app/
+COPY builds/release/ /app/
 COPY builds/docker/dashboard.conf /app/config/dashboard.conf
 COPY builds/docker/entrypoint.sh /app/entrypoint.sh
 
