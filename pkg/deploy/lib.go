@@ -61,6 +61,8 @@ func GetControlPlaneEndpoint(clusterConfig *pb.ClusterConfig, masterNodes []*pb.
 		addr = fmt.Sprintf("%v:%v", conn.Keepalived.Vip, defaultHAProxyPort)
 	case "loadbalancer":
 		addr = fmt.Sprintf("%v:%v", conn.Loadbalancer.Ip, conn.Loadbalancer.Port)
+	case "test":
+		addr = "test"
 	default:
 		err = fmt.Errorf("unrecognized apiserver connect type: %v", conn.Type)
 	}

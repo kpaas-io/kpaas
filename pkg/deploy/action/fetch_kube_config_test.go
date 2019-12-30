@@ -19,8 +19,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
+
+func init() {
+	machine.IsTesting = true
+}
 
 func TestNewFetchKubeConfigAction(t *testing.T) {
 	// test invalid paramters
@@ -43,4 +48,33 @@ func TestNewFetchKubeConfigAction(t *testing.T) {
 	assert.Equal(t, ActionTypeFetchKubeConfig, act.GetType())
 	assert.Equal(t, ActionPending, act.GetStatus())
 	assert.Equal(t, cfg.Node, act.(*FetchKubeConfigAction).Node)
+}
+
+func TestFetchKubeConfig(t *testing.T) {
+	executor := new(fetchKubeConfigExecutor)
+
+	normalAction, err := NewFetchKubeConfigAction(&FetchKubeConfigActionConfig{
+		Node: &pb.Node{
+			Name: "normal",
+			Ip:   "10.10.10.10",
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, normalAction)
+
+	pbErr := executor.Execute(normalAction)
+	assert.Nil(t, pbErr)
+
+	errorAction, err := NewFetchKubeConfigAction(&FetchKubeConfigActionConfig{
+		Node: &pb.Node{
+			Name: "error",
+			Ip:   "10.10.10.10",
+		},
+	})
+	assert.NoError(t, err)
+	assert.NotNil(t, errorAction)
+
+	pbErr = executor.Execute(errorAction)
+	assert.NoError(t, err)
+	assert.NotNil(t, pbErr)
 }
