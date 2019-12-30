@@ -52,7 +52,7 @@ func InstallRelease(c *gin.Context) {
 		h.E(c, appErr)
 		return
 	}
-	res, err := installRelease(c, &release)
+	res, err := RunInstallReleaseAction(c, &release)
 	if err != nil {
 		h.E(c, err)
 		return

@@ -34,7 +34,7 @@ data:
   # Configure the backend to use.
   calico_backend: "bird"
   # Configure the MTU to use
-  veth_mtu: {{ .Values.veth_mtu | default "1440" | quote }}
+  veth_mtu: {{ .Values.veth_mtu | default "1400" | quote }}
 
 
   cni_network_config: |-

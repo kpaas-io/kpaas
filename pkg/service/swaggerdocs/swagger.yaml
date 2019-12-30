@@ -560,6 +560,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.Cluster'
+          type: object
       produces:
       - application/json
       responses:
@@ -659,6 +660,22 @@ paths:
       summary: Download the log detail
       tags:
       - log
+  /api/v1/deploy/wizard/networks:
+    post:
+      description: install network components
+      operationId: InstallNetwork
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: install network components
+      tags:
+      - deploy
   /api/v1/deploy/wizard/nodes:
     get:
       description: Get nodes information
@@ -685,6 +702,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.NodeData'
+          type: object
       produces:
       - application/json
       responses:
@@ -771,6 +789,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.UpdateNodeData'
+          type: object
       - description: Node IP Address
         in: path
         name: ip
@@ -1088,6 +1107,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.ConnectionData'
+          type: object
       produces:
       - application/json
       responses:
@@ -1136,6 +1156,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.SSHCertificate'
+          type: object
       produces:
       - application/json
       responses:

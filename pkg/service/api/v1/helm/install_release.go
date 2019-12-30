@@ -30,8 +30,8 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
-// installRelease inner function of calling helm actions to install a release
-func installRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error) {
+// RunInstallReleaseAction inner function of calling helm actions to install a release
+func RunInstallReleaseAction(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error) {
 	logEntry := log.ReqEntry(c).
 		WithField("cluster", r.Cluster).WithField("namspace", r.Namespace).WithField("releaseName", r.Name)
 

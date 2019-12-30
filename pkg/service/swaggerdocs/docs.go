@@ -146,6 +146,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -293,6 +294,30 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/deploy/wizard/networks": {
+            "post": {
+                "description": "install network components",
+                "tags": [
+                    "deploy"
+                ],
+                "summary": "install network components",
+                "operationId": "InstallNetwork",
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessfulOption"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/deploy/wizard/nodes": {
             "get": {
                 "description": "Get nodes information",
@@ -333,6 +358,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -420,6 +446,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -921,6 +948,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -993,6 +1021,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
