@@ -105,24 +105,24 @@ jobs:
         id: calc-tag
 
       - name: Download dockerfiles
-          uses: actions/download-artifact@v1
-          with:
-            name: builds-${{ github.sha }}-docker
+        uses: actions/download-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-docker
 
       - name: Download service builds
-          uses: actions/download-artifact@v1
-          with:
-            name: builds-${{ github.sha }}-service
+        uses: actions/download-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-service
 
       - name: Download dashboard builds
-          uses: actions/download-artifact@v1
-          with:
-            name: builds-${{ github.sha }}-dashboard
+        uses: actions/download-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-dashboard
 
       - name: Download entrypoint
-          uses: actions/download-artifact@v1
-          with:
-            name: builds-${{ github.sha }}-entrypoint.sh
+        uses: actions/download-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-entrypoint.sh
 
       - name: move builds
         shell: bash
