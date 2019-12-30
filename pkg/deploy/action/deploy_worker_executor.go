@@ -111,11 +111,11 @@ func (executor *deployWorkerExecutor) connectMasterNode() *protos.Error {
 	var err error
 	executor.masterMachine, err = deployMachine.NewMachine(executor.action.config.MasterNodes[0])
 	if err != nil {
-		logrus.WithFields(logrus.Fields{"error": err}).Error("failed to form master machine node")
+		logrus.WithFields(logrus.Fields{"error": err}).Error("failed to connect master node")
 		return &protos.Error{
-			Reason:     "create new master IMachine failed",
-			Detail:     fmt.Sprintf("failed to create master node, err: %s", err),
-			FixMethods: "please check deploy worker config to ensure master node can be created successfully",
+			Reason:     "connecting failed",
+			Detail:     fmt.Sprintf("failed to connect master node, err: %s", err),
+			FixMethods: "please check deploy worker config to ensure master node can be connected successfully",
 		}
 	}
 	return nil

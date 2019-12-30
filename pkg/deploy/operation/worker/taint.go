@@ -49,13 +49,13 @@ func NewAppendTaint(config *AppendTaintConfig) *AppendTaint {
 
 func (operation *AppendTaint) append() *pb.Error {
 
-	taints := make([]string, len(operation.config.Node.GetTaints()))
-	for _, taint := range operation.config.Node.GetTaints() {
-		taints = append(taints, fmt.Sprintf("%s'='%s:%s", taint.GetKey(), taint.GetValue(), taint.GetEffect()))
+	if len(operation.config.Node.GetTaints()) == 0 {
+		return nil
 	}
 
-	if len(taints) == 0 {
-		return nil
+	taints := make([]string, 0, len(operation.config.Node.GetTaints()))
+	for _, taint := range operation.config.Node.GetTaints() {
+		taints = append(taints, fmt.Sprintf("%s=%s:%s", taint.GetKey(), taint.GetValue(), taint.GetEffect()))
 	}
 
 	operation.config.Logger.
