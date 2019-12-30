@@ -175,8 +175,6 @@ func TestDeploy(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.NotNil(t, actualResultReply)
-	sortDeployItemResults(actualResultReply.Items)
-	sortDeployItemResults(expetecdResultReply.Items)
 	assert.Equal(t, expetecdResultReply, actualResultReply)
 }
 
@@ -205,16 +203,4 @@ func sortCheckNodesResult(r *pb.GetCheckNodesResultReply) {
 	for _, nodeCheckResult := range r.Nodes {
 		sortItemCheckResults(nodeCheckResult.Items)
 	}
-}
-
-func sortDeployItemResults(r []*pb.DeployItemResult) {
-	sort.Slice(r, func(i, j int) bool {
-		itemI := r[i].DeployItem
-		itemJ := r[j].DeployItem
-		// Sort by {NodeName, Role}
-		if itemI.NodeName != itemJ.NodeName {
-			return itemI.NodeName <= itemJ.NodeName
-		}
-		return itemI.Role <= itemJ.Role
-	})
 }
