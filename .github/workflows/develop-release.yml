@@ -51,7 +51,7 @@ jobs:
       - name: Upload entrypoint.sh
         uses: actions/upload-artifact@v1
         with:
-          name: builds-${{ github.sha }}-entrypoint.sh
+          name: builds-${{ github.sha }}-entrypoint
           path: run/docker/entrypoint.sh
 
   build-node:
@@ -83,6 +83,13 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
       - name: Get dashboard dependencies
         run: |
@@ -130,17 +137,20 @@ jobs:
       - name: Download entrypoint
         uses: actions/download-artifact@v1
         with:
-          name: builds-${{ github.sha }}-entrypoint.sh
+          name: builds-${{ github.sha }}-entrypoint
 
       - name: move builds
         shell: bash
         run: |
-          - mkdir ./builds/release
-          - mv builds-${{ github.sha }}-service/builds/* builds/release
-          - mv builds-${{ github.sha }}-dashboard/build/* builds/release
-          - mkdir ./builds/docker
-          - mv builds-${{ github.sha }}-docker/kpaas/* builds/docker
-          - mv builds-${{ github.sha }}-entrypoint.sh builds/docker
+          mkdir -p ./builds/release
+          mv builds-${{ github.sha }}-service/* builds/release
+          mv builds-${{ github.sha }}-dashboard/* builds/release
+          ls -l builds/release
+          mv builds/release/main builds/release/dashboard
+          mkdir -p ./builds/docker
+          mv builds-${{ github.sha }}-docker/* builds/docker
+          mv builds-${{ github.sha }}-entrypoint/entrypoint.sh builds/docker
+          ls -l builds/docker
 
       - name: Build image and publish
         uses: mr-smithers-excellent/docker-build-push@v1.0
@@ -148,7 +158,7 @@ jobs:
           image: kpaas/kpaas
           tag: ${{ steps.calc-tag.outputs.TAG }}
           registry: docker.io
-          dockerfile: ./builds/docker/kpaas/Dockerfile
+          dockerfile: ./builds/docker/Dockerfile
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
