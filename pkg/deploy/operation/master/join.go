@@ -16,14 +16,23 @@ package master
 
 import (
 	"fmt"
-
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	localKubeConfigDir = "/tmp"
+	kubeConfigFileName = "admin.conf"
 )
 
 type JoinMasterOperationConfig struct {
@@ -86,6 +95,16 @@ func (op *joinMasterOperation) PreDo() error {
 func (op *joinMasterOperation) Do() error {
 	defer op.machine.Close()
 
+	joined, err := alreadyJoined(op.machine.GetName(), op.MasterNodes[0])
+	if err != nil {
+		return err
+	}
+
+	if joined {
+		op.Logger.Infof("%v already joined to cluster, skipping", op.machine.GetName())
+		return nil
+	}
+
 	if err := op.PreDo(); err != nil {
 		return err
 	}
@@ -103,8 +122,48 @@ func (op *joinMasterOperation) Do() error {
 	return nil
 }
 
-//func (op *joinMasterOperation) PostDo() error {
-//	// TODO
-//	// wait until master cluster ready
-//	return nil
-//}
+func alreadyJoined(hostname string, masterNode *pb.Node) (bool, error) {
+	path, err := fetchKubeConfig(masterNode)
+	if err != nil {
+		return false, err
+	}
+
+	config, err := clientcmd.BuildConfigFromFlags("", path)
+	if err != nil {
+		return false, fmt.Errorf("faield to build kube client config, error:%v", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return false, err
+	}
+
+	node, err := clientset.CoreV1().Nodes().Get(hostname, metav1.GetOptions{})
+
+	if node.Name == hostname && err == nil {
+		return true, nil
+	}
+
+	if errors.IsNotFound(err) {
+		return false, nil
+	}
+
+	return false, err
+}
+
+func fetchKubeConfig(masterNode *pb.Node) (localKubeConfigPath string, err error) {
+	m, err := machine.NewMachine(masterNode)
+	if err != nil {
+		return
+	}
+
+	localKubeConfigPath = fmt.Sprintf("%v/%v", localKubeConfigDir, kubeConfigFileName)
+	remoteKubeConfigPath := consts.KubeConfigPath
+
+	if err = m.FetchFileToLocalPath(localKubeConfigPath, remoteKubeConfigPath); err != nil {
+		err = fmt.Errorf("failed to fetch remote kubeconfig path:%v, error:%v", remoteKubeConfigPath, err)
+		return
+	}
+
+	return
+}

@@ -143,7 +143,7 @@ func (op *initMasterOperation) Do() error {
 
 	// init first master
 	stdOut, stdErr, err := op.BaseOperation.Do()
-	op.Logger.Debugf("init master result:%s\n%s\n%v", stdOut, stdErr, err)
+	op.Logger.Debugf("init master result:\nstdout:\n%s\nstderr:\n%s\nerror:%v", stdOut, stdErr, err)
 
 	if err != nil {
 		return fmt.Errorf("failed to initilize first master, error:%s", stdErr)
