@@ -1,7 +1,7 @@
 FROM alpine:latest
 
 COPY builds/release/* /app/
-COPY builds/docker/kpaas/dashboard.conf /app/config/dashboard.conf
+COPY builds/docker/dashboard.conf /app/config/dashboard.conf
 COPY builds/docker/entrypoint.sh /app/entrypoint.sh
 
 EXPOSE 80 8080 8081
