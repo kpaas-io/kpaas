@@ -51,9 +51,34 @@ func NewAppendLabel(config *AppendLabelConfig) *AppendLabel {
 
 func (operation *AppendLabel) computeLabels() {
 
-	for labelKey, labelValue := range operation.config.Cluster.NodeLabels {
+	operation.computeClusterLabels()
+	operation.computeNodeLabels()
+}
+
+func (operation *AppendLabel) computeClusterLabels() {
+
+	if len(operation.config.Cluster.GetNodeLabels()) <= 0 {
+
+		operation.config.Logger.
+			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
+			Debug("Not have cluster label")
+		return
+	}
+
+	for labelKey, labelValue := range operation.config.Cluster.GetNodeLabels() {
 
 		operation.labels[labelKey] = labelValue
+	}
+}
+
+func (operation *AppendLabel) computeNodeLabels() {
+
+	if len(operation.config.Node.GetLabels()) <= 0 {
+
+		operation.config.Logger.
+			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
+			Debug("Not have node label")
+		return
 	}
 
 	for labelKey, labelValue := range operation.config.Node.GetLabels() {

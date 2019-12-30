@@ -49,6 +49,14 @@ func NewAppendAnnotation(config *AppendAnnotationConfig) *AppendAnnotation {
 
 func (operation *AppendAnnotation) append() *pb.Error {
 
+	if len(operation.config.Cluster.GetNodeAnnotations()) <= 0 {
+
+		operation.config.Logger.
+			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
+			Debug("Not have annotation")
+		return nil
+	}
+
 	annotations := make([]string, len(operation.config.Cluster.GetNodeAnnotations()))
 	for annotationKey, annotationValue := range operation.config.Cluster.GetNodeAnnotations() {
 		annotations = append(annotations, fmt.Sprintf("%s='%s'", annotationKey, annotationValue))
