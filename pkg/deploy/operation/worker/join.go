@@ -67,10 +67,9 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 		command.NewShellCommand(
 			operation.config.Machine,
 			fmt.Sprintf("/bin/bash %s/%s", op.InitRemoteScriptPath, consts.DefaultKubeToolScript),
-			"join",
-			"--token="+consts.KubernetesToken,
-			"--master="+controlPlaneEndpoint,
-			"--discovery-token-unsafe-skip-ca-verification",
+			fmt.Sprint("join"),
+			fmt.Sprintf("--token %v", consts.KubernetesToken),
+			fmt.Sprintf("--master %v", controlPlaneEndpoint),
 		),
 		"Join node to cluster failed",     // 添加节点到集群失败
 		"join node to kubernetes cluster", // 添加节点到Kubernetes集群

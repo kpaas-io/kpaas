@@ -13,15 +13,8 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-logLevel="${LOG_LEVEL}"
-if [ -n "${logLevel}" ]; then
-  logLevel="info"
-fi
-
-serviceId="${SERVICE_ID}"
-if [ -n "${serviceId}" ]; then
-  serviceId="0"
-fi
+logLevel=${LOG_LEVEL:-info}
+serviceId=${SERVICE_ID:-0}
 
 /app/service --log-level="${logLevel}" --service-id="${serviceId}" >>/var/log/kpaas.log 2>&1 &
 /app/deploy --log-level="${logLevel}" >>/var/log/kpaas.log 2>&1 &
