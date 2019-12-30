@@ -84,6 +84,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Get dashboard dependencies
         run: |
           go get -v -t -d ./...
