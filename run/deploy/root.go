@@ -37,7 +37,7 @@ var (
 const (
 	defaultPort       uint16 = 8081
 	defaultLogLevel   string = "info"
-	defaultLogFileLoc string = "/app/deploy/logs"
+	defaultLogFileLoc string = "/app/log/deploy"
 )
 
 // rootCmd represents the base command when called without any subcommands
