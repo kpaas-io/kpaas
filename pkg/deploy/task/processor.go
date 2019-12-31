@@ -128,18 +128,22 @@ func ExecuteTask(t Task) error {
 		}
 	}()
 
+	t.SetStatus(TaskInitializing)
 	logger.Debug("Step 1: Setup")
 	if err = setup(t); err != nil {
 		logger.Errorf("Failed in Step 1: %v", err)
 		return err
 	}
 
+	t.SetStatus(TaskSplitting)
 	logger.Debug("Step 2: Split Task")
+
 	if err = splitTask(t); err != nil {
 		logger.Errorf("Failed in Step 2: %v", err)
 		return err
 	}
 
+	t.SetStatus(TaskDoing)
 	logger.Debug("Step 3: Execute Sub Tasks")
 	if err = executeSubTasks(t); err != nil {
 		logger.Errorf("Failed in Step 3: %v", err)
@@ -179,12 +183,10 @@ func splitTask(t Task) error {
 	})
 
 	logger.Debug("Start to split task")
-	t.SetStatus(TaskSplitting)
 
 	// Create the task processor
 	processor, err := NewProcessor(t.GetType())
 	if err != nil {
-		t.SetStatus(TaskFailed)
 		t.SetErr(&pb.Error{
 			Reason: "failed to create task processor",
 			Detail: err.Error(),
@@ -196,7 +198,6 @@ func splitTask(t Task) error {
 	// Spilt the task
 	err = processor.SplitTask(t)
 	if err != nil {
-		t.SetStatus(TaskFailed)
 		t.SetErr(&pb.Error{
 			Reason: "failed to split task",
 			Detail: err.Error(),
@@ -205,7 +206,6 @@ func splitTask(t Task) error {
 		return err
 	}
 
-	t.SetStatus(TaskSplitted)
 	logger.Debug("Finish to split task")
 	return nil
 }
@@ -244,7 +244,7 @@ func executeSubTasks(t Task) error {
 			if err := statTask(aSubTask); err != nil {
 				return err
 			}
-			if aSubTask.GetStatus() != TaskDone {
+			if aSubTask.GetStatus() != TaskSuccessful {
 				return fmt.Errorf("[%s] sub task was failed", aSubTask.GetName())
 			}
 		}
@@ -342,7 +342,7 @@ func statTask(t Task) error {
 		}
 	}
 
-	done := 0
+	successful := 0
 	failed := 0
 	// combined error message in sub tasks and actions
 	var errMsgs []string
@@ -352,8 +352,8 @@ func statTask(t Task) error {
 		case TaskFailed:
 			failed++
 			errMsgs = append(errMsgs, fmt.Sprintf("%v", subTask.GetErr()))
-		case TaskDone:
-			done++
+		case TaskSuccessful:
+			successful++
 		}
 	}
 
@@ -363,7 +363,7 @@ func statTask(t Task) error {
 			failed++
 			errMsgs = append(errMsgs, fmt.Sprintf("%v", act.GetErr()))
 		case action.ActionDone:
-			done++
+			successful++
 		}
 	}
 
@@ -375,9 +375,9 @@ func statTask(t Task) error {
 			Detail:     fmt.Sprintf("%v", errMsgs),
 			FixMethods: "check the detail mssage",
 		})
-	} else if done == len(t.GetSubTasks())+len(t.GetActions()) {
-		// if all subtasks/actions are done, the task is done
-		t.SetStatus(TaskDone)
+	} else if successful == len(t.GetSubTasks())+len(t.GetActions()) {
+		// if all subtasks/actions are successful, the task is successful
+		t.SetStatus(TaskSuccessful)
 	}
 
 	logger.Debug("Finish to gen task summary")
@@ -396,7 +396,6 @@ func processExtraResult(t Task) error {
 	// Create the task processor
 	processor, err := NewProcessor(t.GetType())
 	if err != nil {
-		t.SetStatus(TaskFailed)
 		t.SetErr(&pb.Error{
 			Reason: "failed to create task processor",
 			Detail: err.Error(),

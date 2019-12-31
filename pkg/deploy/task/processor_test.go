@@ -161,12 +161,12 @@ func TestExecuteTask(t *testing.T) {
 
 	err = ExecuteTask(task1)
 	assert.NoError(t, err)
-	assert.Equal(t, TaskDone, task1.GetStatus())
+	assert.Equal(t, TaskSuccessful, task1.GetStatus())
 	assert.Nil(t, task1.GetErr())
 	assert.Equal(t, 2, len(task1.GetSubTasks()))
 	assert.Equal(t, 0, len(task1.GetActions()))
 	for _, subTask := range task1.GetSubTasks() {
-		assert.Equal(t, TaskDone, subTask.GetStatus())
+		assert.Equal(t, TaskSuccessful, subTask.GetStatus())
 		assert.Nil(t, subTask.GetErr())
 		assert.Equal(t, 0, len(subTask.GetSubTasks()))
 		assert.Equal(t, 1, len(subTask.GetActions()))
