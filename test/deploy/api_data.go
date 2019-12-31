@@ -238,6 +238,10 @@ func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply
 			Name:        "check system-manager",
 			Description: "检查 system-manager 环境",
 		},
+		&pb.CheckItem{
+			Name:        "check port-occupied",
+			Description: "检查 port-occupied 环境",
+		},
 	}
 	var itemsResult []*pb.ItemCheckResult
 	// Create check itemsResult

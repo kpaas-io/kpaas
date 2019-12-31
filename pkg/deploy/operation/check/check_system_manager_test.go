@@ -15,11 +15,10 @@
 package check
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	"fmt"
 )
 
 const (

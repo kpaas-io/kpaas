@@ -49,6 +49,7 @@ const (
 	Distribution          ItemEnum = "distribution"
 	SystemPreference      ItemEnum = "system-preference"
 	SystemManager         ItemEnum = "system-manager"
+	PortOccupied          ItemEnum = "port-occupied"
 )
 
 func NewCheckOperations() *OperationsGenerator {
@@ -73,6 +74,8 @@ func (og *OperationsGenerator) CreateOperations(item ItemEnum) CheckAction {
 		return &CheckSysPrefOperation{}
 	case SystemManager:
 		return &CheckSystemManagerOperation{}
+	case PortOccupied:
+		return &CheckPortOccupiedOperation{}
 	default:
 		return nil
 	}

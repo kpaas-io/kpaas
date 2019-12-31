@@ -28,6 +28,7 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+// constant value for check
 const (
 	desiredDockerVersion              = "18.09.0"
 	desiredKernelVersion              = "4.19.46"
@@ -416,6 +417,44 @@ func CheckSysManagerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
+// goroutine as executor for port occupied check
+func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+
+	logger := logrus.WithFields(logrus.Fields{
+		"node":       ncAction.Node.Name,
+		"check_item": "port occupied",
+	})
+
+	logrus.Debug("Start to execute check port occupied")
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.Status = ItemDoing
+	portOccupied, checkItemReport, err := ExecuteCheckScript(check.PortOccupied, ncAction.NodeCheckConfig, checkItemReport)
+	if err != nil {
+		logger.Errorf("check port occupied failed, err: %v", err)
+		checkItemReport.Status = ItemFailed
+	}
+
+	portResult, err := check.CheckPortOccupied(portOccupied)
+	if err != nil {
+		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Err = new(pb.Error)
+		checkItemReport.Err.Reason = "port occupied check is failed"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemFailed
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please solve port occupied problem: occupied port: %s", portResult)
+	} else {
+		logger.Debug(CheckPassed)
+		checkItemReport.Status = ItemDone
+	}
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
+
+	wg.Done()
+}
+
 func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	nodeCheckAction, ok := act.(*NodeCheckAction)
 	if !ok {
@@ -431,7 +470,8 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	logger.Debug("Start to execute node check action")
 
 	// check docker, CPU, kernel, memory, disk, distribution, system preference
-	wg.Add(8)
+	// system manager, port occupied
+	wg.Add(9)
 	go CheckDockerExecutor(nodeCheckAction, &wg)
 	go CheckCPUExecutor(nodeCheckAction, &wg)
 	go CheckKernelExecutor(nodeCheckAction, &wg)
@@ -440,6 +480,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	go CheckDistributionExecutor(nodeCheckAction, &wg)
 	go CheckSysPrefExecutor(nodeCheckAction, &wg)
 	go CheckSysManagerExecutor(nodeCheckAction, &wg)
+	go CheckPortOccupiedExecutor(nodeCheckAction, &wg)
 	wg.Wait()
 
 	// If any of check item was failed, we should return an error
