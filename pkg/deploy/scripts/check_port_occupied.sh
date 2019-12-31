@@ -15,7 +15,7 @@
 
 # This script is aim to check if port occupied
 
-portSet=(2379 2380 10249 10250)
+portSet=(80 443 2379 2380 6443 10249 10250)
 
 function detectPort() {
     occupiedSet=
