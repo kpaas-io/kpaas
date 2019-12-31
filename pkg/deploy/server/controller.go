@@ -335,9 +335,9 @@ func taskStatusToOperationStatus(status task.Status) constant.OperationStatus {
 	switch status {
 	case task.TaskPending:
 		return constant.OperationStatusPending
-	case task.TaskDoing, task.TaskSplitting, task.TaskSplitted:
+	case task.TaskDoing, task.TaskSplitting, task.TaskInitializing:
 		return constant.OperationStatusRunning
-	case task.TaskDone:
+	case task.TaskSuccessful:
 		return constant.OperationStatusSuccessful
 	case task.TaskFailed:
 		return constant.OperationStatusFailed

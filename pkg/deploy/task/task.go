@@ -50,12 +50,12 @@ type Type string
 type Status string
 
 const (
-	TaskPending   Status = "Pending"
-	TaskSplitting Status = "Splitting"
-	TaskSplitted  Status = "Splitted"
-	TaskDoing     Status = "Doing"
-	TaskDone      Status = "Done" // means success
-	TaskFailed    Status = "Failed"
+	TaskPending      Status = "pending"
+	TaskInitializing Status = "initializing"
+	TaskSplitting    Status = "splitting"
+	TaskDoing        Status = "doing"
+	TaskSuccessful   Status = "successful"
+	TaskFailed       Status = "failed"
 )
 
 type Base struct {
