@@ -20,7 +20,7 @@ portSet=(80 443 2379 2380 6443 10249 10250)
 function detectPort() {
     occupiedSet=
     for port in ${portSet[@]}; do
-        countPort=`netstat -nltp | grep -v "Active" | grep -v "Proto" | awk '{print $4}' | grep -w $port | awk -F ":" '{print $NF}' | wc -l`
+        countPort=`netstat -nltp | grep -v "Active" | grep -v "Proto" | awk '{print $4}' | awk -F ":" '{print $NF}' | grep -w $port | wc -l`
         if [[ $countPort -ne 0 ]]; then
             occupiedSet=$occupiedSet"$port, "
         fi
