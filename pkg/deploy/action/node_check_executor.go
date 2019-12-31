@@ -442,10 +442,10 @@ func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
-		checkItemReport.Err.Reason = "port occupied check is failed"
+		checkItemReport.Err.Reason = "port occupied check failed"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemFailed
-		checkItemReport.Err.FixMethods = fmt.Sprintf("please solve port occupied problem, occupied port: %s", portResult)
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please close the process which occupied port: %v", portResult)
 	} else {
 		logger.Debug(CheckPassed)
 		checkItemReport.Status = ItemDone
