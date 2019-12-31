@@ -120,9 +120,9 @@ jobs:
     name: publish image
     runs-on: ubuntu-latest
     steps:
-      - name: calc tag
+      - name: Calculate tag
         run: |
-          tag=`echo "release-${tagName}"`
+          tag=`basename "${tagName}"`
           echo "::set-output name=TAG::${tag}"
         id: calc-tag
         env:
@@ -187,6 +187,13 @@ jobs:
     name: release note
     runs-on: ubuntu-latest
     steps:
+      - name: Calculate tag
+        run: |
+          tag=`basename "${tagName}"`
+          echo "::set-output name=TAG::${tag}"
+        id: calc-tag
+        env:
+          tagName: ${{ github.ref }}
 
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
@@ -209,13 +216,13 @@ jobs:
           echo "\n\nDocker Image: https://hub.docker.com/r/kpaas/kpaas\n\`\`\`bash\ndocker pull kpaas/kpaas:${TAG}\n\`\`\`" >> CHANGELOG.txt
 
         env:
-          TAG: ${{ github.ref }}
+          TAG: ${{ steps.calc-tag.outputs.TAG }}
 
       - name: Release in github
         uses: softprops/action-gh-release@v1
         with:
           body_path: CHANGELOG.txt
-          name: Release ${{ github.ref }}
+          name: Release ${{ steps.calc-tag.outputs.TAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
 
