@@ -236,7 +236,7 @@ func TestGetNodeCheckResult(t *testing.T) {
 			input: &task.NodeCheckTask{
 				Base: task.Base{
 					Actions: []action.Action{nodeCheckAction},
-					Status:  task.TaskDone,
+					Status:  task.TaskSuccessful,
 					Err:     nil,
 				},
 			},
