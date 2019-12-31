@@ -16,7 +16,6 @@ package check
 
 import (
 	"fmt"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -76,7 +75,7 @@ func (ckops *CheckPortOccupiedOperation) CloseSSH() {
 // check if port is occupied
 func CheckPortOccupied(portSet string) (string, error) {
 	if portSet != "" {
-		return portSet[:len(portSet)-2], fmt.Errorf("port(s) occupied")
+		return portSet, fmt.Errorf("port(s) occupied")
 	}
 
 	return "", nil

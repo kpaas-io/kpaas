@@ -430,8 +430,11 @@ func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.Status = ItemDoing
 	portOccupied, checkItemReport, err := ExecuteCheckScript(check.PortOccupied, ncAction.NodeCheckConfig, checkItemReport)
+
+	// trim can be done whatever error occurs
+	portOccupied = strings.TrimRight(portOccupied, ",")
 	if err != nil {
-		logger.Errorf("check port occupied failed, err: %v", err)
+		logger.Errorf("check port occupied failed, err: %v, occupied port: %v", err, portOccupied)
 		checkItemReport.Status = ItemFailed
 	}
 
@@ -442,7 +445,7 @@ func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Err.Reason = "port occupied check is failed"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemFailed
-		checkItemReport.Err.FixMethods = fmt.Sprintf("please solve port occupied problem: occupied port: %s", portResult)
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please solve port occupied problem, occupied port: %s", portResult)
 	} else {
 		logger.Debug(CheckPassed)
 		checkItemReport.Status = ItemDone

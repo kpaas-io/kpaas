@@ -15,14 +15,14 @@
 
 # This script is aim to check if port occupied
 
-portSet=(2379, 2380, 10249, 10250)
-occupiedSet=
+portSet=(2379 2380 10249 10250)
 
 function detectPort() {
+    occupiedSet=
     for port in ${portSet[@]}; do
-        count = `netstat -nltup | grep $port | wc -l`
+        count=`netstat -nltup | grep $port | wc -l`
         if [[ $count -ne 0 ]]; then
-            occupiedSet+="$port, "
+            occupiedSet=$occupiedSet"$port, "
         fi
     done
 
