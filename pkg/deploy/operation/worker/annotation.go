@@ -57,7 +57,7 @@ func (operation *AppendAnnotation) append() *pb.Error {
 		return nil
 	}
 
-	annotations := make([]string, len(operation.config.Cluster.GetNodeAnnotations()))
+	annotations := make([]string, 0, len(operation.config.Cluster.GetNodeAnnotations()))
 	for annotationKey, annotationValue := range operation.config.Cluster.GetNodeAnnotations() {
 		annotations = append(annotations, fmt.Sprintf("%s='%s'", annotationKey, annotationValue))
 	}

@@ -97,7 +97,7 @@ func (operation *AppendLabel) append() *pb.Error {
 		return nil
 	}
 
-	labels := make([]string, len(operation.labels))
+	labels := make([]string, 0, len(operation.labels))
 	for labelKey, labelValue := range operation.labels {
 		labels = append(labels, fmt.Sprintf("%s=%s", labelKey, labelValue))
 	}
