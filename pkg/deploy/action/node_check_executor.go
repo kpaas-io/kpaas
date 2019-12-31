@@ -28,6 +28,7 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+// constant value for check
 const (
 	desiredDockerVersion              = "18.09.0"
 	desiredKernelVersion              = "4.19.46"
@@ -378,32 +379,73 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-// goroutine as executor for check system components
-func CheckSysComponentExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+// goroutine as executor for check system manager
+func CheckSysManagerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"check_item": "docker",
+		"check_item": "system manager",
 	})
 
-	logrus.Debug("Start to execute check system component")
+	logrus.Debug("Start to execute check system manager")
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.Status = ItemDoing
-	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemComponent, ncAction.NodeCheckConfig, checkItemReport)
+	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemManager, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
-		logger.Errorf("check system component failed, err: %v", err)
+		logger.Errorf("check system manager failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
 	}
 
-	err = check.CheckSysComponent(systemManager, desiredSystemManager)
+	err = check.CheckSystemManager(systemManager, desiredSystemManager)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
-		checkItemReport.Err.Reason = "system component is not clear"
+		checkItemReport.Err.Reason = "system manager is not clear"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemFailed
-		checkItemReport.Err.FixMethods = fmt.Sprint("please check system component is available")
+		checkItemReport.Err.FixMethods = fmt.Sprint("please check system manager is systemd")
+	} else {
+		logger.Debug(CheckPassed)
+		checkItemReport.Status = ItemDone
+	}
+
+	ncAction.Lock()
+	defer ncAction.Unlock()
+	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
+
+	wg.Done()
+}
+
+// goroutine as executor for port occupied check
+func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+
+	logger := logrus.WithFields(logrus.Fields{
+		"node":       ncAction.Node.Name,
+		"check_item": "port occupied",
+	})
+
+	logrus.Debug("Start to execute check port occupied")
+
+	checkItemReport := newNodeCheckItem()
+	checkItemReport.Status = ItemDoing
+	portOccupied, checkItemReport, err := ExecuteCheckScript(check.PortOccupied, ncAction.NodeCheckConfig, checkItemReport)
+
+	// trim can be done whatever error occurs
+	portOccupied = strings.TrimRight(portOccupied, ",")
+	if err != nil {
+		logger.Errorf("check port occupied failed, err: %v, occupied port: %v", err, portOccupied)
+		checkItemReport.Status = ItemFailed
+	}
+
+	portResult, err := check.CheckPortOccupied(portOccupied)
+	if err != nil {
+		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Err = new(pb.Error)
+		checkItemReport.Err.Reason = "port occupied check failed"
+		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Status = ItemFailed
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please close the process which occupied port: %v", portResult)
 	} else {
 		logger.Debug(CheckPassed)
 		checkItemReport.Status = ItemDone
@@ -431,7 +473,8 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	logger.Debug("Start to execute node check action")
 
 	// check docker, CPU, kernel, memory, disk, distribution, system preference
-	wg.Add(8)
+	// system manager, port occupied
+	wg.Add(9)
 	go CheckDockerExecutor(nodeCheckAction, &wg)
 	go CheckCPUExecutor(nodeCheckAction, &wg)
 	go CheckKernelExecutor(nodeCheckAction, &wg)
@@ -439,7 +482,8 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	go CheckRootDiskExecutor(nodeCheckAction, &wg)
 	go CheckDistributionExecutor(nodeCheckAction, &wg)
 	go CheckSysPrefExecutor(nodeCheckAction, &wg)
-	go CheckSysComponentExecutor(nodeCheckAction, &wg)
+	go CheckSysManagerExecutor(nodeCheckAction, &wg)
+	go CheckPortOccupiedExecutor(nodeCheckAction, &wg)
 	wg.Wait()
 
 	// If any of check item was failed, we should return an error

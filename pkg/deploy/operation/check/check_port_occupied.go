@@ -17,6 +17,7 @@ package check
 import (
 	"fmt"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -24,48 +25,59 @@ import (
 )
 
 const (
-	systemComponentScript = "/scripts/check_system_components.sh"
+	portOccupiedScript = "/scripts/check_port_occupied.sh"
 )
 
-type CheckSystemComponentOperation struct {
+type CheckPortOccupiedOperation struct {
 	operation.BaseOperation
 	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckSystemComponentOperation) getScript() string {
-	ckops.Script = systemComponentScript
+func (ckops *CheckPortOccupiedOperation) getScript() string {
+	ckops.Script = portOccupiedScript
 	return ckops.Script
 }
 
-func (ckops *CheckSystemComponentOperation) getScriptPath() string {
+func (ckops *CheckPortOccupiedOperation) getScriptPath() string {
 	ckops.ScriptPath = checkRemoteScriptPath
 	return ckops.ScriptPath
 }
 
-func (ckops *CheckSystemComponentOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckSystemComponentOperation{}
+func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckPortOccupiedOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "ps", "-p 1 | awk /1/'{print $4}'"))
+	scriptFile, err := assets.Assets.Open(ckops.getScript())
+	if err != nil {
+		return nil, err
+	}
+	defer scriptFile.Close()
+
+	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
+		return nil, err
+	}
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript()))
 	return ops, nil
 }
 
 // close ssh client
-func (ckops *CheckSystemComponentOperation) CloseSSH() {
+func (ckops *CheckPortOccupiedOperation) CloseSSH() {
 	if ckops.Machine != nil {
 		ckops.Machine.Close()
 	}
 }
 
-// check is system manager is systemd
-func CheckSysComponent(systemManager string, desireSysManager string) error {
-	if systemManager != desireSysManager {
-		return fmt.Errorf("system manager is not systemd")
+// check if port is occupied
+func CheckPortOccupied(portSet string) (string, error) {
+	if portSet != "" {
+		return portSet, fmt.Errorf("port(s) occupied")
 	}
-	return nil
+
+	return "", nil
 }
