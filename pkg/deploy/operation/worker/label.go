@@ -89,7 +89,15 @@ func (operation *AppendLabel) computeNodeLabels() {
 
 func (operation *AppendLabel) append() *pb.Error {
 
-	labels := make([]string, len(operation.labels))
+	if len(operation.labels) <= 0 {
+
+		operation.config.Logger.
+			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
+			Info("No label need patch")
+		return nil
+	}
+
+	labels := make([]string, 0, len(operation.labels))
 	for labelKey, labelValue := range operation.labels {
 		labels = append(labels, fmt.Sprintf("%s=%s", labelKey, labelValue))
 	}
