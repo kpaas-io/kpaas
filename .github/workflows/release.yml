@@ -126,7 +126,7 @@ jobs:
           echo "::set-output name=TAG::${tag}"
         id: calc-tag
         with:
-          tagName: ${{ GITHUB_REF }}
+          tagName: ${{ github.ref }}
 
       - name: Download dockerfiles
         uses: actions/download-artifact@v1
@@ -209,13 +209,13 @@ jobs:
           echo "\n\nDocker Image: https://hub.docker.com/r/kpaas/kpaas\n\`\`\`bash\ndocker pull kpaas/kpaas:${TAG}\n\`\`\`" >> CHANGELOG.txt
 
         env:
-          TAG: ${{ GITHUB_REF }}
+          TAG: ${{ github.ref }}
 
       - name: Release in github
         uses: softprops/action-gh-release@v1
         with:
           body_path: CHANGELOG.txt
-          name: Release ${{ GITHUB_REF }}
+          name: Release ${{ github.ref }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
 
