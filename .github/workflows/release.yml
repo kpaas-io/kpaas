@@ -7,9 +7,9 @@ on:
 
 jobs:
 
-  build:
+  build-services:
     if: github.repository == 'kpaas-io/kpaas'
-    name: make execution file
+    name: make services execution file
     runs-on: ubuntu-latest
     steps:
 
@@ -22,10 +22,104 @@ jobs:
       - name: Check out code into the Go module directory
         uses: actions/checkout@v1
 
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Get dependencies
         run: |
           go get -v -t -d ./...
 
+      - name: Make service file
+        run: |
+          make build
+
+      - name: Upload service execution
+        uses: actions/upload-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-service
+          path: builds/release
+
+      - name: Upload dockerfiles
+        uses: actions/upload-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-docker
+          path: builds/docker/kpaas
+
+      - name: Upload entrypoint.sh
+        uses: actions/upload-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-entrypoint
+          path: run/docker/entrypoint.sh
+
+  build-node:
+    if: github.repository == 'kpaas-io/kpaas'
+    name: make frontend execution file
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Set up node 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+
+      - name: Set up Go 1.13
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+
+      - name: Check out kpaas-dashboard
+        uses: actions/checkout@v2
+        with:
+          repository: kpaas-io/kpaas-dashboard
+          token: ${{ secrets.GITHUBTOKEN }}
+          ref: develop
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/client/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Get dashboard dependencies
+        run: |
+          go get -v -t -d ./...
+          make install-client
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Make dashboard file
+        run: |
+          make build-cross
+
+      - name: Upload service execution
+        uses: actions/upload-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-dashboard
+          path: build
+
+  publish:
+    if: github.repository == 'kpaas-io/kpaas'
+    needs: [build-services, build-node]
+    name: publish image
+    runs-on: ubuntu-latest
+    steps:
       - name: calc tag
         run: |
           tag=`echo "release-${tagName}"`
@@ -34,9 +128,38 @@ jobs:
         with:
           tagName: ${{ GITHUB_REF }}
 
-      - name: Make file
+      - name: Download dockerfiles
+        uses: actions/download-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-docker
+
+      - name: Download service builds
+        uses: actions/download-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-service
+
+      - name: Download dashboard builds
+        uses: actions/download-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-dashboard
+
+      - name: Download entrypoint
+        uses: actions/download-artifact@v1
+        with:
+          name: builds-${{ github.sha }}-entrypoint
+
+      - name: Move builds
+        shell: bash
         run: |
-          make build
+          mkdir -p ./builds/release
+          mv builds-${{ github.sha }}-service/* builds/release
+          mv builds-${{ github.sha }}-dashboard/* builds/release
+          ls -l builds/release
+          mv builds/release/main builds/release/dashboard
+          mkdir -p ./builds/docker
+          mv builds-${{ github.sha }}-docker/* builds/docker
+          mv builds-${{ github.sha }}-entrypoint/entrypoint.sh builds/docker
+          ls -l builds/docker
 
       - name: Build image and publish
         uses: mr-smithers-excellent/docker-build-push@v1.0
@@ -58,6 +181,16 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+  release-note:
+    if: github.repository == 'kpaas-io/kpaas'
+    needs: [publish]
+    name: release note
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v1
+
       - name: Download last release commit hash
         uses: actions/download-artifact@v1
         with:
@@ -76,15 +209,15 @@ jobs:
           echo "\n\nDocker Image: https://hub.docker.com/r/kpaas/kpaas\n\`\`\`bash\ndocker pull kpaas/kpaas:${TAG}\n\`\`\`" >> CHANGELOG.txt
 
         env:
-          TAG: ${{ steps.calc-tag.outputs.TAG }}
+          TAG: ${{ GITHUB_REF }}
 
       - name: Release in github
         uses: softprops/action-gh-release@v1
         with:
           body_path: CHANGELOG.txt
-          name: Release ${{ steps.calc-tag.outputs.TAG }}
+          name: Release ${{ GITHUB_REF }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
 
       - name: Log last release commit hash
         shell: bash

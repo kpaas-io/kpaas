@@ -56,7 +56,7 @@ jobs:
 
   build-node:
     if: github.repository == 'kpaas-io/kpaas'
-    name: make execution file
+    name: make frontend execution file
     runs-on: ubuntu-latest
     steps:
 
@@ -79,7 +79,7 @@ jobs:
 
       - uses: actions/cache@v1
         with:
-          path: ~/.npm
+          path: ~/client/node_modules
           key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
@@ -95,6 +95,13 @@ jobs:
         run: |
           go get -v -t -d ./...
           make install-client
+
+      - uses: actions/cache@v1
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
 
       - name: Make dashboard file
         run: |
@@ -112,7 +119,7 @@ jobs:
     name: publish image
     runs-on: ubuntu-latest
     steps:
-      - name: calc tag
+      - name: Calculate tag
         run: |
           tag=`date +%Y%m%d%H%M%S`
           tag=`echo "develop-${tag}"`
@@ -139,7 +146,7 @@ jobs:
         with:
           name: builds-${{ github.sha }}-entrypoint
 
-      - name: move builds
+      - name: Move builds
         shell: bash
         run: |
           mkdir -p ./builds/release
