@@ -139,7 +139,7 @@ func (op *initMasterOperation) Do() error {
 		return err
 	}
 
-	op.Logger.Debug("prepare init master done, start initializing master, this might take a wile ...")
+	op.Logger.Debug("prepare init master done, start initializing master, this might take a while ...")
 
 	// init first master
 	stdOut, stdErr, err := op.BaseOperation.Do()

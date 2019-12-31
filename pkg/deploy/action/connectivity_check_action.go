@@ -41,7 +41,7 @@ const (
 	fixFailedToSendPacketFormat = "check existance and permission to run command %s on node %s"
 )
 
-// ConnectivityCheckItem an item representing one check item of checking wheter a node can connect to another by the protocol and port.
+// ConnectivityCheckItem an item representing one check item of checking whether a node can connect to another by the protocol and port.
 type ConnectivityCheckItem struct {
 	Protocol    consts.Protocol
 	Port        uint16
