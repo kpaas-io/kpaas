@@ -125,7 +125,7 @@ jobs:
           tag=`echo "release-${tagName}"`
           echo "::set-output name=TAG::${tag}"
         id: calc-tag
-        with:
+        env:
           tagName: ${{ github.ref }}
 
       - name: Download dockerfiles
