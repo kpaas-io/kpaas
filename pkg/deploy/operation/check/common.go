@@ -48,7 +48,7 @@ const (
 	Disk                  ItemEnum = "disk"
 	Distribution          ItemEnum = "distribution"
 	SystemPreference      ItemEnum = "system-preference"
-	SystemComponent       ItemEnum = "system-component"
+	SystemManager         ItemEnum = "system-manager"
 )
 
 func NewCheckOperations() *OperationsGenerator {
@@ -71,8 +71,8 @@ func (og *OperationsGenerator) CreateOperations(item ItemEnum) CheckAction {
 		return &CheckDistributionOperation{}
 	case SystemPreference:
 		return &CheckSysPrefOperation{}
-	case SystemComponent:
-		return &CheckSystemComponentOperation{}
+	case SystemManager:
+		return &CheckSystemManagerOperation{}
 	default:
 		return nil
 	}

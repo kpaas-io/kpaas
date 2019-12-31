@@ -29,7 +29,7 @@ const (
 )
 
 // unit test of CheckRootDiskVolume
-func TestCheckSysComponent(t *testing.T) {
+func TestCheckSysManager(t *testing.T) {
 	testSample := []struct {
 		systemManager    string
 		desireSysManager string
@@ -48,6 +48,6 @@ func TestCheckSysComponent(t *testing.T) {
 	}
 
 	for _, eachValue := range testSample {
-		assert.Equal(t, eachValue.want, CheckSysComponent(eachValue.systemManager, desiredManager))
+		assert.Equal(t, eachValue.want, CheckSystemManager(eachValue.systemManager, desiredManager))
 	}
 }

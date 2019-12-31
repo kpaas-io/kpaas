@@ -378,32 +378,32 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	wg.Done()
 }
 
-// goroutine as executor for check system components
-func CheckSysComponentExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+// goroutine as executor for check system manager
+func CheckSysManagerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
-		"check_item": "docker",
+		"check_item": "system manager",
 	})
 
-	logrus.Debug("Start to execute check system component")
+	logrus.Debug("Start to execute check system manager")
 
 	checkItemReport := newNodeCheckItem()
 	checkItemReport.Status = ItemDoing
-	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemComponent, ncAction.NodeCheckConfig, checkItemReport)
+	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemManager, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
-		logger.Errorf("check system component failed, err: %v", err)
+		logger.Errorf("check system manager failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
 	}
 
-	err = check.CheckSysComponent(systemManager, desiredSystemManager)
+	err = check.CheckSystemManager(systemManager, desiredSystemManager)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Err = new(pb.Error)
-		checkItemReport.Err.Reason = "system component is not clear"
+		checkItemReport.Err.Reason = "system manager is not clear"
 		checkItemReport.Err.Detail = err.Error()
 		checkItemReport.Status = ItemFailed
-		checkItemReport.Err.FixMethods = fmt.Sprint("please check system component is available")
+		checkItemReport.Err.FixMethods = fmt.Sprint("please check system manager is systemd")
 	} else {
 		logger.Debug(CheckPassed)
 		checkItemReport.Status = ItemDone
@@ -439,7 +439,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	go CheckRootDiskExecutor(nodeCheckAction, &wg)
 	go CheckDistributionExecutor(nodeCheckAction, &wg)
 	go CheckSysPrefExecutor(nodeCheckAction, &wg)
-	go CheckSysComponentExecutor(nodeCheckAction, &wg)
+	go CheckSysManagerExecutor(nodeCheckAction, &wg)
 	wg.Wait()
 
 	// If any of check item was failed, we should return an error

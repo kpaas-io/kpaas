@@ -23,28 +23,22 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	systemComponentScript = "/scripts/check_system_components.sh"
-)
-
-type CheckSystemComponentOperation struct {
+type CheckSystemManagerOperation struct {
 	operation.BaseOperation
 	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckSystemComponentOperation) getScript() string {
-	ckops.Script = systemComponentScript
+func (ckops *CheckSystemManagerOperation) getScript() string {
 	return ckops.Script
 }
 
-func (ckops *CheckSystemComponentOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
+func (ckops *CheckSystemManagerOperation) getScriptPath() string {
 	return ckops.ScriptPath
 }
 
-func (ckops *CheckSystemComponentOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckSystemComponentOperation{}
+func (ckops *CheckSystemManagerOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+	ops := &CheckSystemManagerOperation{}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
 		return nil, err
@@ -56,14 +50,14 @@ func (ckops *CheckSystemComponentOperation) GetOperations(config *pb.NodeCheckCo
 }
 
 // close ssh client
-func (ckops *CheckSystemComponentOperation) CloseSSH() {
+func (ckops *CheckSystemManagerOperation) CloseSSH() {
 	if ckops.Machine != nil {
 		ckops.Machine.Close()
 	}
 }
 
 // check is system manager is systemd
-func CheckSysComponent(systemManager string, desireSysManager string) error {
+func CheckSystemManager(systemManager string, desireSysManager string) error {
 	if systemManager != desireSysManager {
 		return fmt.Errorf("system manager is not systemd")
 	}
