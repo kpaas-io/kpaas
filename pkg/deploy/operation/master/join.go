@@ -16,6 +16,8 @@ package master
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -28,11 +30,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-)
-
-const (
-	localKubeConfigDir = "/tmp"
-	kubeConfigFileName = "admin.conf"
+	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
 )
 
 type JoinMasterOperationConfig struct {
@@ -125,16 +123,26 @@ func (op *joinMasterOperation) Do() error {
 func alreadyJoined(hostname string, masterNode *pb.Node) (bool, error) {
 	path, err := fetchKubeConfig(masterNode)
 	if err != nil {
+		logrus.Debug(err)
 		return false, err
 	}
 
+	// Remove the temp kube config file
+	defer func() {
+		if errRm := os.Remove(path); errRm != nil {
+			logrus.Warnf("Failed to remove temp file %q, err: %v", path, errRm)
+		}
+	}()
+
 	config, err := clientcmd.BuildConfigFromFlags("", path)
 	if err != nil {
+		logrus.Debug(err)
 		return false, fmt.Errorf("faield to build kube client config, error:%v", err)
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
+		logrus.Debug(err)
 		return false, err
 	}
 
@@ -157,7 +165,8 @@ func fetchKubeConfig(masterNode *pb.Node) (localKubeConfigPath string, err error
 		return
 	}
 
-	localKubeConfigPath = fmt.Sprintf("%v/%v", localKubeConfigDir, kubeConfigFileName)
+	// Create a different temp file each time to avoid condition race and dirty content.
+	localKubeConfigPath = fmt.Sprintf("%v/%v.conf", os.TempDir(), idcreator.NextString())
 	remoteKubeConfigPath := consts.KubeConfigPath
 
 	if err = m.FetchFileToLocalPath(localKubeConfigPath, remoteKubeConfigPath); err != nil {
