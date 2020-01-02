@@ -37,7 +37,7 @@ func (p *initMasterProcessor) SplitTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldAction: t.GetName(),
+		consts.LogFieldTask: t.GetName(),
 	})
 
 	logger.Debug("Start to split init master task into action")
@@ -59,7 +59,7 @@ func (p *initMasterProcessor) SplitTask(t Task) error {
 	actions = append(actions, act)
 	task.Actions = actions
 
-	logger.Debugf("Finish to split deploy etcd task: %d actions", len(actions))
+	logger.Debugf("Finish to split init master task: %d actions", len(actions))
 
 	return nil
 }

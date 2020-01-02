@@ -50,18 +50,18 @@ func NewJoinCluster(config *JoinClusterConfig) *JoinCluster {
 
 func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 
-	operation.config.Logger.Debug("Start to compute control panel endpoint")
+	operation.config.Logger.Debug("Start to compute control plane endpoint")
 	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(operation.config.Cluster, operation.config.MasterNodes)
 	if err != nil {
 		return &pb.Error{
-			Reason:     "Get control panel endpoint error",
+			Reason:     "Get control plane endpoint error",
 			Detail:     "When deploying worker, get the control plane endpoint error",
 			FixMethods: "Please create issues for us.",
 		}
 	}
 	operation.config.Logger.
 		WithField("node", operation.config.Node.GetNode().GetName()).
-		Debugf("control panel endpoint: %s", controlPlaneEndpoint)
+		Debugf("control plane endpoint: %s", controlPlaneEndpoint)
 
 	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(

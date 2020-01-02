@@ -83,14 +83,14 @@ func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOpera
 }
 
 func (op *initMasterOperation) PreDo() error {
-	etcdCACrt, etcCAKey, err := etcd.FetchEtcdCertAndKey(op.EtcdNodes[0], "ca")
+	etcdCACrt, etcdCAKey, err := etcd.FetchEtcdCertAndKey(op.EtcdNodes[0], "ca")
 	if err != nil {
 		return err
 	}
 
-	// put peer cert and key to all cluster nodes
+	// put peer cert and key to the master node
 	config := etcd.GetAPIServerClientCrtConfig()
-	encodedAPIServerKey, encodedAPIServerCert, err := etcd.CreateFromCA(config, etcdCACrt, etcCAKey)
+	encodedAPIServerKey, encodedAPIServerCert, err := etcd.CreateFromCA(config, etcdCACrt, etcdCAKey)
 	if err != nil {
 		return fmt.Errorf("failed to generation etcd apiserver client key and cert for apiserver node:%v, error: %v", op.machine.GetName(), err)
 	}
