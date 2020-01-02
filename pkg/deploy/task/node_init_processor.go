@@ -38,7 +38,7 @@ func (p *nodeInitProcessor) SplitTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldAction: t.GetName(),
+		consts.LogFieldTask: t.GetName(),
 	})
 
 	logger.Debug("Start to split node init task")
