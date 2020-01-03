@@ -16,6 +16,7 @@ package check
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -62,7 +63,17 @@ func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfi
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript()))
+	var roles string
+	for _, role := range config.Roles {
+		roles += role + ","
+	}
+
+	if roles == "" {
+		return nil, fmt.Errorf("roles can not be empty")
+	}
+	roles = strings.TrimRight(roles, ",")
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", ckops.getScriptPath()+ckops.getScript(), roles)))
 	return ops, nil
 }
 
