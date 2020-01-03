@@ -10,6 +10,29 @@ definitions:
     - key
     - value
     type: object
+  api.CalicoOptions:
+    properties:
+      encapsulationMode:
+        enum:
+        - vxlan
+        - ' ipip'
+        - ' none'
+        type: string
+      initialPodIPs:
+        type: string
+      ipDetectionInterface:
+        type: string
+      ipDetectionMethod:
+        enum:
+        - from-kubernetes
+        - first-found
+        - interface
+        type: string
+      vethMtu:
+        type: integer
+      vxlanPort:
+        type: integer
+    type: object
   api.CheckClusterResponseData:
     properties:
       items:
@@ -322,6 +345,16 @@ definitions:
     - key
     - value
     type: object
+  api.NetworkOptions:
+    properties:
+      calicoOptions:
+        $ref: '#/definitions/api.CalicoOptions'
+        type: object
+      networkType:
+        enum:
+        - calico
+        type: string
+    type: object
   api.NodeData:
     properties:
       authorizationType:
@@ -481,36 +514,6 @@ definitions:
         type: string
       payload:
         type: object
-    type: object
-  protos.CalicoOptions:
-    properties:
-      checkConnectivityAll:
-        description: if checkConnectivityAll = true, check connectivity between each
-          pair of nodes bidirectionally.
-        type: boolean
-      encapsulationMode:
-        description: EncapsulationMode could be ["vxlan","ipip","none"].
-        type: string
-      initialPodIps:
-        type: string
-      ipDetectionInterface:
-        type: string
-      ipDetectionMethod:
-        type: string
-      vethMtu:
-        type: integer
-      vxlanPort:
-        type: integer
-    type: object
-  protos.NetworkOptions:
-    properties:
-      calicoOptions:
-        $ref: '#/definitions/protos.CalicoOptions'
-        description: options for a specified network type. Starts from 10 to reserve
-          field 2-9.
-        type: object
-      networkType:
-        type: string
     type: object
 host: localhost:8080
 info:
@@ -1204,7 +1207,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/protos.NetworkOptions'
+            $ref: '#/definitions/api.NetworkOptions'
       summary: get current network options
       tags:
       - network
@@ -1219,7 +1222,7 @@ paths:
         name: networkOptions
         required: true
         schema:
-          $ref: '#/definitions/protos.NetworkOptions'
+          $ref: '#/definitions/api.NetworkOptions'
           type: object
       produces:
       - application/json

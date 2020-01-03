@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
-	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
 	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
@@ -30,7 +30,7 @@ type (
 	Cluster struct {
 		ClusterId           uint64
 		Info                *ClusterInfo
-		NetworkOptions      *protos.NetworkOptions
+		NetworkOptions      *api.NetworkOptions
 		Nodes               []*Node
 		DeployClusterStatus DeployClusterStatus
 		DeployClusterError  *common.FailureDetail
@@ -94,6 +94,7 @@ func NewCluster() *Cluster {
 func (cluster *Cluster) init() {
 
 	cluster.Info = NewClusterInfo()
+	cluster.NetworkOptions = NewNetworkOptions()
 	cluster.DeployClusterStatus = DeployClusterStatusPending
 	cluster.ClusterCheckResult = constant.CheckResultPending
 	cluster.Nodes = make([]*Node, 0, 0)
@@ -395,6 +396,14 @@ func (info *ClusterInfo) init() {
 	info.Annotations = make([]*Annotation, 0, 0)
 	info.NodePortMinimum = DefaultNodePortMinimum
 	info.NodePortMaximum = DefaultNodePortMaximum
+}
+
+func NewNetworkOptions() *api.NetworkOptions {
+	options := new(api.NetworkOptions)
+	options.NetworkType = DefaultNetworkOptions.NetworkType
+	calicoOptions := api.CalicoOptions(*DefaultNetworkOptions.CalicoOptions)
+	options.CalicoOptions = &calicoOptions
+	return options
 }
 
 func NewKubeAPIServerConnectionData() *KubeAPIServerConnectionData {

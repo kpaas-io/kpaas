@@ -22,7 +22,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,7 +30,7 @@ import (
 func TestSetNetwork(t *testing.T) {
 	tests := []struct {
 		inputBody      []byte
-		wantOptions    *protos.NetworkOptions
+		wantOptions    *api.NetworkOptions
 		wantStatusCode int
 	}{
 		{
@@ -39,15 +39,21 @@ func TestSetNetwork(t *testing.T) {
 	"calicoOptions": {
 		"encapsulationMode":"vxlan",
 		"vxlanPort": 1234,
-		"initialPodIps": "10.0.0.0/16"
+		"initialPodIPs": "10.0.0.0/16",
+		"vethMtu":1440,
+		"ipDetectionMethod": "interface",
+		"ipDetectionInterface": "eth0"
 	}
 	}`),
-			wantOptions: &protos.NetworkOptions{
+			wantOptions: &api.NetworkOptions{
 				NetworkType: "calico",
-				CalicoOptions: &protos.CalicoOptions{
-					EncapsulationMode: "vxlan",
-					VxlanPort:         1234,
-					InitialPodIps:     "10.0.0.0/16",
+				CalicoOptions: &api.CalicoOptions{
+					EncapsulationMode:    api.EncapsulationVxlan,
+					VxlanPort:            1234,
+					InitialPodIPs:        "10.0.0.0/16",
+					VethMtu:              1440,
+					IPDetectionMethod:    api.IPDetectionMethodInterface,
+					IPDetectionInterface: "eth0",
 				},
 			},
 			wantStatusCode: http.StatusCreated,
@@ -56,7 +62,7 @@ func TestSetNetwork(t *testing.T) {
 		{
 			inputBody: []byte(`{"networkType":"calico",
 			"calicoOptions":{"vxlanPort":"abcd"}}`),
-			wantOptions:    nil,
+			wantOptions:    &wizard.DefaultNetworkOptions,
 			wantStatusCode: http.StatusBadRequest,
 		},
 	}
@@ -78,29 +84,29 @@ func TestSetNetwork(t *testing.T) {
 
 func TestGetNetwork(t *testing.T) {
 	tests := []struct {
-		inputOptions *protos.NetworkOptions
-		wantOptions  *protos.NetworkOptions
+		inputOptions *api.NetworkOptions
+		wantOptions  *api.NetworkOptions
 	}{
 		{
 			inputOptions: nil,
 			wantOptions:  &wizard.DefaultNetworkOptions,
 		},
 		{
-			inputOptions: &protos.NetworkOptions{
-				NetworkType: "calico",
-				CalicoOptions: &protos.CalicoOptions{
-					EncapsulationMode: "vxlan",
+			inputOptions: &api.NetworkOptions{
+				NetworkType: api.NetworkTypeCalico,
+				CalicoOptions: &api.CalicoOptions{
+					EncapsulationMode: api.EncapsulationVxlan,
 					VxlanPort:         1234,
-					InitialPodIps:     "10.0.0.0/16",
+					InitialPodIPs:     "10.0.0.0/16",
 				},
 			},
 
-			wantOptions: &protos.NetworkOptions{
+			wantOptions: &api.NetworkOptions{
 				NetworkType: "calico",
-				CalicoOptions: &protos.CalicoOptions{
-					EncapsulationMode: "vxlan",
+				CalicoOptions: &api.CalicoOptions{
+					EncapsulationMode: api.EncapsulationVxlan,
 					VxlanPort:         1234,
-					InitialPodIps:     "10.0.0.0/16",
+					InitialPodIPs:     "10.0.0.0/16",
 				},
 			},
 		},
@@ -116,7 +122,7 @@ func TestGetNetwork(t *testing.T) {
 		ctx.Request = httptest.NewRequest("GET", "/api/v1/deploy/wizard/networks", bodyReader)
 
 		GetNetwork(ctx)
-		var options *protos.NetworkOptions
+		var options *api.NetworkOptions
 		err := json.Unmarshal(resp.Body.Bytes(), &options)
 		assert.Nil(t, err)
 		assert.Equal(t, testCase.wantOptions, options)

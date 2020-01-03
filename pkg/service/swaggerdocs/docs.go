@@ -1027,7 +1027,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/protos.NetworkOptions"
+                            "$ref": "#/definitions/api.NetworkOptions"
                         }
                     }
                 }
@@ -1053,7 +1053,7 @@ var doc = `{
                         "required": true,
                         "schema": {
                             "type": "object",
-                            "$ref": "#/definitions/protos.NetworkOptions"
+                            "$ref": "#/definitions/api.NetworkOptions"
                         }
                     }
                 ],
@@ -1087,6 +1087,39 @@ var doc = `{
                 },
                 "value": {
                     "type": "string"
+                }
+            }
+        },
+        "api.CalicoOptions": {
+            "type": "object",
+            "properties": {
+                "encapsulationMode": {
+                    "type": "string",
+                    "enum": [
+                        "vxlan",
+                        " ipip",
+                        " none"
+                    ]
+                },
+                "initialPodIPs": {
+                    "type": "string"
+                },
+                "ipDetectionInterface": {
+                    "type": "string"
+                },
+                "ipDetectionMethod": {
+                    "type": "string",
+                    "enum": [
+                        "from-kubernetes",
+                        "first-found",
+                        "interface"
+                    ]
+                },
+                "vethMtu": {
+                    "type": "integer"
+                },
+                "vxlanPort": {
+                    "type": "integer"
                 }
             }
         },
@@ -1515,6 +1548,21 @@ var doc = `{
                 }
             }
         },
+        "api.NetworkOptions": {
+            "type": "object",
+            "properties": {
+                "calicoOptions": {
+                    "type": "object",
+                    "$ref": "#/definitions/api.CalicoOptions"
+                },
+                "networkType": {
+                    "type": "string",
+                    "enum": [
+                        "calico"
+                    ]
+                }
+            }
+        },
         "api.NodeData": {
             "type": "object",
             "required": [
@@ -1728,47 +1776,6 @@ var doc = `{
                 },
                 "payload": {
                     "type": "object"
-                }
-            }
-        },
-        "protos.CalicoOptions": {
-            "type": "object",
-            "properties": {
-                "checkConnectivityAll": {
-                    "description": "if checkConnectivityAll = true, check connectivity between each pair of nodes bidirectionally.",
-                    "type": "boolean"
-                },
-                "encapsulationMode": {
-                    "description": "EncapsulationMode could be [\"vxlan\",\"ipip\",\"none\"].",
-                    "type": "string"
-                },
-                "initialPodIps": {
-                    "type": "string"
-                },
-                "ipDetectionInterface": {
-                    "type": "string"
-                },
-                "ipDetectionMethod": {
-                    "type": "string"
-                },
-                "vethMtu": {
-                    "type": "integer"
-                },
-                "vxlanPort": {
-                    "type": "integer"
-                }
-            }
-        },
-        "protos.NetworkOptions": {
-            "type": "object",
-            "properties": {
-                "calicoOptions": {
-                    "description": "options for a specified network type. Starts from 10 to reserve field 2-9.",
-                    "type": "object",
-                    "$ref": "#/definitions/protos.CalicoOptions"
-                },
-                "networkType": {
-                    "type": "string"
                 }
             }
         }

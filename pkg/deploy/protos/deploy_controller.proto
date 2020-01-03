@@ -227,10 +227,6 @@ message CalicoOptions {
   // EncapsulationMode could be ["vxlan","ipip","none"].
   string encapsulationMode = 2;
   uint32 vxlanPort = 10;
-  string initialPodIps  = 11;
-  uint32 vethMtu  = 12;
-  string ipDetectionMethod = 20;
-  string ipDetectionInterface = 21;
 }
 
 // NetworkOptions options for deploying network. affects checked items.

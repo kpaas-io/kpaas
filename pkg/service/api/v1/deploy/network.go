@@ -17,7 +17,6 @@ package deploy
 import (
 	"github.com/gin-gonic/gin"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
@@ -31,13 +30,13 @@ import (
 // @Tags network
 // @Accept application/json
 // @Produce application/json
-// @Param networkOptions body protos.NetworkOptions true "options of network components in the cluster"
+// @Param networkOptions body api.NetworkOptions true "options of network components in the cluster"
 // @Success 201 {object} api.SuccessfulOption
 // @Failure 400 {object} h.AppErr
 // @Router /v1/deploy/wizard/networks [post]
 func SetNetwork(c *gin.Context) {
 	logger := log.ReqEntry(c)
-	networkOptions := &protos.NetworkOptions{}
+	networkOptions := &api.NetworkOptions{}
 	err := c.BindJSON(networkOptions)
 	if err != nil {
 		logger.WithError(err).Info("failed to parse network options in request body")
@@ -58,7 +57,7 @@ func SetNetwork(c *gin.Context) {
 // @Description get currently stored network options, returns default options if nothing stored.
 // @Tags network
 // @Produce application/json
-// @Success 200 {object} protos.NetworkOptions
+// @Success 200 {object} api.NetworkOptions
 // @Router /v1/deploy/wizard/networks [get]
 func GetNetwork(c *gin.Context) {
 	logger := log.ReqEntry(c)

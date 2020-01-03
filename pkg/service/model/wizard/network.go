@@ -14,30 +14,34 @@
 
 package wizard
 
-import "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+import (
+	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+)
 
-var DefaultNetworkOptions protos.NetworkOptions = protos.NetworkOptions{
-	NetworkType: "calico",
-	CalicoOptions: &protos.CalicoOptions{
-		EncapsulationMode: "vxlan",
-		VxlanPort:         4789,
-		InitialPodIps:     "",
+var DefaultNetworkOptions api.NetworkOptions = api.NetworkOptions{
+	NetworkType: api.NetworkTypeCalico,
+	CalicoOptions: &api.CalicoOptions{
+		EncapsulationMode: api.EncapsulationVxlan,
+		VxlanPort:         api.DefaultVxlanPort,
+		InitialPodIPs:     constant.DefaultPodSubnet,
 		VethMtu:           1400,
-		IpDetectionMethod: "fromKubernetes",
+		IPDetectionMethod: api.IPDetectionMethodFromKubernetes,
 	},
 }
 
-func (cluster *Cluster) SetNetworkOptions(options *protos.NetworkOptions) {
+func (cluster *Cluster) SetNetworkOptions(options *api.NetworkOptions) {
 	cluster.lock.Lock()
 	defer cluster.lock.Unlock()
-
+	// TODO: process situation where options == nil specially?
 	cluster.NetworkOptions = options
 }
 
-func (cluster *Cluster) GetNetworkOptions() *protos.NetworkOptions {
+func (cluster *Cluster) GetNetworkOptions() *api.NetworkOptions {
 	cluster.lock.Lock()
 	defer cluster.lock.Unlock()
 	if cluster.NetworkOptions == nil {
+		// TODO: what to return if cluster.NetworkOptions == nil?
 		return &DefaultNetworkOptions
 	}
 	return cluster.NetworkOptions
