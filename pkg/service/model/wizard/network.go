@@ -38,8 +38,8 @@ func (cluster *Cluster) SetNetworkOptions(options *api.NetworkOptions) {
 }
 
 func (cluster *Cluster) GetNetworkOptions() *api.NetworkOptions {
-	cluster.lock.Lock()
-	defer cluster.lock.Unlock()
+	cluster.lock.RLock()
+	defer cluster.lock.RUnlock()
 	if cluster.NetworkOptions == nil {
 		// TODO: what to return if cluster.NetworkOptions == nil?
 		return &DefaultNetworkOptions
