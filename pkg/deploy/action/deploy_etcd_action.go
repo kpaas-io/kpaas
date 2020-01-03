@@ -59,7 +59,7 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 		return nil, err
 	}
 
-	actionName := getDeployEtcdActionName(cfg)
+	actionName := GenActionName(ActionTypeDeployEtcd)
 	return &DeployEtcdAction{
 		Base: Base{
 			Name:              actionName,
@@ -73,9 +73,4 @@ func NewDeployEtcdAction(cfg *DeployEtcdActionConfig) (Action, error) {
 		CAKey:        cfg.CaKey,
 		ClusterNodes: cfg.ClusterNodes,
 	}, nil
-}
-
-func getDeployEtcdActionName(cfg *DeployEtcdActionConfig) string {
-	// used the node name as the the action name for now, this may be changed in the future.
-	return cfg.Node.GetName()
 }
