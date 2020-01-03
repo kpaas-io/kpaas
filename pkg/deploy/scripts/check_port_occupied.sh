@@ -15,11 +15,46 @@
 
 # This script is aim to check if port occupied
 
-portSet=(80 443 2379 2380 6443 10249 10250)
+# 80, 443 ingress
+# 2379, 2380 etcd
+# 6443 kube-apiserver
+# 10248 kubelet (healthz-port)
+# 10249 kube-proxy(healthz-port)
+# 10250 kubelet (local-listen-port)
+# 10251 kube-scheduler
+# 10252 kube-manager
+
+ingressNode=(80 443 10248 10249 10250)
+masterNode=(6443 10248 10249 10250 10251 10252)
+etcdNode=(2379 2380 10248 10249 10250)
+role=()
+
+function main() {
+    copyArray $1
+    detectPort
+}
+
+function copyArray() {
+    test -n $1 || (echo "role can not be non-exists" 2>&1 && exit 1)
+    if [[ $1 == "" ]]; then
+        echo "role can not be empty string" 2>&1 && exit 1
+    fi
+
+    if [[ $1 == "master" ]]; then
+        role=(${masterNode[@]})
+    elif [[ $1 == "ingress" ]]; then
+        role=(${ingressNode[@]})
+    elif [[ $1 == "etcd" ]]; then
+        role=(${etcdNode[@]})
+    else
+        echo "role can not be recognise, exit..." && exit 1
+    fi
+}
 
 function detectPort() {
     occupiedSet=
-    for port in ${portSet[@]}; do
+    for port in ${role[@]}; do
+
         countPort=`netstat -nltp | grep -v "Active" | grep -v "Proto" | awk '{print $4}' | awk -F ":" '{print $NF}' | grep -w $port | wc -l`
         if [[ $countPort -ne 0 ]]; then
             occupiedSet=$occupiedSet"$port, "
@@ -29,4 +64,4 @@ function detectPort() {
     echo $occupiedSet
 }
 
-detectPort
+main $@
