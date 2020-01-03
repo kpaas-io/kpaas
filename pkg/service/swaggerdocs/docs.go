@@ -294,6 +294,67 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/deploy/wizard/networks": {
+            "get": {
+                "description": "get currently stored network options, returns default options if nothing stored.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "network"
+                ],
+                "summary": "get current network options",
+                "operationId": "GetNetwork",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.NetworkOptions"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "set network options",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "network"
+                ],
+                "summary": "set network options",
+                "operationId": "SetNetwork",
+                "parameters": [
+                    {
+                        "description": "options of network components in the cluster",
+                        "name": "networkOptions",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/api.NetworkOptions"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessfulOption"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/deploy/wizard/nodes": {
             "get": {
                 "description": "Get nodes information",
@@ -1007,67 +1068,6 @@ var doc = `{
                         "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/api.SuccessfulOption"
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/deploy/wizard/networks": {
-            "get": {
-                "description": "get currently stored network options, returns default options if nothing stored.",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "network"
-                ],
-                "summary": "get current network options",
-                "operationId": "GetNetwork",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.NetworkOptions"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "set network options",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "network"
-                ],
-                "summary": "set network options",
-                "operationId": "SetNetwork",
-                "parameters": [
-                    {
-                        "description": "options of network components in the cluster",
-                        "name": "networkOptions",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "type": "object",
-                            "$ref": "#/definitions/api.NetworkOptions"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/api.SuccessfulOption"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/h.AppErr"
                         }
                     }
                 }

@@ -33,7 +33,7 @@ import (
 // @Param networkOptions body api.NetworkOptions true "options of network components in the cluster"
 // @Success 201 {object} api.SuccessfulOption
 // @Failure 400 {object} h.AppErr
-// @Router /v1/deploy/wizard/networks [post]
+// @Router /api/v1/deploy/wizard/networks [post]
 func SetNetwork(c *gin.Context) {
 	logger := log.ReqEntry(c)
 	networkOptions := &api.NetworkOptions{}
@@ -58,7 +58,7 @@ func SetNetwork(c *gin.Context) {
 // @Tags network
 // @Produce application/json
 // @Success 200 {object} api.NetworkOptions
-// @Router /v1/deploy/wizard/networks [get]
+// @Router /api/v1/deploy/wizard/networks [get]
 func GetNetwork(c *gin.Context) {
 	logger := log.ReqEntry(c)
 	wizardData := wizard.GetCurrentWizard()
