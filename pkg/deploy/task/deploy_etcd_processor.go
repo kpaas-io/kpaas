@@ -40,7 +40,7 @@ func (p *deployEtcdProcessor) SplitTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldAction: t.GetName(),
+		consts.LogFieldTask: t.GetName(),
 	})
 
 	logger.Debug("Start to split deploy etcd task")
@@ -54,7 +54,7 @@ func (p *deployEtcdProcessor) SplitTask(t Task) error {
 		return fmt.Errorf("failed to get etcd-ca key and cert, error: %v", err)
 	}
 
-	// split task into actions: will create a action for every node, the action type
+	// split task into actions: will create an action for every node, the action type
 	// is ActionTypeDeployEtcd
 	actions := make([]action.Action, 0, len(etcdTask.Nodes))
 	for _, node := range etcdTask.Nodes {

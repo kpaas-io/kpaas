@@ -56,7 +56,7 @@ func (a *deployEtcdExecutor) Execute(act Action) *pb.Error {
 		}
 	}
 
-	logger.Debugf("Start to deploy etcd on nodes: %s", etcdAction.Node.Name)
+	logger.Debugf("Start to deploy etcd on node: %s", etcdAction.Node.Name)
 
 	etcdAction.Status = ActionDone
 	if err := op.Do(); err != nil {
