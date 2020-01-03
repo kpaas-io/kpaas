@@ -146,6 +146,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -333,6 +334,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -420,6 +422,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -921,6 +924,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -993,6 +997,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
@@ -1681,7 +1686,7 @@ type swaggerInfo struct {
 var SwaggerInfo = swaggerInfo{
 	Version:     "0.1",
 	Host:        "localhost:8080",
-	BasePath:    "/api",
+	BasePath:    "",
 	Schemes:     []string{},
 	Title:       "kpaasRestfulApi",
 	Description: "KPaaS RESTful API service for frontend and using Deploy service API to deployment kubernetes cluster.",

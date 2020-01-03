@@ -1,4 +1,3 @@
-basePath: /api
 definitions:
   api.Annotation:
     properties:
@@ -572,6 +571,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.Cluster'
+          type: object
       produces:
       - application/json
       responses:
@@ -697,6 +697,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.NodeData'
+          type: object
       produces:
       - application/json
       responses:
@@ -783,6 +784,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.UpdateNodeData'
+          type: object
       - description: Node IP Address
         in: path
         name: ip
@@ -1100,6 +1102,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.ConnectionData'
+          type: object
       produces:
       - application/json
       responses:
@@ -1148,6 +1151,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.SSHCertificate'
+          type: object
       produces:
       - application/json
       responses:
