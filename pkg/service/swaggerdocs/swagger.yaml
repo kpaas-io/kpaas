@@ -12,11 +12,7 @@ definitions:
     type: object
   api.CheckClusterResponseData:
     properties:
-      errorItems:
-        items:
-          $ref: '#/definitions/api.CheckingItem'
-        type: array
-      warningItems:
+      items:
         items:
           $ref: '#/definitions/api.CheckingItem'
         type: array
@@ -35,6 +31,7 @@ definitions:
         - pending
         - running
         - successful
+        - warning
         - failed
         type: string
     type: object
@@ -197,6 +194,7 @@ definitions:
         - pending
         - running
         - successful
+        - warning
         - failed
         type: string
     type: object

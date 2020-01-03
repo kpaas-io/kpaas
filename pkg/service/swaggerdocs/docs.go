@@ -1027,13 +1027,7 @@ var doc = `{
         "api.CheckClusterResponseData": {
             "type": "object",
             "properties": {
-                "errorItems": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.CheckingItem"
-                    }
-                },
-                "warningItems": {
+                "items": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.CheckingItem"
@@ -1059,6 +1053,7 @@ var doc = `{
                         "pending",
                         "running",
                         "successful",
+                        "warning",
                         "failed"
                     ]
                 }
@@ -1276,6 +1271,7 @@ var doc = `{
                         "pending",
                         "running",
                         "successful",
+                        "warning",
                         "failed"
                     ]
                 }

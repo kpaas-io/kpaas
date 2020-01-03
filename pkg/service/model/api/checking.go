@@ -22,7 +22,7 @@ type (
 	GetCheckingResultResponse struct {
 		Nodes   []CheckingResultResponseData `json:"nodes"`
 		Cluster CheckClusterResponseData     `json:"cluster"`
-		Result  constant.CheckResult         `json:"result" enums:"pending,running,successful,failed"` // Overall inspection status
+		Result  constant.CheckResult         `json:"result" enums:"pending,running,successful,warning,failed"` // Overall inspection status
 	}
 
 	CheckingResultResponseData struct {
@@ -31,13 +31,12 @@ type (
 	}
 
 	CheckingItem struct {
-		CheckingPoint string               `json:"point"`                                            // Check point
-		Result        constant.CheckResult `json:"result" enums:"pending,running,successful,failed"` // Checking Result
+		CheckingPoint string               `json:"point"`                                                    // Check point
+		Result        constant.CheckResult `json:"result" enums:"pending,running,successful,warning,failed"` // Checking Result
 		Error         *Error               `json:"error,omitempty"`
 	}
 
 	CheckClusterResponseData struct {
-		WarningItems []*CheckingItem `json:"warningItems"`
-		ErrorItems   []*CheckingItem `json:"errorItems"`
+		Items []*CheckingItem `json:"items"`
 	}
 )

@@ -1013,13 +1013,7 @@
         "api.CheckClusterResponseData": {
             "type": "object",
             "properties": {
-                "errorItems": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.CheckingItem"
-                    }
-                },
-                "warningItems": {
+                "items": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.CheckingItem"
@@ -1045,6 +1039,7 @@
                         "pending",
                         "running",
                         "successful",
+                        "warning",
                         "failed"
                     ]
                 }
@@ -1262,6 +1257,7 @@
                         "pending",
                         "running",
                         "successful",
+                        "warning",
                         "failed"
                     ]
                 }
