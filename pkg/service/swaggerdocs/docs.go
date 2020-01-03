@@ -1024,6 +1024,17 @@ var doc = `{
                 }
             }
         },
+        "api.CheckClusterResponseData": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.CheckingItem"
+                    }
+                }
+            }
+        },
         "api.CheckingItem": {
             "type": "object",
             "properties": {
@@ -1042,6 +1053,7 @@ var doc = `{
                         "pending",
                         "running",
                         "successful",
+                        "warning",
                         "failed"
                     ]
                 }
@@ -1242,6 +1254,10 @@ var doc = `{
         "api.GetCheckingResultResponse": {
             "type": "object",
             "properties": {
+                "cluster": {
+                    "type": "object",
+                    "$ref": "#/definitions/api.CheckClusterResponseData"
+                },
                 "nodes": {
                     "type": "array",
                     "items": {
@@ -1255,6 +1271,7 @@ var doc = `{
                         "pending",
                         "running",
                         "successful",
+                        "warning",
                         "failed"
                     ]
                 }

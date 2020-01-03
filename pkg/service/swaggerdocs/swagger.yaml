@@ -10,6 +10,13 @@ definitions:
     - key
     - value
     type: object
+  api.CheckClusterResponseData:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api.CheckingItem'
+        type: array
+    type: object
   api.CheckingItem:
     properties:
       error:
@@ -24,6 +31,7 @@ definitions:
         - pending
         - running
         - successful
+        - warning
         - failed
         type: string
     type: object
@@ -173,6 +181,9 @@ definitions:
     type: object
   api.GetCheckingResultResponse:
     properties:
+      cluster:
+        $ref: '#/definitions/api.CheckClusterResponseData'
+        type: object
       nodes:
         items:
           $ref: '#/definitions/api.CheckingResultResponseData'
@@ -183,6 +194,7 @@ definitions:
         - pending
         - running
         - successful
+        - warning
         - failed
         type: string
     type: object
