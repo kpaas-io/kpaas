@@ -52,6 +52,13 @@ func CheckNodeList(c *gin.Context) {
 		return
 	}
 
+	if !checkClusterConfiguration() {
+
+		// Cluster Configuration check failed, no need to check the nodes
+		h.R(c, api.SuccessfulOption{Success: true})
+		return
+	}
+
 	wizardData.ClearClusterCheckingData()
 
 	if err := wizardData.MarkNodeChecking(); err != nil {
@@ -203,4 +210,53 @@ func getItemNameFromDeployControllerCheckItem(item *protos.CheckItem) string {
 	}
 
 	return item.Description
+}
+
+func checkClusterConfiguration() bool {
+
+	errs := checkErrorClusterConfiguration()
+	return len(errs) <= 0
+}
+
+func checkErrorClusterConfiguration() []*api.Error {
+
+	wizardData := wizard.GetCurrentWizard()
+	if len(wizardData.Nodes) <= 0 {
+		return []*api.Error{
+			{
+				Reason:     "No node information",         // 无节点信息
+				Detail:     "node list is empty",          // 节点列表为空
+				FixMethods: "please add node information", // 请添加节点信息
+			},
+		}
+	}
+
+	counters := map[constant.MachineRole]uint{
+		constant.MachineRoleEtcd:    0,
+		constant.MachineRoleMaster:  0,
+		constant.MachineRoleWorker:  0,
+		constant.MachineRoleIngress: 0,
+	}
+	for _, node := range wizardData.Nodes {
+
+		for _, role := range node.MachineRoles {
+			counters[role]++
+		}
+	}
+
+	errs := make([]*api.Error, 0)
+	for role, counter := range counters {
+
+		if counter > 0 {
+			continue
+		}
+
+		errs = append(errs, &api.Error{
+			Reason:     fmt.Sprintf("role: %s not enough", role),                                                // %s 角色的节点数不足
+			Detail:     fmt.Sprintf("role: %s at least one node", role),                                         // %s 角色节点数至少一个
+			FixMethods: fmt.Sprintf("Add new node for role: %s, or edit exist node to include this role", role), // 添加一个新节点包含 %s 角色，或者编辑已有节点使他包含这个角色
+		})
+	}
+
+	return errs
 }
