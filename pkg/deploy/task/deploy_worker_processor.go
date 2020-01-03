@@ -38,7 +38,7 @@ func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldAction: task.GetName(),
+		consts.LogFieldTask: task.GetName(),
 	})
 
 	logger.Debug("Start to split deploy worker task")
