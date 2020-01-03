@@ -41,7 +41,7 @@ func (p *nodeCheckProcessor) SplitTask(t Task) error {
 	}
 
 	logger := logrus.WithFields(logrus.Fields{
-		consts.LogFieldAction: t.GetName(),
+		consts.LogFieldTask: t.GetName(),
 	})
 
 	logger.Debug("Start to split node check task")

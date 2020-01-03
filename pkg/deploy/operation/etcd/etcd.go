@@ -167,7 +167,7 @@ func (d *deployEtcdOperation) PreDo() (err error) {
 		return err
 	}
 
-	// put ca cert and key to all cluster nodes
+	// put ca cert and key to the etcd node
 	encodedCAKey, encodedCACert, err := ToByte(d.caCrt, d.caKey)
 	if err != nil {
 		return fmt.Errorf("failed to convert key and cert to byte, error: %v", err)
@@ -180,7 +180,7 @@ func (d *deployEtcdOperation) PreDo() (err error) {
 		return fmt.Errorf("failed to put ca key to:%v, error: %v", d.machine.GetName(), err)
 	}
 
-	// put server cert and key to all cluster nodes
+	// put server cert and key to the etcd node
 	config, err := GetServerCrtConfig(d.machine.GetName(), d.machine.GetIp())
 	if err != nil {
 		return fmt.Errorf("failed to get etd server cert config for node:%v, error: %v", d.machine.GetName(), err)
@@ -197,7 +197,7 @@ func (d *deployEtcdOperation) PreDo() (err error) {
 		return fmt.Errorf("failed to put etcd server key to:%v, error: %v", d.machine.GetName(), err)
 	}
 
-	// put peer cert and key to all cluster nodes
+	// put peer cert and key to the etcd node
 	config, err = GetPeerCrtConfig(d.machine.GetName(), d.machine.GetIp())
 	if err != nil {
 		return fmt.Errorf("failed to get etd peer cert config for node:%v, error: %v", d.machine.GetName(), err)
