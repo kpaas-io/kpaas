@@ -482,6 +482,36 @@ definitions:
       payload:
         type: object
     type: object
+  protos.CalicoOptions:
+    properties:
+      checkConnectivityAll:
+        description: if checkConnectivityAll = true, check connectivity between each
+          pair of nodes bidirectionally.
+        type: boolean
+      encapsulationMode:
+        description: EncapsulationMode could be ["vxlan","ipip","none"].
+        type: string
+      initialPodIps:
+        type: string
+      ipDetectionInterface:
+        type: string
+      ipDetectionMethod:
+        type: string
+      vethMtu:
+        type: integer
+      vxlanPort:
+        type: integer
+    type: object
+  protos.NetworkOptions:
+    properties:
+      calicoOptions:
+        $ref: '#/definitions/protos.CalicoOptions'
+        description: options for a specified network type. Starts from 10 to reserve
+          field 2-9.
+        type: object
+      networkType:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact:
@@ -572,6 +602,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.Cluster'
+          type: object
       produces:
       - application/json
       responses:
@@ -697,6 +728,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.NodeData'
+          type: object
       produces:
       - application/json
       responses:
@@ -783,6 +815,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.UpdateNodeData'
+          type: object
       - description: Node IP Address
         in: path
         name: ip
@@ -1100,6 +1133,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.ConnectionData'
+          type: object
       produces:
       - application/json
       responses:
@@ -1148,6 +1182,7 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.SSHCertificate'
+          type: object
       produces:
       - application/json
       responses:
@@ -1158,4 +1193,46 @@ paths:
       summary: Add SSH login private key
       tags:
       - ssh_certificate
+  /v1/deploy/wizard/networks:
+    get:
+      description: get currently stored network options, returns default options if
+        nothing stored.
+      operationId: GetNetwork
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/protos.NetworkOptions'
+      summary: get current network options
+      tags:
+      - network
+    post:
+      consumes:
+      - application/json
+      description: set network options
+      operationId: SetNetwork
+      parameters:
+      - description: options of network components in the cluster
+        in: body
+        name: networkOptions
+        required: true
+        schema:
+          $ref: '#/definitions/protos.NetworkOptions'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: set network options
+      tags:
+      - network
 swagger: "2.0"

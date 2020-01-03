@@ -20,6 +20,7 @@ import (
 	"sync"
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
 	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
@@ -29,6 +30,7 @@ type (
 	Cluster struct {
 		ClusterId           uint64
 		Info                *ClusterInfo
+		NetworkOptions      *protos.NetworkOptions
 		Nodes               []*Node
 		DeployClusterStatus DeployClusterStatus
 		DeployClusterError  *common.FailureDetail
