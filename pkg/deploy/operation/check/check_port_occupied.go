@@ -63,6 +63,7 @@ func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfi
 	}
 
 	// TODO add more roles judgement here, read cluster config in the future
+	// bash script should run as `bash /script/check_port_occupied.sh <role1,role2>` which directly return ports split by comma
 	// var role string
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v", ckops.getScriptPath()+ckops.getScript())))
