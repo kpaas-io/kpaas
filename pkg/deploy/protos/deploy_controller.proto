@@ -22,8 +22,10 @@ service DeployContoller {
   rpc TestConnection(TestConnectionRequest) returns (TestConnectionReply) {}
   rpc CheckNodes(CheckNodesRequest) returns (CheckNodesReply) {}
   rpc GetCheckNodesResult(GetCheckNodesResultRequest) returns (GetCheckNodesResultReply) {}
+  rpc GetCheckNodesLog(GetCheckNodesLogRequest) returns (GetCheckNodesLogReply) {}
   rpc Deploy(DeployRequest) returns (DeployReply) {}
   rpc GetDeployResult(GetDeployResultRequest) returns (GetDeployResultReply) {}
+  rpc GetDeployLog(GetDeployLogRequest) returns (GetDeployLogReply) {}
   rpc FetchKubeConfig(FetchKubeConfigRequest) returns (FetchKubeConfigReply) {}
   rpc CheckNetworkRequirements(CheckNetworkRequirementRequest) returns (CheckNetworkRequirementsReply) {}
 }
@@ -109,7 +111,6 @@ message NodeCheckResult {
 
 // GetCheckNodesResultRequest contains the request of getting nodes check result.
 message GetCheckNodesResultRequest {
-  bool withLogs = 1;
 }
 
 // GetCheckNodesResultReply contains the result of nodes check
@@ -117,6 +118,16 @@ message GetCheckNodesResultReply {
   string status = 1;
   Error err = 2;
   map<string,NodeCheckResult> nodes = 3;
+}
+
+// GetCheckNodesLogRequest contains the request of getting nodes check log.
+message GetCheckNodesLogRequest {
+  string nodeName = 1;
+}
+
+// GetCheckNodesLogReply contains the log of nodes check
+message GetCheckNodesLogReply {
+  bytes log = 1;
 }
 
 message NodePortRange {
@@ -184,7 +195,6 @@ message DeployReply {
 
 // GetDeployResultRequest contains the request of getting deploy result.
 message GetDeployResultRequest {
-  bool withLogs = 1;
 }
 
 // DeployItem represents a deploy action in a node for a role. 
@@ -207,6 +217,17 @@ message GetDeployResultReply {
   string status = 1;
   Error err = 2;
   repeated DeployItemResult items = 3;
+}
+
+// GetDeployLogRequest contains the request of getting deploy log.
+message GetDeployLogRequest {
+  string role = 1;
+  string nodeName = 2;
+}
+
+// GetDeployLogReply represents the response of getting deploy log.
+message GetDeployLogReply {
+  string log = 1;
 }
 
 // FetchKubeConfigRequest contains the request of getting kube config.

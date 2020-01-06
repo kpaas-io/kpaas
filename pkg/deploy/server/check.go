@@ -24,12 +24,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/task"
 )
 
-func (c *controller) getCheckNodeResult(aTask task.Task, withLogs bool) (*pb.GetCheckNodesResultReply, error) {
+func (c *controller) getCheckNodeResult(aTask task.Task) (*pb.GetCheckNodesResultReply, error) {
 	if aTask == nil {
 		return nil, fmt.Errorf("Task is nil")
 	}
-
-	// TODO: handle the logs of task and its actions if withLogs == true
 
 	// Get all actions of the check task
 	actions := task.GetAllActions(aTask)

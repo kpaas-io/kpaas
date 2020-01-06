@@ -218,7 +218,7 @@ func refreshDeployResultOneTime() {
 	grpcContext, cancel := context.WithTimeout(context.Background(), config.Config.DeployController.GetTimeout())
 	defer cancel()
 
-	resp, err := client.GetDeployResult(grpcContext, &protos.GetDeployResultRequest{WithLogs: true})
+	resp, err := client.GetDeployResult(grpcContext, &protos.GetDeployResultRequest{})
 	if err != nil {
 		logrus.Errorf("call deploy controller error, errorMessage: %v", err)
 		return
