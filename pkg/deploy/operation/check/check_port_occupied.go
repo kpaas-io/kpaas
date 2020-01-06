@@ -63,6 +63,7 @@ func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfi
 		return nil, err
 	}
 
+	// bash script should run as `bash /script/check_port_occupied.sh <role1,role2>` which directly return ports split by comma
 	var roles string
 	for _, role := range config.Roles {
 		roles += role + ","
@@ -74,6 +75,7 @@ func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfi
 	roles = strings.TrimRight(roles, ",")
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", ckops.getScriptPath()+ckops.getScript(), roles)))
+
 	return ops, nil
 }
 
