@@ -33,16 +33,6 @@ type InitFireWallOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitFireWallOperation) getScript() string {
-	itOps.Script = fireWallScript
-	return itOps.Script
-}
-
-func (itOps *InitFireWallOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
 func (itOps *InitFireWallOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitFireWallOperation{}
 	m, err := machine.NewMachine(node)
@@ -52,17 +42,17 @@ func (itOps *InitFireWallOperation) GetOperations(node *pb.Node, initAction *ope
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(fireWallScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+fireWallScript); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "/bin/bash", itOps.ScriptPath+itOps.Script))
+	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+fireWallScript))
 	return ops, nil
 }
 

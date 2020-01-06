@@ -59,11 +59,6 @@ type InitKeepalivedOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKeepalivedOperation) getScript() string {
-	itOps.Script = keepalivedScript
-	return itOps.Script
-}
-
 func (itOps *InitKeepalivedOperation) getScriptPath() string {
 	itOps.ScriptPath = operation.InitRemoteScriptPath
 	return itOps.ScriptPath
@@ -85,13 +80,13 @@ func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *o
 	}
 
 	// put setup.sh to machine
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(keepalivedScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+keepalivedScript); err != nil {
 		return nil, err
 	}
 
@@ -102,7 +97,7 @@ func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *o
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaDockerFilePath); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaDockerFilePath); err != nil {
 		return nil, err
 	}
 
@@ -113,7 +108,7 @@ func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *o
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaLibFilePath); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaLibFilePath); err != nil {
 		return nil, err
 	}
 
@@ -124,11 +119,11 @@ func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *o
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaSystemdFilePath); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaSystemdFilePath); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", itOps.getScriptPath()+itOps.getScript(), masterIP, keepalivedEthernet)))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", operation.InitRemoteScriptPath+keepalivedScript, masterIP, keepalivedEthernet)))
 	return ops, nil
 }
 

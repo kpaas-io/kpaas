@@ -63,16 +63,6 @@ type InitHaproxyOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHaproxyOperation) getScript() string {
-	itOps.Script = haproxyScript
-	return itOps.Script
-}
-
-func (itOps *InitHaproxyOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
 func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 
 	ops := &InitHaproxyOperation{}
@@ -95,13 +85,13 @@ func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *oper
 	}
 
 	// put setup.sh to machine
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(haproxyScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+haproxyScript); err != nil {
 		return nil, err
 	}
 
@@ -112,7 +102,7 @@ func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *oper
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaDockerFilePath); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaDockerFilePath); err != nil {
 		return nil, err
 	}
 
@@ -123,7 +113,7 @@ func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *oper
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaLibFilePath); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaLibFilePath); err != nil {
 		return nil, err
 	}
 
@@ -134,11 +124,11 @@ func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *oper
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaSystemdFilePath); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaSystemdFilePath); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -u '%v' haproxy run", itOps.getScriptPath()+itOps.getScript(), haproxyStr)))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -u '%v' haproxy run", operation.InitRemoteScriptPath+haproxyScript, haproxyStr)))
 	return ops, nil
 }
 
