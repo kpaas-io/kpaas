@@ -27,14 +27,6 @@ type CheckCPUOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckCPUOperation) getScript() string {
-	return ckops.Script
-}
-
-func (ckops *CheckCPUOperation) getScriptPath() string {
-	return ckops.ScriptPath
-}
-
 func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckCPUOperation{}
 	m, err := machine.NewMachine(config.Node)

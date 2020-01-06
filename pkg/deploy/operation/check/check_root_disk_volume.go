@@ -31,16 +31,6 @@ type CheckRootDiskOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckRootDiskOperation) getScript() string {
-	ckops.Script = rootDiskScript
-	return ckops.Script
-}
-
-func (ckops *CheckRootDiskOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
-}
-
 func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckRootDiskOperation{}
 	m, err := machine.NewMachine(config.Node)

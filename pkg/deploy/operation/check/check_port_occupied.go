@@ -35,16 +35,6 @@ type CheckPortOccupiedOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckPortOccupiedOperation) getScript() string {
-	ckops.Script = portOccupiedScript
-	return ckops.Script
-}
-
-func (ckops *CheckPortOccupiedOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
-}
-
 func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckPortOccupiedOperation{}
 	m, err := machine.NewMachine(config.Node)
@@ -53,13 +43,13 @@ func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfi
 	}
 	ckops.Machine = m
 
-	scriptFile, err := assets.Assets.Open(ckops.getScript())
+	scriptFile, err := assets.Assets.Open(portOccupiedScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, checkRemoteScriptPath+portOccupiedScript); err != nil {
 		return nil, err
 	}
 
@@ -74,7 +64,7 @@ func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfi
 	}
 	roles = strings.TrimRight(roles, ",")
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", ckops.getScriptPath()+ckops.getScript(), roles)))
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", checkRemoteScriptPath+portOccupiedScript, roles)))
 
 	return ops, nil
 }

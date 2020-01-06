@@ -21,24 +21,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	memoryScript = "/scripts/check_memory_capacity.sh"
-)
-
 type CheckMemoryOperation struct {
 	operation.BaseOperation
 	CheckOperations
 	Machine machine.IMachine
-}
-
-func (ckops *CheckMemoryOperation) getScript() string {
-	ckops.Script = memoryScript
-	return ckops.Script
-}
-
-func (ckops *CheckMemoryOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
 }
 
 func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {

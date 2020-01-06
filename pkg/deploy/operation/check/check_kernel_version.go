@@ -21,24 +21,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	kernelScript = "/scripts/check_kernel_version.sh"
-)
-
 type CheckKernelOperation struct {
 	operation.BaseOperation
 	CheckOperations
 	Machine machine.IMachine
-}
-
-func (ckops *CheckKernelOperation) getScript() string {
-	ckops.Script = kernelScript
-	return ckops.Script
-}
-
-func (ckops *CheckKernelOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
 }
 
 func (ckops *CheckKernelOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
