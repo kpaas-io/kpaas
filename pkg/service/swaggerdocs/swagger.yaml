@@ -1,4 +1,3 @@
-basePath: /api
 definitions:
   api.Annotation:
     properties:

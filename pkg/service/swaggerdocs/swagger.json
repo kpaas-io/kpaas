@@ -15,7 +15,6 @@
         "version": "0.1"
     },
     "host": "localhost:8080",
-    "basePath": "/api",
     "paths": {
         "/api/v1/deploy/wizard/batchnodes": {
             "post": {
