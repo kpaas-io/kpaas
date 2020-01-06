@@ -9,6 +9,29 @@ definitions:
     - key
     - value
     type: object
+  api.CalicoOptions:
+    properties:
+      encapsulationMode:
+        enum:
+        - vxlan
+        - ' ipip'
+        - ' none'
+        type: string
+      initialPodIPs:
+        type: string
+      ipDetectionInterface:
+        type: string
+      ipDetectionMethod:
+        enum:
+        - from-kubernetes
+        - first-found
+        - interface
+        type: string
+      vethMtu:
+        type: integer
+      vxlanPort:
+        type: integer
+    type: object
   api.CheckClusterResponseData:
     properties:
       items:
@@ -320,6 +343,16 @@ definitions:
     required:
     - key
     - value
+    type: object
+  api.NetworkOptions:
+    properties:
+      calicoOptions:
+        $ref: '#/definitions/api.CalicoOptions'
+        type: object
+      networkType:
+        enum:
+        - calico
+        type: string
     type: object
   api.NodeData:
     properties:
@@ -671,6 +704,48 @@ paths:
       summary: Download the log detail
       tags:
       - log
+  /api/v1/deploy/wizard/networks:
+    get:
+      description: get currently stored network options, returns default options if
+        nothing stored.
+      operationId: GetNetwork
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.NetworkOptions'
+      summary: get current network options
+      tags:
+      - network
+    post:
+      consumes:
+      - application/json
+      description: set network options
+      operationId: SetNetwork
+      parameters:
+      - description: options of network components in the cluster
+        in: body
+        name: networkOptions
+        required: true
+        schema:
+          $ref: '#/definitions/api.NetworkOptions'
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.SuccessfulOption'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/h.AppErr'
+      summary: set network options
+      tags:
+      - network
   /api/v1/deploy/wizard/nodes:
     get:
       description: Get nodes information
