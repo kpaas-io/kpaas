@@ -146,6 +146,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -293,6 +294,67 @@ var doc = `{
                 }
             }
         },
+        "/api/v1/deploy/wizard/networks": {
+            "get": {
+                "description": "get currently stored network options, returns default options if nothing stored.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "network"
+                ],
+                "summary": "get current network options",
+                "operationId": "GetNetwork",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.NetworkOptions"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "set network options",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "network"
+                ],
+                "summary": "set network options",
+                "operationId": "SetNetwork",
+                "parameters": [
+                    {
+                        "description": "options of network components in the cluster",
+                        "name": "networkOptions",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "$ref": "#/definitions/api.NetworkOptions"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.SuccessfulOption"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/h.AppErr"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/deploy/wizard/nodes": {
             "get": {
                 "description": "Get nodes information",
@@ -333,6 +395,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -420,6 +483,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -921,6 +985,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -993,6 +1058,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
@@ -1024,6 +1090,50 @@ var doc = `{
                 }
             }
         },
+        "api.CalicoOptions": {
+            "type": "object",
+            "properties": {
+                "encapsulationMode": {
+                    "type": "string",
+                    "enum": [
+                        "vxlan",
+                        " ipip",
+                        " none"
+                    ]
+                },
+                "initialPodIPs": {
+                    "type": "string"
+                },
+                "ipDetectionInterface": {
+                    "type": "string"
+                },
+                "ipDetectionMethod": {
+                    "type": "string",
+                    "enum": [
+                        "from-kubernetes",
+                        "first-found",
+                        "interface"
+                    ]
+                },
+                "vethMtu": {
+                    "type": "integer"
+                },
+                "vxlanPort": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.CheckClusterResponseData": {
+            "type": "object",
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.CheckingItem"
+                    }
+                }
+            }
+        },
         "api.CheckingItem": {
             "type": "object",
             "properties": {
@@ -1042,6 +1152,7 @@ var doc = `{
                         "pending",
                         "running",
                         "successful",
+                        "warning",
                         "failed"
                     ]
                 }
@@ -1242,6 +1353,10 @@ var doc = `{
         "api.GetCheckingResultResponse": {
             "type": "object",
             "properties": {
+                "cluster": {
+                    "type": "object",
+                    "$ref": "#/definitions/api.CheckClusterResponseData"
+                },
                 "nodes": {
                     "type": "array",
                     "items": {
@@ -1255,6 +1370,7 @@ var doc = `{
                         "pending",
                         "running",
                         "successful",
+                        "warning",
                         "failed"
                     ]
                 }
@@ -1429,6 +1545,21 @@ var doc = `{
                 },
                 "value": {
                     "type": "string"
+                }
+            }
+        },
+        "api.NetworkOptions": {
+            "type": "object",
+            "properties": {
+                "calicoOptions": {
+                    "type": "object",
+                    "$ref": "#/definitions/api.CalicoOptions"
+                },
+                "networkType": {
+                    "type": "string",
+                    "enum": [
+                        "calico"
+                    ]
                 }
             }
         },

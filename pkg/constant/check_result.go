@@ -22,6 +22,7 @@ const (
 	CheckResultPending              CheckResult = "pending"
 	CheckResultRunning              CheckResult = "running"
 	CheckResultSuccessful           CheckResult = "successful"
+	CheckResultWarning              CheckResult = "warning"
 	CheckResultFailed               CheckResult = "failed"
 	CheckResultDeployServiceUnknown CheckResult = "unknown(deploy)"
 )

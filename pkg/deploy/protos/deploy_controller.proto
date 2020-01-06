@@ -231,7 +231,7 @@ message CalicoOptions {
 
 // NetworkOptions options for deploying network. affects checked items.
 message NetworkOptions {
-  string NetworkType = 1;
+  string networkType = 1;
   // options for a specified network type. Starts from 10 to reserve field 2-9.
   CalicoOptions calicoOptions = 10;
 }
