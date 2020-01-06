@@ -201,8 +201,6 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 			desiredCPUCore = math.Max(desiredCPUCore, desiredEtcdCPUCore)
 		case string(constant.MachineRoleIngress):
 			desiredCPUCore = math.Max(desiredCPUCore, desiredIngressCPUCore)
-		default:
-			desiredCPUCore = math.Max(desiredCPUCore, lowestCPUCore)
 		}
 	}
 
@@ -296,8 +294,6 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 			desiredMemory = math.Max(desiredMemory, desiredEtcdMemoryByteBase)
 		case string(constant.MachineRoleIngress):
 			desiredMemory = math.Max(desiredMemory, desiredIngressMemoryByteBase)
-		default:
-			desiredMemory = math.Max(desiredMemory, lowestMemoryByteBase)
 		}
 	}
 
@@ -355,8 +351,6 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 			desiredRootDiskVolume = math.Max(desiredRootDiskVolume, desiredEtcdDiskVolumeByteBase)
 		case string(constant.MachineRoleIngress):
 			desiredRootDiskVolume = math.Max(desiredRootDiskVolume, desiredIngressDiskVolumeByteBase)
-		default:
-			desiredRootDiskVolume = math.Max(desiredRootDiskVolume, lowestDiskVolumeByteBase)
 		}
 	}
 
