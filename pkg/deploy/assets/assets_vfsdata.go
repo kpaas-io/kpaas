@@ -25,7 +25,7 @@ var Assets = func() http.FileSystem {
 		},
 		"/scripts": &vfsgen۰DirInfo{
 			name:    "scripts",
-			modTime: time.Date(2020, 1, 6, 8, 29, 39, 414311298, time.UTC),
+			modTime: time.Date(2020, 1, 7, 1, 39, 32, 472836215, time.UTC),
 		},
 		"/scripts/check_port_occupied.sh": &vfsgen۰CompressedFileInfo{
 			name:             "check_port_occupied.sh",

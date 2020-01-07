@@ -29,14 +29,6 @@ type CheckSystemManagerOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckSystemManagerOperation) getScript() string {
-	return ckops.Script
-}
-
-func (ckops *CheckSystemManagerOperation) getScriptPath() string {
-	return ckops.ScriptPath
-}
-
 func (ckops *CheckSystemManagerOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckSystemManagerOperation{}
 	m, err := machine.NewMachine(config.Node)

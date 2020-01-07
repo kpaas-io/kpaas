@@ -16,11 +16,13 @@ package action
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -30,14 +32,30 @@ import (
 
 // constant value for check
 const (
-	desiredDockerVersion              = "18.09.0"
-	desiredKernelVersion              = "4.19.46"
-	desiredSystemManager              = "systemd"
-	desiredCPUCore            float64 = 4
-	desiredMemoryByteBase     float64 = 8
-	desiredMemory                     = desiredMemoryByteBase * operation.GiByteUnits
-	desiredDiskVolumeByteBase float64 = 50
-	desiredRootDiskVolume             = desiredDiskVolumeByteBase * operation.GiByteUnits
+	desiredDockerVersion = "18.09.0"
+	desiredKernelVersion = "4.19.46"
+	desiredSystemManager = "systemd"
+
+	// CPU factor
+	desiredEtcdCPUCore    float64 = 4
+	desiredMasterCPUCore  float64 = 4
+	desiredWorkerCPUCore  float64 = 4
+	desiredIngressCPUCore float64 = 4
+	lowestCPUCore         float64 = 4
+
+	// Memory factor
+	desiredEtcdMemoryByteBase    float64 = 8
+	desiredMasterMemoryByteBase  float64 = 8
+	desiredWorkerMemoryByteBase  float64 = 8
+	desiredIngressMemoryByteBase float64 = 8
+	lowestMemoryByteBase         float64 = 8
+
+	// Root Disk factor
+	desiredEtcdDiskVolumeByteBase    float64 = 50
+	desiredMasterDiskVolumeByteBase  float64 = 30
+	desiredWorkerDiskVolumeByteBase  float64 = 30
+	desiredIngressDiskVolumeByteBase float64 = 10
+	lowestDiskVolumeByteBase         float64 = 50
 
 	ItemErrEmpty     = "empty parameter"
 	ItemErrOperation = "failed to generate operations"
@@ -172,6 +190,23 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemFailed
 	}
 
+	var desiredCPUCore float64
+	for _, role := range ncAction.NodeCheckConfig.Roles {
+		switch role {
+		case string(constant.MachineRoleMaster):
+			desiredCPUCore = math.Max(desiredCPUCore, desiredMasterCPUCore)
+		case string(constant.MachineRoleWorker):
+			desiredCPUCore = math.Max(desiredCPUCore, desiredWorkerCPUCore)
+		case string(constant.MachineRoleEtcd):
+			desiredCPUCore = math.Max(desiredCPUCore, desiredEtcdCPUCore)
+		case string(constant.MachineRoleIngress):
+			desiredCPUCore = math.Max(desiredCPUCore, desiredIngressCPUCore)
+		}
+	}
+
+	// compare with lowest standard
+	desiredCPUCore = math.Max(desiredCPUCore, lowestCPUCore)
+
 	err = check.CheckCPUNums(cpuCore, desiredCPUCore)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
@@ -248,6 +283,24 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemFailed
 	}
 
+	var desiredMemory float64
+	for _, role := range ncAction.NodeCheckConfig.Roles {
+		switch role {
+		case string(constant.MachineRoleMaster):
+			desiredMemory = math.Max(desiredMemory, desiredMasterMemoryByteBase)
+		case string(constant.MachineRoleWorker):
+			desiredMemory = math.Max(desiredMemory, desiredWorkerMemoryByteBase)
+		case string(constant.MachineRoleEtcd):
+			desiredMemory = math.Max(desiredMemory, desiredEtcdMemoryByteBase)
+		case string(constant.MachineRoleIngress):
+			desiredMemory = math.Max(desiredMemory, desiredIngressMemoryByteBase)
+		}
+	}
+
+	// compare with lowest standard
+	desiredMemory = math.Max(desiredMemory, lowestMemoryByteBase)
+	desiredMemory = desiredMemory * operation.GiByteUnits
+
 	err = check.CheckMemoryCapacity(memoryCap, desiredMemory)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
@@ -286,6 +339,24 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		logger.Errorf("check root disk failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
 	}
+
+	var desiredRootDiskVolume float64
+	for _, role := range ncAction.NodeCheckConfig.Roles {
+		switch role {
+		case string(constant.MachineRoleMaster):
+			desiredRootDiskVolume = math.Max(desiredRootDiskVolume, desiredMasterDiskVolumeByteBase)
+		case string(constant.MachineRoleWorker):
+			desiredRootDiskVolume = math.Max(desiredRootDiskVolume, desiredWorkerDiskVolumeByteBase)
+		case string(constant.MachineRoleEtcd):
+			desiredRootDiskVolume = math.Max(desiredRootDiskVolume, desiredEtcdDiskVolumeByteBase)
+		case string(constant.MachineRoleIngress):
+			desiredRootDiskVolume = math.Max(desiredRootDiskVolume, desiredIngressDiskVolumeByteBase)
+		}
+	}
+
+	// compare with lowest standard
+	desiredRootDiskVolume = math.Max(desiredRootDiskVolume, lowestDiskVolumeByteBase)
+	desiredRootDiskVolume = desiredRootDiskVolume * operation.GiByteUnits
 
 	err = check.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
 	if err != nil {
