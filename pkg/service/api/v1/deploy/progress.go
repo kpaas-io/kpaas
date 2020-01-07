@@ -121,8 +121,7 @@ func getWizardNodes() *[]api.NodeData {
 }
 
 func getWizardNetworkOptions() *api.NetworkOptions {
-	wizardData := wizard.GetCurrentWizard()
-	return wizardData.GetNetworkOptions()
+	return wizard.GetCurrentWizard().GetNetworkOptions()
 }
 
 func getWizardCheckingData() *[]api.CheckingResultResponseData {
