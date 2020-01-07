@@ -1447,7 +1447,6 @@ var doc = `{
                     }
                 },
                 "cluster": {
-                    "description": "Cluster Information",
                     "type": "object",
                     "$ref": "#/definitions/api.Cluster"
                 },
@@ -1472,6 +1471,11 @@ var doc = `{
                 "mode": {
                     "description": "Wizard mode, normal or advanced",
                     "type": "string"
+                },
+                "networkOptions": {
+                    "description": "Cluster Information",
+                    "type": "object",
+                    "$ref": "#/definitions/api.NetworkOptions"
                 },
                 "nodes": {
                     "description": "Nodes Information",

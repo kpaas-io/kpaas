@@ -272,7 +272,6 @@ definitions:
         type: array
       cluster:
         $ref: '#/definitions/api.Cluster'
-        description: Cluster Information
         type: object
       deployClusterStatus:
         description: Cluster deployment status
@@ -291,6 +290,10 @@ definitions:
       mode:
         description: Wizard mode, normal or advanced
         type: string
+      networkOptions:
+        $ref: '#/definitions/api.NetworkOptions'
+        description: Cluster Information
+        type: object
       nodes:
         description: Nodes Information
         items:

@@ -20,7 +20,8 @@ import (
 
 type (
 	GetWizardResponse struct {
-		ClusterData         Cluster                      `json:"cluster"`                                                                                                    // Cluster Information
+		ClusterData         Cluster                      `json:"cluster"`
+		NetworkOptions      NetworkOptions               `json:"networkOptions"`                                                                                             // Cluster Information
 		NodesData           []NodeData                   `json:"nodes"`                                                                                                      // Nodes Information
 		CheckingData        []CheckingResultResponseData `json:"checkingData"`                                                                                               // Check result
 		DeploymentData      []DeploymentResponseData     `json:"deploymentData"`                                                                                             // Deployment result
