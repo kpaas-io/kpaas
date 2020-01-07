@@ -141,8 +141,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	})
 	logger.Debug("Start to execute node init action")
 
-	initGroup := make(map[it.ItemEnum]bool)
-	initGroup = constructInitGroup(nodeInitAction)
+	initGroup := constructInitGroup(nodeInitAction)
 	if len(initGroup) == 0 {
 		logger.Error("initialization item group is empty")
 	}
@@ -150,7 +149,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	var wg sync.WaitGroup
 	for item := range initGroup {
 		wg.Add(1)
-		if initGroup[item] {
+		if initGroup[item] == true {
 			go InitAsyncExecutor(item, nodeInitAction, &wg)
 		}
 	}
@@ -202,14 +201,16 @@ func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) boo
 func constructInitGroup(nodeInitAction *NodeInitAction) map[it.ItemEnum]bool {
 	initGroup := make(map[it.ItemEnum]bool)
 
-	var etcdItemEnums []it.ItemEnum
-	var masterItemEnums []it.ItemEnum
-	var workerItemEnums []it.ItemEnum
-	var ingressItemEnums []it.ItemEnum
+	etcdItemEnums := make([]it.ItemEnum, 0)
+	masterItemEnums := make([]it.ItemEnum, 0)
+	workerItemEnums := make([]it.ItemEnum, 0)
+	ingressItemEnums := make([]it.ItemEnum, 0)
 
 	baseItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
 
-	if nodeInitAction.ClusterConfig.KubeAPIServerConnect.Type == "keepalived" {
+	apiServerConnectType := nodeInitAction.ClusterConfig.GetKubeAPIServerConnect().GetType()
+
+	if apiServerConnectType == "keepalived" {
 		masterItemEnums = []it.ItemEnum{it.Haproxy, it.Keepalived}
 	}
 
