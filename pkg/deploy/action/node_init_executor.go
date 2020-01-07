@@ -139,30 +139,23 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	logger := logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: act.GetName(),
 	})
-
-	var wg sync.WaitGroup
-
 	logger.Debug("Start to execute node init action")
 
-	// init events include firewall, hostalias, hostname, network, route, swap, timezone， kubetool
-	workerItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
-	masterItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // cloud machine can not test it.Haproxy, it.Keepalived}
+	// build init group contains multi roles all items
+	var wg sync.WaitGroup
+	var initGroup []it.ItemEnum
+	initMap := make(map[it.ItemEnum]bool)
 
-	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
-		for _, item := range masterItemEnums {
-			wg.Add(1)
-			go InitAsyncExecutor(item, nodeInitAction, &wg)
-		}
-		wg.Wait()
-	} else if containsRole(nodeInitAction, constant.MachineRoleWorker) {
-		for _, item := range workerItemEnums {
-			wg.Add(1)
-			go InitAsyncExecutor(item, nodeInitAction, &wg)
-		}
-		wg.Wait()
+	initGroup = constructInitGroup(nodeInitAction, initMap)
+	if len(initGroup) == 0 {
+		logger.Error("init items group is empty")
 	}
 
-	// TODO if etcd and ingress needs init separately
+	for _, item := range initGroup {
+		wg.Add(1)
+		go InitAsyncExecutor(item, nodeInitAction, &wg)
+	}
+	wg.Wait()
 
 	// If any of init item was failed, we should return an error
 	failedItems := getFailedInitItems(nodeInitAction)
@@ -204,4 +197,46 @@ func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) boo
 		}
 	}
 	return false
+}
+
+// construct an init group contains items for one or more roles initiation
+func constructInitGroup(nodeInitAction *NodeInitAction, itMap map[it.ItemEnum]bool) []it.ItemEnum {
+	var initGroup []it.ItemEnum
+
+	// init events include firewall, hostalias, hostname, network, route, swap, timezone， kubetool
+	etcdItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+	workerItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+	ingressItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+	masterItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // cloud machine can not test it.Haproxy, it.Keepalived}
+
+	if containsRole(nodeInitAction, constant.MachineRoleEtcd) {
+		initGroup = addNotContainsItems(etcdItemEnums, itMap, initGroup)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
+		initGroup = addNotContainsItems(masterItemEnums, itMap, initGroup)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleIngress) {
+		initGroup = addNotContainsItems(ingressItemEnums, itMap, initGroup)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleWorker) {
+		initGroup = addNotContainsItems(workerItemEnums, itMap, initGroup)
+	}
+
+	logrus.Debugf("this is check of construct Init group: %v for node: %v", initGroup, nodeInitAction.Node.Name)
+
+	return initGroup
+}
+
+// add items into array if not contains in it
+func addNotContainsItems(initItems []it.ItemEnum, initMap map[it.ItemEnum]bool, initGroup []it.ItemEnum) []it.ItemEnum {
+	for _, value := range initItems {
+		if _, ok := initMap[value]; !ok {
+			initMap[value] = true
+			initGroup = append(initGroup, value)
+		}
+	}
+	return initGroup
 }
