@@ -29,12 +29,10 @@ import (
 var allRoles = []constant.MachineRole{constant.MachineRoleEtcd, constant.MachineRoleMaster,
 	constant.MachineRoleWorker, constant.MachineRoleIngress}
 
-func (c *controller) getDeployResult(aTask task.Task, withLogs bool) (*pb.GetDeployResultReply, error) {
+func (c *controller) getDeployResult(aTask task.Task) (*pb.GetDeployResultReply, error) {
 	if aTask == nil {
 		return nil, fmt.Errorf("Task is nil")
 	}
-
-	// TODO: handle the logs of task and its actions if withLogs == true
 
 	deployTask, ok := aTask.(*task.DeployTask)
 	if !ok {
