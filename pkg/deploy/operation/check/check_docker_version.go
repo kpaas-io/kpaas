@@ -21,24 +21,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	dockerScript = "/scripts/check_docker_version.sh"
-)
-
 type CheckDockerOperation struct {
 	operation.BaseOperation
 	CheckOperations
 	Machine machine.IMachine
-}
-
-func (ckops *CheckDockerOperation) getScript() string {
-	ckops.Script = dockerScript
-	return ckops.Script
-}
-
-func (ckops *CheckDockerOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
 }
 
 func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {

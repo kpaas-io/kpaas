@@ -21,24 +21,10 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	cpuScript = "/scripts/check_cpu_num.sh"
-)
-
 type CheckCPUOperation struct {
 	operation.BaseOperation
 	CheckOperations
 	Machine machine.IMachine
-}
-
-func (ckops *CheckCPUOperation) getScript() string {
-	ckops.Script = cpuScript
-	return ckops.Script
-}
-
-func (ckops *CheckCPUOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
 }
 
 func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {

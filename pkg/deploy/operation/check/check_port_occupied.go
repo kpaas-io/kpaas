@@ -16,6 +16,7 @@ package check
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -34,16 +35,6 @@ type CheckPortOccupiedOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckPortOccupiedOperation) getScript() string {
-	ckops.Script = portOccupiedScript
-	return ckops.Script
-}
-
-func (ckops *CheckPortOccupiedOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
-}
-
 func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckPortOccupiedOperation{}
 	m, err := machine.NewMachine(config.Node)
@@ -52,21 +43,29 @@ func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfi
 	}
 	ckops.Machine = m
 
-	scriptFile, err := assets.Assets.Open(ckops.getScript())
+	scriptFile, err := assets.Assets.Open(portOccupiedScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, checkRemoteScriptPath+portOccupiedScript); err != nil {
 		return nil, err
 	}
 
-	// TODO add more roles judgement here, read cluster config in the future
 	// bash script should run as `bash /script/check_port_occupied.sh <role1,role2>` which directly return ports split by comma
-	// var role string
+	var roles string
+	for _, role := range config.Roles {
+		roles += role + ","
+	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v", ckops.getScriptPath()+ckops.getScript())))
+	if roles == "" {
+		return nil, fmt.Errorf("roles can not be empty")
+	}
+	roles = strings.TrimRight(roles, ",")
+
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", checkRemoteScriptPath+portOccupiedScript, roles)))
+
 	return ops, nil
 }
 
