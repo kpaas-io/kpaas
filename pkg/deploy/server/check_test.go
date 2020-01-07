@@ -274,7 +274,7 @@ func TestGetNodeCheckResult(t *testing.T) {
 	}
 	c := &controller{}
 	for _, testCase := range tests {
-		reply, err := c.getCheckNodeResult(testCase.input, false)
+		reply, err := c.getCheckNodeResult(testCase.input)
 		assert.Equal(t, testCase.wantReply, reply)
 		assert.Equal(t, testCase.wantError, err)
 	}

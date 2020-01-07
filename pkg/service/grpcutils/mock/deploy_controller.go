@@ -146,3 +146,15 @@ func (mock *DeployController) CheckNetworkRequirements(
 		},
 	}, nil
 }
+
+func (mock *DeployController) GetCheckNodesLog(ctx context.Context, in *protos.GetCheckNodesLogRequest,
+	opts ...grpc.CallOption) (*protos.GetCheckNodesLogReply, error) {
+	// To be implmented
+	return nil, nil
+}
+
+func (mock *DeployController) GetDeployLog(ctx context.Context, in *protos.GetDeployLogRequest,
+	opts ...grpc.CallOption) (*protos.GetDeployLogReply, error) {
+	// To be implmented
+	return nil, nil
+}

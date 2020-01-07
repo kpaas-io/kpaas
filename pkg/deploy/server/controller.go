@@ -128,7 +128,12 @@ func (c *controller) GetCheckNodesResult(ctx context.Context, req *pb.GetCheckNo
 		return nil, err
 	}
 
-	return c.getCheckNodeResult(tsk, req.GetWithLogs())
+	return c.getCheckNodeResult(tsk)
+}
+
+func (c *controller) GetCheckNodesLog(ctx context.Context, req *pb.GetCheckNodesLogRequest) (*pb.GetCheckNodesLogReply, error) {
+	// To be implmented
+	return nil, nil
 }
 
 func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.DeployReply, error) {
@@ -181,7 +186,12 @@ func (c *controller) GetDeployResult(ctx context.Context, req *pb.GetDeployResul
 		return nil, err
 	}
 
-	return c.getDeployResult(tsk, req.GetWithLogs())
+	return c.getDeployResult(tsk)
+}
+
+func (c *controller) GetDeployLog(ctx context.Context, req *pb.GetDeployLogRequest) (*pb.GetDeployLogReply, error) {
+	// To be implmented
+	return nil, nil
 }
 
 func (c *controller) FetchKubeConfig(ctx context.Context, req *pb.FetchKubeConfigRequest) (*pb.FetchKubeConfigReply, error) {

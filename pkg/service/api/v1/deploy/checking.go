@@ -144,7 +144,7 @@ func refreshCheckResultOneTime() {
 	grpcContext, cancel := context.WithTimeout(context.Background(), config.Config.DeployController.GetTimeout())
 	defer cancel()
 
-	resp, err := client.GetCheckNodesResult(grpcContext, &protos.GetCheckNodesResultRequest{WithLogs: true})
+	resp, err := client.GetCheckNodesResult(grpcContext, &protos.GetCheckNodesResultRequest{})
 	if err != nil {
 		logrus.Errorf("call deploy controller error, errorMessage: %v", err)
 		return
