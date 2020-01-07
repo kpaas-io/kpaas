@@ -35,8 +35,6 @@ type CheckOperations struct {
 type CheckAction interface {
 	GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error)
 	CloseSSH()
-	getScript() string
-	getScriptPath() string
 }
 
 const (

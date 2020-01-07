@@ -32,16 +32,6 @@ type CheckSysPrefOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckSysPrefOperation) getScript() string {
-	ckops.Script = sysPrefScript
-	return ckops.Script
-}
-
-func (ckops *CheckSysPrefOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
-}
-
 func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
 	ops := &CheckSysPrefOperation{}
 	m, err := machine.NewMachine(config.Node)
@@ -50,17 +40,17 @@ func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (o
 	}
 	ckops.Machine = m
 
-	scriptFile, err := assets.Assets.Open(ckops.getScript())
+	scriptFile, err := assets.Assets.Open(sysPrefScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, ckops.getScriptPath()+ckops.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, checkRemoteScriptPath+sysPrefScript); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", ckops.getScriptPath()+ckops.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "bash", checkRemoteScriptPath+sysPrefScript))
 	return ops, nil
 }
 

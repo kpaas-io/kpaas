@@ -26,26 +26,15 @@ import (
 )
 
 const (
-	DistributionCentos       string = "centos"
-	DistributionUbuntu       string = "ubuntu"
-	DistributionRHEL         string = "rhel"
-	systemDistributionScript        = "/scripts/check_system_distribution.sh"
+	DistributionCentos string = "centos"
+	DistributionUbuntu string = "ubuntu"
+	DistributionRHEL   string = "rhel"
 )
 
 type CheckDistributionOperation struct {
 	operation.BaseOperation
 	CheckOperations
 	Machine machine.IMachine
-}
-
-func (ckops *CheckDistributionOperation) getScript() string {
-	ckops.Script = systemDistributionScript
-	return ckops.Script
-}
-
-func (ckops *CheckDistributionOperation) getScriptPath() string {
-	ckops.ScriptPath = checkRemoteScriptPath
-	return ckops.ScriptPath
 }
 
 func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
