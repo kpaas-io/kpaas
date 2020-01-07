@@ -208,9 +208,7 @@ func constructInitGroup(nodeInitAction *NodeInitAction) map[it.ItemEnum]bool {
 
 	baseItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
 
-	apiServerConnectType := nodeInitAction.ClusterConfig.GetKubeAPIServerConnect().GetType()
-
-	if apiServerConnectType == "keepalived" {
+	if nodeInitAction.ClusterConfig.GetKubeAPIServerConnect().GetType() == "keepalived" {
 		masterItemEnums = []it.ItemEnum{it.Haproxy, it.Keepalived}
 	}
 
