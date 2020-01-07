@@ -259,6 +259,14 @@ func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply
 	return
 }
 
+func getGetCheckNodesLogData() (request *pb.GetCheckNodesLogRequest, reply *pb.GetCheckNodesLogReply) {
+	request = &pb.GetCheckNodesLogRequest{
+		NodeName: _testConfig.Nodes[0].Name,
+	}
+	reply = &pb.GetCheckNodesLogReply{}
+	return
+}
+
 var clusterConfig = &pb.ClusterConfig{
 	ClusterName: "TestCluster",
 	KubeAPIServerConnect: &pb.KubeAPIServerConnect{

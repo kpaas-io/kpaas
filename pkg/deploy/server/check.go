@@ -24,7 +24,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/task"
 )
 
-func (c *controller) getCheckNodeResult(aTask task.Task) (*pb.GetCheckNodesResultReply, error) {
+func (c *controller) getCheckNodesResult(aTask task.Task) (*pb.GetCheckNodesResultReply, error) {
 	if aTask == nil {
 		return nil, fmt.Errorf("Task is nil")
 	}
