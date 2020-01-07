@@ -189,7 +189,7 @@ func getFailedInitItems(initAction *NodeInitAction) []string {
 	return failedItemName
 }
 
-// separate roles
+// check if contains role
 func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) bool {
 	for _, role := range initAction.NodeInitConfig.Roles {
 		if role == string(wantRole) {
@@ -203,11 +203,13 @@ func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) boo
 func constructInitGroup(nodeInitAction *NodeInitAction, itMap map[it.ItemEnum]bool) []it.ItemEnum {
 	var initGroup []it.ItemEnum
 
-	// init events include firewall, hostalias, hostname, network, route, swap, timezone， kubetool
-	etcdItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
-	workerItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
-	ingressItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
-	masterItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // cloud machine can not test it.Haproxy, it.Keepalived}
+	regularItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+
+	// add init items by roles is supported based on regular items
+	etcdItemEnums := regularItemEnums
+	workerItemEnums := regularItemEnums
+	ingressItemEnums := regularItemEnums
+	masterItemEnums := regularItemEnums // cloud machine can not test it.Haproxy, it.Keepalived}
 
 	if containsRole(nodeInitAction, constant.MachineRoleEtcd) {
 		initGroup = addNotContainsItems(etcdItemEnums, itMap, initGroup)
@@ -225,7 +227,7 @@ func constructInitGroup(nodeInitAction *NodeInitAction, itMap map[it.ItemEnum]bo
 		initGroup = addNotContainsItems(workerItemEnums, itMap, initGroup)
 	}
 
-	logrus.Debugf("this is check of construct Init group: %v for node: %v", initGroup, nodeInitAction.Node.Name)
+	logrus.Debugf("node: %v, init group: %v", nodeInitAction.Node.Name, initGroup)
 
 	return initGroup
 }
