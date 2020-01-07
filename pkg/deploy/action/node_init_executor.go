@@ -141,19 +141,18 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	})
 	logger.Debug("Start to execute node init action")
 
-	// build init group contains multi roles all items
-	var wg sync.WaitGroup
-	var initGroup []it.ItemEnum
-	initMap := make(map[it.ItemEnum]bool)
-
-	initGroup = constructInitGroup(nodeInitAction, initMap)
+	initGroup := make(map[it.ItemEnum]bool)
+	initGroup = constructInitGroup(nodeInitAction)
 	if len(initGroup) == 0 {
-		logger.Error("init items group is empty")
+		logger.Error("initialization item group is empty")
 	}
 
-	for _, item := range initGroup {
+	var wg sync.WaitGroup
+	for item := range initGroup {
 		wg.Add(1)
-		go InitAsyncExecutor(item, nodeInitAction, &wg)
+		if initGroup[item] {
+			go InitAsyncExecutor(item, nodeInitAction, &wg)
+		}
 	}
 	wg.Wait()
 
@@ -199,46 +198,44 @@ func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) boo
 	return false
 }
 
-// construct an init group contains items for one or more roles initiation
-func constructInitGroup(nodeInitAction *NodeInitAction, itMap map[it.ItemEnum]bool) []it.ItemEnum {
-	var initGroup []it.ItemEnum
+// according to roles, construct an init item group
+func constructInitGroup(nodeInitAction *NodeInitAction) map[it.ItemEnum]bool {
+	initGroup := make(map[it.ItemEnum]bool)
 
-	regularItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+	var etcdItemEnums []it.ItemEnum
+	var masterItemEnums []it.ItemEnum
+	var workerItemEnums []it.ItemEnum
+	var ingressItemEnums []it.ItemEnum
 
-	// add init items by roles is supported based on regular items
-	etcdItemEnums := regularItemEnums
-	workerItemEnums := regularItemEnums
-	ingressItemEnums := regularItemEnums
-	masterItemEnums := regularItemEnums // cloud machine can not test it.Haproxy, it.Keepalived}
+	baseItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+
+	if nodeInitAction.ClusterConfig.KubeAPIServerConnect.Type == "keepalived" {
+		masterItemEnums = []it.ItemEnum{it.Haproxy, it.Keepalived}
+	}
 
 	if containsRole(nodeInitAction, constant.MachineRoleEtcd) {
-		initGroup = addNotContainsItems(etcdItemEnums, itMap, initGroup)
+		baseItemEnums = append(baseItemEnums, etcdItemEnums...)
 	}
 
 	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
-		initGroup = addNotContainsItems(masterItemEnums, itMap, initGroup)
+		baseItemEnums = append(baseItemEnums, masterItemEnums...)
 	}
 
 	if containsRole(nodeInitAction, constant.MachineRoleIngress) {
-		initGroup = addNotContainsItems(ingressItemEnums, itMap, initGroup)
+		baseItemEnums = append(baseItemEnums, ingressItemEnums...)
 	}
 
 	if containsRole(nodeInitAction, constant.MachineRoleWorker) {
-		initGroup = addNotContainsItems(workerItemEnums, itMap, initGroup)
+		baseItemEnums = append(baseItemEnums, workerItemEnums...)
 	}
 
 	logrus.Debugf("node: %v, init group: %v", nodeInitAction.Node.Name, initGroup)
 
-	return initGroup
-}
-
-// add items into array if not contains in it
-func addNotContainsItems(initItems []it.ItemEnum, initMap map[it.ItemEnum]bool, initGroup []it.ItemEnum) []it.ItemEnum {
-	for _, value := range initItems {
-		if _, ok := initMap[value]; !ok {
-			initMap[value] = true
-			initGroup = append(initGroup, value)
+	for _, item := range baseItemEnums {
+		if _, ok := initGroup[item]; !ok {
+			initGroup[item] = true
 		}
 	}
+
 	return initGroup
 }
