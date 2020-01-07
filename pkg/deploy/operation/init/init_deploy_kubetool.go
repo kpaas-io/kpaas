@@ -36,16 +36,6 @@ type InitKubeToolOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKubeToolOperation) getScript() string {
-	itOps.Script = consts.DefaultKubeToolScript
-	return itOps.Script
-}
-
-func (itOps *InitKubeToolOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
 func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 
 	var imageRepository string
@@ -70,13 +60,13 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	itOps.NodeInitAction = initAction
 
 	// copy init_deploy_kubetool.sh to target machine
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(consts.DefaultKubeToolScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+consts.DefaultKubeToolScript); err != nil {
 		return nil, err
 	}
 
@@ -87,16 +77,16 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+DefaultCommonLibPath); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+DefaultCommonLibPath); err != nil {
 		return nil, err
 	}
 
 	// setup repos
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", itOps.getScriptPath()+itOps.getScript(),
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		pkgMirrorUrl)))
 
 	// install kubelet, kubeadm, kubectl
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", itOps.getScriptPath()+itOps.getScript(),
+	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		kubernetesVersion, imageRepository, clusterDNSIP, nodeIp)))
 
 	return ops, nil

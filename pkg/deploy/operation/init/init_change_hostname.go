@@ -23,25 +23,11 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	hostNameScript = "/scripts/init_change_hostname.sh"
-)
-
 type InitHostNameOperation struct {
 	operation.BaseOperation
 	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
-}
-
-func (itOps *InitHostNameOperation) getScript() string {
-	itOps.Script = hostNameScript
-	return itOps.Script
-}
-
-func (itOps *InitHostNameOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
 }
 
 func (itOps *InitHostNameOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {

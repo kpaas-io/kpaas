@@ -33,16 +33,6 @@ type InitNetworkOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitNetworkOperation) getScript() string {
-	itOps.Script = networkScript
-	return itOps.Script
-}
-
-func (itOps *InitNetworkOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
 func (itOps *InitNetworkOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitNetworkOperation{}
 	m, err := machine.NewMachine(node)
@@ -52,17 +42,17 @@ func (itOps *InitNetworkOperation) GetOperations(node *pb.Node, initAction *oper
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(networkScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+networkScript); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+networkScript))
 	return ops, nil
 }
 
