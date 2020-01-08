@@ -419,6 +419,15 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 	return
 }
 
+func getGetDeployLogData() (request *pb.GetDeployLogRequest, reply *pb.GetDeployLogReply) {
+	request = &pb.GetDeployLogRequest{
+		Role:     "master",
+		NodeName: _testConfig.Nodes[0].Name,
+	}
+	reply = &pb.GetDeployLogReply{}
+	return
+}
+
 func getFetchKubeConfigData() (request *pb.FetchKubeConfigRequest, reply *pb.FetchKubeConfigReply) {
 	request = &pb.FetchKubeConfigRequest{
 		Node: _testConfig.Nodes[0],

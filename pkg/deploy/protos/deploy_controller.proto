@@ -227,7 +227,7 @@ message GetDeployLogRequest {
 
 // GetDeployLogReply represents the response of getting deploy log.
 message GetDeployLogReply {
-  string log = 1;
+  bytes log = 1;
 }
 
 // FetchKubeConfigRequest contains the request of getting kube config.

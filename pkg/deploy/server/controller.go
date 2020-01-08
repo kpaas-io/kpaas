@@ -207,8 +207,24 @@ func (c *controller) GetDeployResult(ctx context.Context, req *pb.GetDeployResul
 }
 
 func (c *controller) GetDeployLog(ctx context.Context, req *pb.GetDeployLogRequest) (*pb.GetDeployLogReply, error) {
-	// To be implmented
-	return nil, nil
+	logrus.Info("Begins GetDeployLog request")
+
+	var err error
+	defer func() {
+		if err != nil {
+			logrus.Errorf("Failed to reply GetDeployLog request, error: %v", err)
+		} else {
+			logrus.Info("Succeeded to reply GetDeployLog request.")
+		}
+	}()
+
+	tsk, err := c.getTask(getDeployTaskName())
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.getDeployLog(tsk, constant.MachineRole(req.Role), req.NodeName)
+	return resp, err
 }
 
 func (c *controller) FetchKubeConfig(ctx context.Context, req *pb.FetchKubeConfigRequest) (*pb.FetchKubeConfigReply, error) {
