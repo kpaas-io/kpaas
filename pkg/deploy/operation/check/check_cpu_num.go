@@ -36,6 +36,7 @@ func (ckops *CheckCPUOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) 
 	if err != nil {
 		return nil, nil, err
 	}
+
 	ckops.Machine = m
 
 	// close ssh client if machine is not nil

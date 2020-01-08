@@ -57,79 +57,88 @@ type InitKeepalivedOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+func (itOps *InitKeepalivedOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 	ops := &InitKeepalivedOperation{}
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
+
+	// close ssh client if machine is not nil
+	if itOps.Machine != nil {
+		defer itOps.Machine.Close()
+	}
 
 	// acquire floating IP for keepalived
 	floatingIP := initAction.ClusterConfig.KubeAPIServerConnect.Keepalived.Vip
 	if floatingIP == "" {
 		err = fmt.Errorf("floating ip can not be empty")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// acquire floating ethernet for keepalived
 	floatingEthernet := initAction.ClusterConfig.KubeAPIServerConnect.Keepalived.NetInterfaceName
 	if floatingEthernet == "" {
 		err = fmt.Errorf("floating ethernet can not be empty")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// put setup.sh to machine
 	scriptFile, err := assets.Assets.Open(keepalivedScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+keepalivedScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// put docker.sh to machine
 	scriptFile, err = assets.Assets.Open(HaDockerFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaDockerFilePath); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// put lib.sh to machine
 	scriptFile, err = assets.Assets.Open(HaLibFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaLibFilePath); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// put systemd.sh to machine
 	scriptFile, err = assets.Assets.Open(HaSystemdFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaSystemdFilePath); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", operation.InitRemoteScriptPath+keepalivedScript, floatingIP, floatingEthernet)))
-	return ops, nil
-}
 
-func (itOps *InitKeepalivedOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("init deploy keepalived command is empty")
 	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }

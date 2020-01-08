@@ -15,6 +15,8 @@
 package init
 
 import (
+	"fmt"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -33,31 +35,40 @@ type InitNetworkOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitNetworkOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+func (itOps *InitNetworkOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 	ops := &InitNetworkOperation{}
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
+	// close ssh client if machine is not nil
+	if itOps.Machine != nil {
+		defer itOps.Machine.Close()
+	}
+
 	scriptFile, err := assets.Assets.Open(networkScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+networkScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+networkScript))
-	return ops, nil
-}
 
-func (itOps *InitNetworkOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("init change network command is empty")
 	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }

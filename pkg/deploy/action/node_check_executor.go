@@ -62,8 +62,7 @@ const (
 	ItemErrScript    = "invalid script"
 
 	ItemHelperEmpty     = "please input suitable check item"
-	ItemHelperOperation = "please check your operations"
-	ItemHelperScript    = "please check your script"
+	ItemHelperOperation = "please check your operation or script"
 
 	CheckPassed = "check passed"
 	CheckFailed = "check failed"
@@ -86,19 +85,21 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 	// create item operation
 	checkItems := check.NewCheckOperations().CreateOperations(item)
 	if checkItems == nil {
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.Reason = ItemErrEmpty
 		checkItemReport.Err.Detail = ItemErrEmpty
 		checkItemReport.Err.FixMethods = ItemHelperEmpty
-		return "", checkItemReport, fmt.Errorf("fail to construct %v operation", item)
+		return "", checkItemReport, fmt.Errorf("fail to construct check %v operation", item)
 	}
 
 	// create command and run on remote node
 	stdOut, stdErr, err := checkItems.CreateCommandAndRun(config)
 	if err != nil {
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.Reason = ItemErrOperation
 		checkItemReport.Err.Detail = fmt.Sprintf("stdErr: %v, err: %v", stdErr, err.Error())
 		checkItemReport.Err.FixMethods = ItemHelperOperation
-		return "", checkItemReport, fmt.Errorf("fail to run %v commands", item)
+		return "", checkItemReport, fmt.Errorf("fail to run check %v scripts", item)
 	}
 
 	checkItemStdOut := strings.Trim(string(stdOut), "\n")

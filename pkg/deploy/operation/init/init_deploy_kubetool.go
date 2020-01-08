@@ -36,7 +36,7 @@ type InitKubeToolOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+func (itOps *InitKubeToolOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	var imageRepository string
 	var clusterDNSIP string
@@ -52,50 +52,62 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
 
 	ops := &InitKubeToolOperation{}
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
+
+	// close ssh client if machine is not nil
+	if itOps.Machine != nil {
+		defer itOps.Machine.Close()
+	}
 
 	// copy init_deploy_kubetool.sh to target machine
 	scriptFile, err := assets.Assets.Open(consts.DefaultKubeToolScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+consts.DefaultKubeToolScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// copy commmon lib.sh to target machine
 	scriptFile, err = assets.Assets.Open(DefaultCommonLibPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+DefaultCommonLibPath); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// setup repos
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		pkgMirrorUrl)))
 
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("setup repos command is empty")
+	}
+
 	// install kubelet, kubeadm, kubectl
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		kubernetesVersion, imageRepository, clusterDNSIP, nodeIp)))
 
-	return ops, nil
-}
-
-func (itOps *InitKubeToolOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("init deploy kubetool command is empty")
 	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }
 
 // get dns IP from subnet

@@ -15,6 +15,8 @@
 package init
 
 import (
+	"fmt"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -33,31 +35,39 @@ type InitRouteOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitRouteOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+func (itOps *InitRouteOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 	ops := &InitRouteOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
+	// close ssh client if machine is not nil
+	if itOps.Machine != nil {
+		defer itOps.Machine.Close()
+	}
+
 	scriptFile, err := assets.Assets.Open(routeScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+routeScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+routeScript))
-	return ops, nil
-}
 
-func (itOps *InitRouteOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("init change route command is empty")
 	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }

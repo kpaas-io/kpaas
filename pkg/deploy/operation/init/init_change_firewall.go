@@ -15,6 +15,8 @@
 package init
 
 import (
+	"fmt"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -33,31 +35,39 @@ type InitFireWallOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitFireWallOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+func (itOps *InitFireWallOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 	ops := &InitFireWallOperation{}
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
+	// close ssh client if machine is not nil
+	if itOps.Machine != nil {
+		defer itOps.Machine.Close()
+	}
+
 	scriptFile, err := assets.Assets.Open(fireWallScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+fireWallScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+fireWallScript))
-	return ops, nil
-}
 
-func (itOps *InitFireWallOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("init firewall command is empty")
 	}
+
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }

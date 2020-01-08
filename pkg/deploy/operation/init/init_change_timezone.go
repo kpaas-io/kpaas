@@ -34,21 +34,30 @@ type InitTimeZoneOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitTimeZoneOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+func (itOps *InitTimeZoneOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 	ops := &InitTimeZoneOperation{}
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
-	ops.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
-	return ops, nil
-}
-
-func (itOps *InitTimeZoneOperation) CloseSSH() {
+	// close ssh client if machine is not nil
 	if itOps.Machine != nil {
-		itOps.Machine.Close()
+		defer itOps.Machine.Close()
 	}
+
+	ops.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
+
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("init timezone command is empty")
+	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }

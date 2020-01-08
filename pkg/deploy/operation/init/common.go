@@ -32,8 +32,7 @@ type InitOperations struct {
 }
 
 type InitAction interface {
-	GetOperations(config *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error)
-	CloseSSH()
+	CreateCommandAndRun(config *pb.Node, initAction *operation.NodeInitAction) ([]byte, []byte, error)
 }
 
 const (

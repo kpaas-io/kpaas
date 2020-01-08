@@ -63,79 +63,88 @@ type InitHaproxyOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHaproxyOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+func (itOps *InitHaproxyOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	ops := &InitHaproxyOperation{}
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
+	// close ssh client if machine is not nil
+	if itOps.Machine != nil {
+		defer itOps.Machine.Close()
+	}
+
 	if masterIps := itOps.getMastersIP(); len(masterIps) == 0 {
 		err = fmt.Errorf("master ip can not be empty")
-		return nil, err
+		return nil, nil, err
 	}
 
 	haproxyStr := buildHaproxyStr(itOps.getMastersIP(), HaproxyPort)
 	if haproxyStr == "" {
 		err = fmt.Errorf("haproxy string can not be built, please check")
-		return nil, err
+		return nil, nil, err
 	}
 
 	// put setup.sh to machine
 	scriptFile, err := assets.Assets.Open(haproxyScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+haproxyScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// put docker.sh to machine
 	scriptFile, err = assets.Assets.Open(HaDockerFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaDockerFilePath); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// put lib.sh to machine
 	scriptFile, err = assets.Assets.Open(HaLibFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaLibFilePath); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// put systemd.sh to machine
 	scriptFile, err = assets.Assets.Open(HaSystemdFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaSystemdFilePath); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -u '%v' haproxy run", operation.InitRemoteScriptPath+haproxyScript, haproxyStr)))
-	return ops, nil
-}
 
-func (itOps *InitHaproxyOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("init deploy haproxy command is empty")
 	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }
 
 // construct haproxy parameter
