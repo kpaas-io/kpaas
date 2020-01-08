@@ -24,7 +24,6 @@ import (
 )
 
 const (
-	timeZoneScript  = "/scripts/init_change_timezone.sh"
 	defaultTimeZone = "Asia/Shanghai"
 )
 
@@ -33,16 +32,6 @@ type InitTimeZoneOperation struct {
 	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
-}
-
-func (itOps *InitTimeZoneOperation) getScript() string {
-	itOps.Script = timeZoneScript
-	return itOps.Script
-}
-
-func (itOps *InitTimeZoneOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
 }
 
 func (itOps *InitTimeZoneOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {

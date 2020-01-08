@@ -34,8 +34,6 @@ type InitOperations struct {
 type InitAction interface {
 	GetOperations(config *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error)
 	CloseSSH()
-	getScript() string
-	getScriptPath() string
 }
 
 const (

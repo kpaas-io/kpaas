@@ -33,16 +33,6 @@ type InitRouteOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitRouteOperation) getScript() string {
-	itOps.Script = routeScript
-	return itOps.Script
-}
-
-func (itOps *InitRouteOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
 func (itOps *InitRouteOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitRouteOperation{}
 	m, err := machine.NewMachine(node)
@@ -52,17 +42,17 @@ func (itOps *InitRouteOperation) GetOperations(node *pb.Node, initAction *operat
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(routeScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+routeScript); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+routeScript))
 	return ops, nil
 }
 

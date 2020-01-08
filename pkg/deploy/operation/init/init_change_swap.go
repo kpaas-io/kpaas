@@ -33,16 +33,6 @@ type InitSwapOperation struct {
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitSwapOperation) getScript() string {
-	itOps.Script = swapScript
-	return itOps.Script
-}
-
-func (itOps *InitSwapOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
 func (itOps *InitSwapOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
 	ops := &InitSwapOperation{}
 	m, err := machine.NewMachine(node)
@@ -52,17 +42,17 @@ func (itOps *InitSwapOperation) GetOperations(node *pb.Node, initAction *operati
 	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(swapScript)
 	if err != nil {
 		return nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+swapScript); err != nil {
 		return nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
+	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+swapScript))
 	return ops, nil
 }
 

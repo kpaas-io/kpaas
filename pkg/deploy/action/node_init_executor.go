@@ -139,30 +139,21 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	logger := logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: act.GetName(),
 	})
-
-	var wg sync.WaitGroup
-
 	logger.Debug("Start to execute node init action")
 
-	// init events include firewall, hostalias, hostname, network, route, swap, timezone， kubetool
-	workerItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
-	masterItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // cloud machine can not test it.Haproxy, it.Keepalived}
-
-	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
-		for _, item := range masterItemEnums {
-			wg.Add(1)
-			go InitAsyncExecutor(item, nodeInitAction, &wg)
-		}
-		wg.Wait()
-	} else if containsRole(nodeInitAction, constant.MachineRoleWorker) {
-		for _, item := range workerItemEnums {
-			wg.Add(1)
-			go InitAsyncExecutor(item, nodeInitAction, &wg)
-		}
-		wg.Wait()
+	initGroup := constructInitGroup(nodeInitAction)
+	if len(initGroup) == 0 {
+		logger.Error("initialization item group is empty")
 	}
 
-	// TODO if etcd and ingress needs init separately
+	var wg sync.WaitGroup
+	for item := range initGroup {
+		wg.Add(1)
+		if initGroup[item] == true {
+			go InitAsyncExecutor(item, nodeInitAction, &wg)
+		}
+	}
+	wg.Wait()
 
 	// If any of init item was failed, we should return an error
 	failedItems := getFailedInitItems(nodeInitAction)
@@ -196,7 +187,7 @@ func getFailedInitItems(initAction *NodeInitAction) []string {
 	return failedItemName
 }
 
-// separate roles
+// check if contains role
 func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) bool {
 	for _, role := range initAction.NodeInitConfig.Roles {
 		if role == string(wantRole) {
@@ -204,4 +195,46 @@ func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) boo
 		}
 	}
 	return false
+}
+
+// according to roles, construct an init item group
+func constructInitGroup(nodeInitAction *NodeInitAction) map[it.ItemEnum]bool {
+	initGroup := make(map[it.ItemEnum]bool)
+
+	etcdItemEnums := make([]it.ItemEnum, 0)
+	masterItemEnums := make([]it.ItemEnum, 0)
+	workerItemEnums := make([]it.ItemEnum, 0)
+	ingressItemEnums := make([]it.ItemEnum, 0)
+
+	baseItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+
+	if nodeInitAction.ClusterConfig.GetKubeAPIServerConnect().GetType() == "keepalived" {
+		masterItemEnums = []it.ItemEnum{it.Haproxy, it.Keepalived}
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleEtcd) {
+		baseItemEnums = append(baseItemEnums, etcdItemEnums...)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
+		baseItemEnums = append(baseItemEnums, masterItemEnums...)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleIngress) {
+		baseItemEnums = append(baseItemEnums, ingressItemEnums...)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleWorker) {
+		baseItemEnums = append(baseItemEnums, workerItemEnums...)
+	}
+
+	logrus.Debugf("node: %v, init group: %v", nodeInitAction.Node.Name, initGroup)
+
+	for _, item := range baseItemEnums {
+		if _, ok := initGroup[item]; !ok {
+			initGroup[item] = true
+		}
+	}
+
+	return initGroup
 }
