@@ -272,6 +272,7 @@ definitions:
         type: array
       cluster:
         $ref: '#/definitions/api.Cluster'
+        description: Cluster Information
         type: object
       deployClusterStatus:
         description: Cluster deployment status
@@ -292,7 +293,7 @@ definitions:
         type: string
       networkOptions:
         $ref: '#/definitions/api.NetworkOptions'
-        description: Cluster Information
+        description: Network options
         type: object
       nodes:
         description: Nodes Information

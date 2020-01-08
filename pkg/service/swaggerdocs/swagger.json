@@ -1432,6 +1432,7 @@
                     }
                 },
                 "cluster": {
+                    "description": "Cluster Information",
                     "type": "object",
                     "$ref": "#/definitions/api.Cluster"
                 },
@@ -1458,7 +1459,7 @@
                     "type": "string"
                 },
                 "networkOptions": {
-                    "description": "Cluster Information",
+                    "description": "Network options",
                     "type": "object",
                     "$ref": "#/definitions/api.NetworkOptions"
                 },
