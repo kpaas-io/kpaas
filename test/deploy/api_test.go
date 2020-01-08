@@ -186,6 +186,16 @@ func TestDeploy(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, actualResultReply)
 	assert.Equal(t, expetecdResultReply, actualResultReply)
+
+	// Test GetDeployLog
+	ctxGetLog, cancelGetLog := context.WithTimeout(context.Background(), 10000*time.Second)
+	defer cancelGetLog()
+	requestGetLog, _ := getGetDeployLogData()
+	actualGetLogReply, errGetLog := client.GetDeployLog(ctxGetLog, requestGetLog)
+	assert.NoError(t, errGetLog)
+	assert.NotNil(t, actualGetLogReply)
+	// Just a simple check on the content of the log
+	assert.Equal(t, true, len(actualGetLogReply.Log) > 100)
 }
 
 func TestFetchKubeConfig(t *testing.T) {
