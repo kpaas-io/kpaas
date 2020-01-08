@@ -128,12 +128,29 @@ func (c *controller) GetCheckNodesResult(ctx context.Context, req *pb.GetCheckNo
 		return nil, err
 	}
 
-	return c.getCheckNodeResult(tsk)
+	resp, err := c.getCheckNodesResult(tsk)
+	return resp, err
 }
 
 func (c *controller) GetCheckNodesLog(ctx context.Context, req *pb.GetCheckNodesLogRequest) (*pb.GetCheckNodesLogReply, error) {
-	// To be implmented
-	return nil, nil
+	logrus.Info("Begins GetCheckNodesLog request")
+
+	var err error
+	defer func() {
+		if err != nil {
+			logrus.Errorf("Failed to reply GetCheckNodesLog request, error: %v", err)
+		} else {
+			logrus.Info("Succeeded to reply GetCheckNodesLog request.")
+		}
+	}()
+
+	tsk, err := c.getTask(getCheckNodeTaskName())
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.getCheckNodesLog(tsk, req.NodeName)
+	return resp, err
 }
 
 func (c *controller) Deploy(ctx context.Context, req *pb.DeployRequest) (*pb.DeployReply, error) {
