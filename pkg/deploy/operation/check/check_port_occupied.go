@@ -35,22 +35,28 @@ type CheckPortOccupiedOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckPortOccupiedOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 	ops := &CheckPortOccupiedOperation{}
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ckops.Machine = m
 
+	// close ssh client if machine is not nil
+	if ckops.Machine != nil {
+		defer ckops.Machine.Close()
+	}
+
 	scriptFile, err := assets.Assets.Open(portOccupiedScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, checkRemoteScriptPath+portOccupiedScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// bash script should run as `bash /script/check_port_occupied.sh <role1,role2>` which directly return ports split by comma
@@ -60,20 +66,20 @@ func (ckops *CheckPortOccupiedOperation) GetOperations(config *pb.NodeCheckConfi
 	}
 
 	if roles == "" {
-		return nil, fmt.Errorf("roles can not be empty")
+		return nil, nil, fmt.Errorf("roles can not be empty")
 	}
 	roles = strings.TrimRight(roles, ",")
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", checkRemoteScriptPath+portOccupiedScript, roles)))
 
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckPortOccupiedOperation) CloseSSH() {
-	if ckops.Machine != nil {
-		ckops.Machine.Close()
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("check port occupied command is empty")
 	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }
 
 // check if port is occupied

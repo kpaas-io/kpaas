@@ -37,23 +37,30 @@ type CheckDistributionOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckDistributionOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckDistributionOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 	ops := &CheckDistributionOperation{}
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'"))
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckDistributionOperation) CloseSSH() {
+	// close ssh client if machine is not nil
 	if ckops.Machine != nil {
-		ckops.Machine.Close()
+		defer ckops.Machine.Close()
 	}
+
+	ops.AddCommands(command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'"))
+
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("check system distribution command is empty")
+	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }
 
 // check if system distribution can be supported

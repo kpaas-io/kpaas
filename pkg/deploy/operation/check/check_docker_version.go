@@ -15,6 +15,8 @@
 package check
 
 import (
+	"fmt"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -27,23 +29,31 @@ type CheckDockerOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckDockerOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 	ops := &CheckDockerOperation{}
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'"))
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckDockerOperation) CloseSSH() {
+	// close ssh client if machine is not nil
 	if ckops.Machine != nil {
-		ckops.Machine.Close()
+		defer ckops.Machine.Close()
 	}
+
+	// construct command for check docker
+	ops.AddCommands(command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'"))
+
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("check docker command is empty")
+	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }
 
 // check docker version if version larger or equal than standard version

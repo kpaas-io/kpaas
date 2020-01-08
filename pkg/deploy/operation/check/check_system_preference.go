@@ -15,6 +15,8 @@
 package check
 
 import (
+	"fmt"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -32,26 +34,40 @@ type CheckSysPrefOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckSysPrefOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 	ops := &CheckSysPrefOperation{}
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ckops.Machine = m
 
+	// close ssh client if machine is not nil
+	if ckops.Machine != nil {
+		defer ckops.Machine.Close()
+	}
+
 	scriptFile, err := assets.Assets.Open(sysPrefScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, checkRemoteScriptPath+sysPrefScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	ops.AddCommands(command.NewShellCommand(m, "bash", checkRemoteScriptPath+sysPrefScript))
-	return ops, nil
+
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("check system preference command is empty")
+	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }
 
 // close ssh client

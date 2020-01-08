@@ -15,14 +15,12 @@
 package check
 
 import (
+	"fmt"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-)
-
-const (
-	rootDiskScript = "/scripts/check_root_disk_volume.sh"
 )
 
 type CheckRootDiskOperation struct {
@@ -31,23 +29,30 @@ type CheckRootDiskOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckRootDiskOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 	ops := &CheckRootDiskOperation{}
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'"))
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckRootDiskOperation) CloseSSH() {
+	// close ssh client if machine is not nil
 	if ckops.Machine != nil {
-		ckops.Machine.Close()
+		defer ckops.Machine.Close()
 	}
+
+	ops.AddCommands(command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'"))
+
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("check root disk command is empty")
+	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }
 
 // check if root disk volume satisfied with desired disk volume

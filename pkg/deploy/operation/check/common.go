@@ -16,7 +16,6 @@ package check
 
 import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -33,8 +32,7 @@ type CheckOperations struct {
 }
 
 type CheckAction interface {
-	GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error)
-	CloseSSH()
+	CreateCommandAndRun(config *pb.NodeCheckConfig) ([]byte, []byte, error)
 }
 
 const (

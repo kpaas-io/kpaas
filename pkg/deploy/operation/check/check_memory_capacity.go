@@ -15,6 +15,8 @@
 package check
 
 import (
+	"fmt"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -27,23 +29,30 @@ type CheckMemoryOperation struct {
 	Machine machine.IMachine
 }
 
-func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
+func (ckops *CheckMemoryOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 	ops := &CheckMemoryOperation{}
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "free", "-b | awk '/Mem/{print $2}'"))
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckMemoryOperation) CloseSSH() {
+	// close ssh client if machine is not nil
 	if ckops.Machine != nil {
-		ckops.Machine.Close()
+		defer ckops.Machine.Close()
 	}
+
+	ops.AddCommands(command.NewShellCommand(m, "free", "-b | awk '/Mem/{print $2}'"))
+
+	if len(ops.Commands) == 0 {
+		return nil, nil, fmt.Errorf("check memory command is empty")
+	}
+
+	// run commands
+	stdOut, stdErr, err = ops.Do()
+
+	return
 }
 
 // check if memory capacity satisfied with minimal requirement
