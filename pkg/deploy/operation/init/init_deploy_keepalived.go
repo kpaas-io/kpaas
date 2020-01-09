@@ -52,7 +52,6 @@ func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 
 type InitKeepalivedOperation struct {
 	operation.BaseOperation
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
@@ -63,12 +62,11 @@ func (itOps *InitKeepalivedOperation) RunCommands(node *pb.Node, initAction *ope
 		return nil, nil, err
 	}
 
-	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
 	// close ssh client if machine is not nil
-	if itOps.Machine != nil {
-		defer itOps.Machine.Close()
+	if m != nil {
+		defer m.Close()
 	}
 
 	// acquire floating IP for keepalived
@@ -130,10 +128,6 @@ func (itOps *InitKeepalivedOperation) RunCommands(node *pb.Node, initAction *ope
 	}
 
 	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", operation.InitRemoteScriptPath+keepalivedScript, floatingIP, floatingEthernet)))
-
-	if len(itOps.Commands) == 0 {
-		return nil, nil, fmt.Errorf("init deploy keepalived command is empty")
-	}
 
 	// run commands
 	stdOut, stdErr, err = itOps.Do()

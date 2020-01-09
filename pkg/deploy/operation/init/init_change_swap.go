@@ -15,8 +15,6 @@
 package init
 
 import (
-	"fmt"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -30,7 +28,6 @@ const (
 
 type InitSwapOperation struct {
 	operation.BaseOperation
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
@@ -41,12 +38,11 @@ func (itOps *InitSwapOperation) RunCommands(node *pb.Node, initAction *operation
 		return nil, nil, err
 	}
 
-	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
 	// close ssh client if machine is not nil
-	if itOps.Machine != nil {
-		defer itOps.Machine.Close()
+	if m != nil {
+		defer m.Close()
 	}
 
 	scriptFile, err := assets.Assets.Open(swapScript)
@@ -60,10 +56,6 @@ func (itOps *InitSwapOperation) RunCommands(node *pb.Node, initAction *operation
 	}
 
 	itOps.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+swapScript))
-
-	if len(itOps.Commands) == 0 {
-		return nil, nil, fmt.Errorf("init swap command is empty")
-	}
 
 	// run commands
 	stdOut, stdErr, err = itOps.Do()

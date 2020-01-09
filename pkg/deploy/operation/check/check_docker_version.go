@@ -15,8 +15,6 @@
 package check
 
 import (
-	"fmt"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -25,7 +23,6 @@ import (
 
 type CheckDockerOperation struct {
 	operation.BaseOperation
-	Machine machine.IMachine
 }
 
 func (ckops *CheckDockerOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
@@ -34,19 +31,14 @@ func (ckops *CheckDockerOperation) RunCommands(config *pb.NodeCheckConfig) (stdO
 	if err != nil {
 		return nil, nil, err
 	}
-	ckops.Machine = m
 
 	// close ssh client if machine is not nil
-	if ckops.Machine != nil {
-		defer ckops.Machine.Close()
+	if m != nil {
+		defer m.Close()
 	}
 
 	// construct command for check docker
 	ckops.AddCommands(command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'"))
-
-	if len(ckops.Commands) == 0 {
-		return nil, nil, fmt.Errorf("check docker command is empty")
-	}
 
 	// run commands
 	stdOut, stdErr, err = ckops.Do()

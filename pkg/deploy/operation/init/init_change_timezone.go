@@ -29,7 +29,6 @@ const (
 
 type InitTimeZoneOperation struct {
 	operation.BaseOperation
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
@@ -40,19 +39,14 @@ func (itOps *InitTimeZoneOperation) RunCommands(node *pb.Node, initAction *opera
 		return nil, nil, err
 	}
 
-	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
 	// close ssh client if machine is not nil
-	if itOps.Machine != nil {
-		defer itOps.Machine.Close()
+	if m != nil {
+		defer m.Close()
 	}
 
 	itOps.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
-
-	if len(itOps.Commands) == 0 {
-		return nil, nil, fmt.Errorf("init timezone command is empty")
-	}
 
 	// run commands
 	stdOut, stdErr, err = itOps.Do()

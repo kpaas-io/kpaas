@@ -15,8 +15,6 @@
 package check
 
 import (
-	"fmt"
-
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -25,7 +23,6 @@ import (
 
 type CheckMemoryOperation struct {
 	operation.BaseOperation
-	Machine machine.IMachine
 }
 
 func (ckops *CheckMemoryOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
@@ -34,18 +31,13 @@ func (ckops *CheckMemoryOperation) RunCommands(config *pb.NodeCheckConfig) (stdO
 	if err != nil {
 		return nil, nil, err
 	}
-	ckops.Machine = m
 
 	// close ssh client if machine is not nil
-	if ckops.Machine != nil {
-		defer ckops.Machine.Close()
+	if m != nil {
+		defer m.Close()
 	}
 
 	ckops.AddCommands(command.NewShellCommand(m, "free", "-b | awk '/Mem/{print $2}'"))
-
-	if len(ckops.Commands) == 0 {
-		return nil, nil, fmt.Errorf("check memory command is empty")
-	}
 
 	// run commands
 	stdOut, stdErr, err = ckops.Do()

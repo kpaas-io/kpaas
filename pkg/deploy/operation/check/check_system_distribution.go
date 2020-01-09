@@ -33,7 +33,6 @@ const (
 
 type CheckDistributionOperation struct {
 	operation.BaseOperation
-	Machine machine.IMachine
 }
 
 func (ckops *CheckDistributionOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
@@ -42,18 +41,13 @@ func (ckops *CheckDistributionOperation) RunCommands(config *pb.NodeCheckConfig)
 	if err != nil {
 		return nil, nil, err
 	}
-	ckops.Machine = m
 
 	// close ssh client if machine is not nil
-	if ckops.Machine != nil {
-		defer ckops.Machine.Close()
+	if m != nil {
+		defer m.Close()
 	}
 
 	ckops.AddCommands(command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'"))
-
-	if len(ckops.Commands) == 0 {
-		return nil, nil, fmt.Errorf("check system distribution command is empty")
-	}
 
 	// run commands
 	stdOut, stdErr, err = ckops.Do()

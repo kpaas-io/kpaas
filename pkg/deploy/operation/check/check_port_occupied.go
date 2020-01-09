@@ -31,7 +31,6 @@ const (
 
 type CheckPortOccupiedOperation struct {
 	operation.BaseOperation
-	Machine machine.IMachine
 }
 
 func (ckops *CheckPortOccupiedOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
@@ -40,11 +39,10 @@ func (ckops *CheckPortOccupiedOperation) RunCommands(config *pb.NodeCheckConfig)
 	if err != nil {
 		return nil, nil, err
 	}
-	ckops.Machine = m
 
 	// close ssh client if machine is not nil
-	if ckops.Machine != nil {
-		defer ckops.Machine.Close()
+	if m != nil {
+		defer m.Close()
 	}
 
 	scriptFile, err := assets.Assets.Open(portOccupiedScript)
@@ -69,10 +67,6 @@ func (ckops *CheckPortOccupiedOperation) RunCommands(config *pb.NodeCheckConfig)
 	roles = strings.TrimRight(roles, ",")
 
 	ckops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", checkRemoteScriptPath+portOccupiedScript, roles)))
-
-	if len(ckops.Commands) == 0 {
-		return nil, nil, fmt.Errorf("check port occupied command is empty")
-	}
 
 	// run commands
 	stdOut, stdErr, err = ckops.Do()

@@ -31,7 +31,6 @@ import (
 
 type InitKubeToolOperation struct {
 	operation.BaseOperation
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
@@ -55,12 +54,11 @@ func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *opera
 		return nil, nil, err
 	}
 
-	itOps.Machine = m
 	itOps.NodeInitAction = initAction
 
 	// close ssh client if machine is not nil
-	if itOps.Machine != nil {
-		defer itOps.Machine.Close()
+	if m != nil {
+		defer m.Close()
 	}
 
 	// copy init_deploy_kubetool.sh to target machine
@@ -89,17 +87,9 @@ func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *opera
 	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		pkgMirrorUrl)))
 
-	if len(itOps.Commands) == 0 {
-		return nil, nil, fmt.Errorf("setup repos command is empty")
-	}
-
 	// install kubelet, kubeadm, kubectl
 	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		kubernetesVersion, imageRepository, clusterDNSIP, nodeIp)))
-
-	if len(itOps.Commands) == 0 {
-		return nil, nil, fmt.Errorf("init deploy kubetool command is empty")
-	}
 
 	// run commands
 	stdOut, stdErr, err = itOps.Do()
