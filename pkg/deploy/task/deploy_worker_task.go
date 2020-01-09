@@ -62,7 +62,7 @@ func NewDeployWorkerTask(taskName string, taskConfig *DeployWorkerTaskConfig) (T
 			CreationTimestamp:   time.Now(),
 			Priority:            taskConfig.Priority,
 			Parent:              taskConfig.Parent,
-			FailureCanbeIgnored: true,
+			FailureCanBeIgnored: true,
 		},
 		Nodes:       taskConfig.Nodes,
 		Cluster:     taskConfig.ClusterConfig,

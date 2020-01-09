@@ -41,10 +41,10 @@ type Task interface {
 	GetPriority() int
 	// If a task is not a sub task, this will return ""
 	GetParent() string
-	// FailureCanbeIgnored indicate whether the failure of the task can be ingnored, if yes,
+	// FailureCanBeIgnored indicate whether the failure of the task can be ingnored, if yes,
 	// the task's failure will not affect other task's execution.
-	GetFailureCanbeIgnored() bool
-	SetFailureCanbeIgnored(bool)
+	GetFailureCanBeIgnored() bool
+	SetFailureCanBeIgnored(bool)
 }
 
 // Type represents the type of a task
@@ -73,7 +73,7 @@ type Base struct {
 	SubTasks            []Task
 	Priority            int
 	Parent              string
-	FailureCanbeIgnored bool
+	FailureCanBeIgnored bool
 }
 
 func (b *Base) GetName() string {
@@ -128,12 +128,12 @@ func (b *Base) GetParent() string {
 	return b.Parent
 }
 
-func (b *Base) GetFailureCanbeIgnored() bool {
-	return b.FailureCanbeIgnored
+func (b *Base) GetFailureCanBeIgnored() bool {
+	return b.FailureCanBeIgnored
 }
 
-func (b *Base) SetFailureCanbeIgnored(val bool) {
-	b.FailureCanbeIgnored = val
+func (b *Base) SetFailureCanBeIgnored(val bool) {
+	b.FailureCanBeIgnored = val
 }
 
 // GenTaskLogFileDir is a helper to return the log file dir based on base path and task name

@@ -249,7 +249,7 @@ func executeSubTasks(t Task) error {
 		// If any sub task in the current task group was failed and its failure can't be ignored,
 		// stop to execut other task groups and return.
 		for _, aSubTask := range taskGp {
-			if aSubTask.GetStatus() != TaskSuccessful && !aSubTask.GetFailureCanbeIgnored() {
+			if aSubTask.GetStatus() != TaskSuccessful && !aSubTask.GetFailureCanBeIgnored() {
 				return fmt.Errorf("[%s] sub task was failed", aSubTask.GetName())
 			}
 		}

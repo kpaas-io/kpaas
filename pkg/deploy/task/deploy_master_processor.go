@@ -71,7 +71,7 @@ func (p *deployMasterProcessor) ProcessStatus(t Task) error {
 	for _, subTask := range t.GetSubTasks() {
 		if _, ok := subTask.(*InitMasterTask); ok && subTask.GetStatus() == TaskSuccessful {
 			// If init-master sub task is successful, we can ignore join-master sub task's failure
-			t.SetFailureCanbeIgnored(true)
+			t.SetFailureCanBeIgnored(true)
 			break
 		}
 	}
