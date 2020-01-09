@@ -64,7 +64,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		return "", initItemReport, fmt.Errorf("fail to construct init %v operation for node %v: ", item, action.Node.Name)
 	}
 
-	stdOut, stdErr, err := initItem.CreateCommandAndRun(action.Node, initAction)
+	stdOut, stdErr, err := initItem.RunCommands(action.Node, initAction)
 	if err != nil {
 		logger.Errorf("can not execute init %v operation command, err: %v", item, err)
 		initItemReport.Status = ItemFailed

@@ -31,12 +31,10 @@ const (
 
 type CheckPortOccupiedOperation struct {
 	operation.BaseOperation
-	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckPortOccupiedOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
-	ops := &CheckPortOccupiedOperation{}
+func (ckops *CheckPortOccupiedOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -70,14 +68,14 @@ func (ckops *CheckPortOccupiedOperation) CreateCommandAndRun(config *pb.NodeChec
 	}
 	roles = strings.TrimRight(roles, ",")
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", checkRemoteScriptPath+portOccupiedScript, roles)))
+	ckops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", checkRemoteScriptPath+portOccupiedScript, roles)))
 
-	if len(ops.Commands) == 0 {
+	if len(ckops.Commands) == 0 {
 		return nil, nil, fmt.Errorf("check port occupied command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = ckops.Do()
 
 	return
 }

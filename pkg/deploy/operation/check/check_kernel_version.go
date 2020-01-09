@@ -25,12 +25,10 @@ import (
 
 type CheckKernelOperation struct {
 	operation.BaseOperation
-	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckKernelOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
-	ops := &CheckKernelOperation{}
+func (ckops *CheckKernelOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -43,14 +41,14 @@ func (ckops *CheckKernelOperation) CreateCommandAndRun(config *pb.NodeCheckConfi
 		defer ckops.Machine.Close()
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "uname", "-r"))
+	ckops.AddCommands(command.NewShellCommand(m, "uname", "-r"))
 
-	if len(ops.Commands) == 0 {
+	if len(ckops.Commands) == 0 {
 		return nil, nil, fmt.Errorf("check kernel command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = ckops.Do()
 
 	return
 }

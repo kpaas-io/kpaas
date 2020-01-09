@@ -16,6 +16,7 @@ package init
 
 import (
 	"fmt"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -29,13 +30,11 @@ const (
 
 type InitHostaliasOperation struct {
 	operation.BaseOperation
-	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHostaliasOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
-	ops := &InitHostaliasOperation{}
+func (itOps *InitHostaliasOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
@@ -60,14 +59,14 @@ func (itOps *InitHostaliasOperation) CreateCommandAndRun(node *pb.Node, initActi
 		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+hostAliasScript))
+	itOps.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+hostAliasScript))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("init host alias command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = itOps.Do()
 
 	return
 }

@@ -30,13 +30,12 @@ const (
 
 type InitSwapOperation struct {
 	operation.BaseOperation
-	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitSwapOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
-	ops := &InitSwapOperation{}
+func (itOps *InitSwapOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, nil, err
@@ -60,14 +59,14 @@ func (itOps *InitSwapOperation) CreateCommandAndRun(node *pb.Node, initAction *o
 		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+swapScript))
+	itOps.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+swapScript))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("init swap command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = itOps.Do()
 
 	return
 }

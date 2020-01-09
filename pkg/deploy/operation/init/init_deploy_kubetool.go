@@ -31,12 +31,11 @@ import (
 
 type InitKubeToolOperation struct {
 	operation.BaseOperation
-	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKubeToolOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	var imageRepository string
 	var clusterDNSIP string
@@ -50,8 +49,6 @@ func (itOps *InitKubeToolOperation) CreateCommandAndRun(node *pb.Node, initActio
 
 	// we would use initAction's image repository in the future
 	imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
-
-	ops := &InitKubeToolOperation{}
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
@@ -89,23 +86,23 @@ func (itOps *InitKubeToolOperation) CreateCommandAndRun(node *pb.Node, initActio
 	}
 
 	// setup repos
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
+	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		pkgMirrorUrl)))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("setup repos command is empty")
 	}
 
 	// install kubelet, kubeadm, kubectl
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
+	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		kubernetesVersion, imageRepository, clusterDNSIP, nodeIp)))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("init deploy kubetool command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = itOps.Do()
 
 	return
 }

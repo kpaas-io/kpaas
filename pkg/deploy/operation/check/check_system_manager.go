@@ -25,12 +25,10 @@ import (
 
 type CheckSystemManagerOperation struct {
 	operation.BaseOperation
-	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckSystemManagerOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
-	ops := &CheckSystemManagerOperation{}
+func (ckops *CheckSystemManagerOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -43,14 +41,14 @@ func (ckops *CheckSystemManagerOperation) CreateCommandAndRun(config *pb.NodeChe
 		defer ckops.Machine.Close()
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "ps", "-p 1 | awk /1/'{print $4}'"))
+	ckops.AddCommands(command.NewShellCommand(m, "ps", "-p 1 | awk /1/'{print $4}'"))
 
-	if len(ops.Commands) == 0 {
+	if len(ckops.Commands) == 0 {
 		return nil, nil, fmt.Errorf("check system manager command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = ckops.Do()
 
 	return
 }

@@ -30,13 +30,11 @@ const (
 
 type InitFireWallOperation struct {
 	operation.BaseOperation
-	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitFireWallOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
-	ops := &InitFireWallOperation{}
+func (itOps *InitFireWallOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
@@ -61,13 +59,13 @@ func (itOps *InitFireWallOperation) CreateCommandAndRun(node *pb.Node, initActio
 		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+fireWallScript))
+	itOps.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+fireWallScript))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("init firewall command is empty")
 	}
 
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = itOps.Do()
 
 	return
 }

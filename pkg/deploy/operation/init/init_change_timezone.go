@@ -29,13 +29,11 @@ const (
 
 type InitTimeZoneOperation struct {
 	operation.BaseOperation
-	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitTimeZoneOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
-	ops := &InitTimeZoneOperation{}
+func (itOps *InitTimeZoneOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
@@ -50,14 +48,14 @@ func (itOps *InitTimeZoneOperation) CreateCommandAndRun(node *pb.Node, initActio
 		defer itOps.Machine.Close()
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
+	itOps.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("init timezone command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = itOps.Do()
 
 	return
 }

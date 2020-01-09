@@ -86,6 +86,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 	checkItems := check.NewCheckOperations().CreateOperations(item)
 	if checkItems == nil {
 		checkItemReport.Status = ItemFailed
+		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = ItemErrEmpty
 		checkItemReport.Err.Detail = ItemErrEmpty
 		checkItemReport.Err.FixMethods = ItemHelperEmpty
@@ -93,7 +94,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 	}
 
 	// create command and run on remote node
-	stdOut, stdErr, err := checkItems.CreateCommandAndRun(config)
+	stdOut, stdErr, err := checkItems.RunCommands(config)
 	if err != nil {
 		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)

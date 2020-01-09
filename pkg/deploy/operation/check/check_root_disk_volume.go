@@ -25,12 +25,10 @@ import (
 
 type CheckRootDiskOperation struct {
 	operation.BaseOperation
-	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckRootDiskOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
-	ops := &CheckRootDiskOperation{}
+func (ckops *CheckRootDiskOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -43,14 +41,14 @@ func (ckops *CheckRootDiskOperation) CreateCommandAndRun(config *pb.NodeCheckCon
 		defer ckops.Machine.Close()
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'"))
+	ckops.AddCommands(command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'"))
 
-	if len(ops.Commands) == 0 {
+	if len(ckops.Commands) == 0 {
 		return nil, nil, fmt.Errorf("check root disk command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = ckops.Do()
 
 	return
 }

@@ -52,13 +52,11 @@ func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 
 type InitKeepalivedOperation struct {
 	operation.BaseOperation
-	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKeepalivedOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
-	ops := &InitKeepalivedOperation{}
+func (itOps *InitKeepalivedOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
@@ -131,14 +129,14 @@ func (itOps *InitKeepalivedOperation) CreateCommandAndRun(node *pb.Node, initAct
 		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", operation.InitRemoteScriptPath+keepalivedScript, floatingIP, floatingEthernet)))
+	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", operation.InitRemoteScriptPath+keepalivedScript, floatingIP, floatingEthernet)))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("init deploy keepalived command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = itOps.Do()
 
 	return
 }

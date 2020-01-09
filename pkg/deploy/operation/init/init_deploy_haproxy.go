@@ -58,14 +58,11 @@ func CheckHaproxyParameter(ipAddresses ...string) error {
 
 type InitHaproxyOperation struct {
 	operation.BaseOperation
-	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHaproxyOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
-
-	ops := &InitHaproxyOperation{}
+func (itOps *InitHaproxyOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
@@ -135,14 +132,14 @@ func (itOps *InitHaproxyOperation) CreateCommandAndRun(node *pb.Node, initAction
 		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -u '%v' haproxy run", operation.InitRemoteScriptPath+haproxyScript, haproxyStr)))
+	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -u '%v' haproxy run", operation.InitRemoteScriptPath+haproxyScript, haproxyStr)))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("init deploy haproxy command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = itOps.Do()
 
 	return
 }

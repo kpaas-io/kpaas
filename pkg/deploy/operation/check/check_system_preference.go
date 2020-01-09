@@ -30,12 +30,10 @@ const (
 
 type CheckSysPrefOperation struct {
 	operation.BaseOperation
-	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckSysPrefOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
-	ops := &CheckSysPrefOperation{}
+func (ckops *CheckSysPrefOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -58,21 +56,14 @@ func (ckops *CheckSysPrefOperation) CreateCommandAndRun(config *pb.NodeCheckConf
 		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", checkRemoteScriptPath+sysPrefScript))
+	ckops.AddCommands(command.NewShellCommand(m, "bash", checkRemoteScriptPath+sysPrefScript))
 
-	if len(ops.Commands) == 0 {
+	if len(ckops.Commands) == 0 {
 		return nil, nil, fmt.Errorf("check system preference command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = ckops.Do()
 
 	return
-}
-
-// close ssh client
-func (ckops *CheckSysPrefOperation) CloseSSH() {
-	if ckops.Machine != nil {
-		ckops.Machine.Close()
-	}
 }

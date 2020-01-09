@@ -25,12 +25,10 @@ import (
 
 type CheckDockerOperation struct {
 	operation.BaseOperation
-	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckDockerOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
-	ops := &CheckDockerOperation{}
+func (ckops *CheckDockerOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -44,14 +42,14 @@ func (ckops *CheckDockerOperation) CreateCommandAndRun(config *pb.NodeCheckConfi
 	}
 
 	// construct command for check docker
-	ops.AddCommands(command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'"))
+	ckops.AddCommands(command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'"))
 
-	if len(ops.Commands) == 0 {
+	if len(ckops.Commands) == 0 {
 		return nil, nil, fmt.Errorf("check docker command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = ckops.Do()
 
 	return
 }

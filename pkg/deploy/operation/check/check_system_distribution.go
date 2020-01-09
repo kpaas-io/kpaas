@@ -33,12 +33,10 @@ const (
 
 type CheckDistributionOperation struct {
 	operation.BaseOperation
-	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckDistributionOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
-	ops := &CheckDistributionOperation{}
+func (ckops *CheckDistributionOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -51,14 +49,14 @@ func (ckops *CheckDistributionOperation) CreateCommandAndRun(config *pb.NodeChec
 		defer ckops.Machine.Close()
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'"))
+	ckops.AddCommands(command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'"))
 
-	if len(ops.Commands) == 0 {
+	if len(ckops.Commands) == 0 {
 		return nil, nil, fmt.Errorf("check system distribution command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = ckops.Do()
 
 	return
 }

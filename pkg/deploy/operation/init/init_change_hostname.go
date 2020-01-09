@@ -25,13 +25,12 @@ import (
 
 type InitHostNameOperation struct {
 	operation.BaseOperation
-	InitOperations
 	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHostNameOperation) CreateCommandAndRun(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
-	ops := &InitHostNameOperation{}
+func (itOps *InitHostNameOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, nil, err
@@ -50,14 +49,14 @@ func (itOps *InitHostNameOperation) CreateCommandAndRun(node *pb.Node, initActio
 		return nil, nil, fmt.Errorf("node name can not be empty")
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "hostnamectl", fmt.Sprintf("set-hostname %v", currentName)))
+	itOps.AddCommands(command.NewShellCommand(m, "hostnamectl", fmt.Sprintf("set-hostname %v", currentName)))
 
-	if len(ops.Commands) == 0 {
+	if len(itOps.Commands) == 0 {
 		return nil, nil, fmt.Errorf("init host alias command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = itOps.Do()
 
 	return
 }

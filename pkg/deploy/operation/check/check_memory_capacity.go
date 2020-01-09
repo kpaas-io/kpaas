@@ -25,12 +25,10 @@ import (
 
 type CheckMemoryOperation struct {
 	operation.BaseOperation
-	CheckOperations
 	Machine machine.IMachine
 }
 
-func (ckops *CheckMemoryOperation) CreateCommandAndRun(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
-	ops := &CheckMemoryOperation{}
+func (ckops *CheckMemoryOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -43,14 +41,14 @@ func (ckops *CheckMemoryOperation) CreateCommandAndRun(config *pb.NodeCheckConfi
 		defer ckops.Machine.Close()
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "free", "-b | awk '/Mem/{print $2}'"))
+	ckops.AddCommands(command.NewShellCommand(m, "free", "-b | awk '/Mem/{print $2}'"))
 
-	if len(ops.Commands) == 0 {
+	if len(ckops.Commands) == 0 {
 		return nil, nil, fmt.Errorf("check memory command is empty")
 	}
 
 	// run commands
-	stdOut, stdErr, err = ops.Do()
+	stdOut, stdErr, err = ckops.Do()
 
 	return
 }
