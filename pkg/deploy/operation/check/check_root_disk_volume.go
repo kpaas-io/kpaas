@@ -21,33 +21,28 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	rootDiskScript = "/scripts/check_root_disk_volume.sh"
-)
-
 type CheckRootDiskOperation struct {
 	operation.BaseOperation
-	CheckOperations
-	Machine machine.IMachine
 }
 
-func (ckops *CheckRootDiskOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckRootDiskOperation{}
+func (ckops *CheckRootDiskOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'"))
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckRootDiskOperation) CloseSSH() {
-	if ckops.Machine != nil {
-		ckops.Machine.Close()
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
 	}
+
+	ckops.AddCommands(command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'"))
+
+	// run commands
+	stdOut, stdErr, err = ckops.Do()
+
+	return
 }
 
 // check if root disk volume satisfied with desired disk volume

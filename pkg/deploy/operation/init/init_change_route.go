@@ -28,36 +28,37 @@ const (
 
 type InitRouteOperation struct {
 	operation.BaseOperation
-	InitOperations
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitRouteOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
-	ops := &InitRouteOperation{}
+func (itOps *InitRouteOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	itOps.Machine = m
+
 	itOps.NodeInitAction = initAction
+
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
+	}
 
 	scriptFile, err := assets.Assets.Open(routeScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+routeScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+routeScript))
-	return ops, nil
-}
+	itOps.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+routeScript))
 
-func (itOps *InitRouteOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
-	}
+	// run commands
+	stdOut, stdErr, err = itOps.Do()
+
+	return
 }

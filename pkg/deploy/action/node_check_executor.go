@@ -58,12 +58,11 @@ const (
 	lowestDiskVolumeByteBase         float64 = 50
 
 	ItemErrEmpty     = "empty parameter"
-	ItemErrOperation = "failed to generate operations"
+	ItemErrOperation = "failed to build or run script"
 	ItemErrScript    = "invalid script"
 
 	ItemHelperEmpty     = "please input suitable check item"
-	ItemHelperOperation = "please check your operations"
-	ItemHelperScript    = "please check your script"
+	ItemHelperOperation = "please check your operation or script"
 
 	CheckPassed = "check passed"
 	CheckFailed = "check failed"
@@ -81,10 +80,7 @@ type nodeCheckExecutor struct {
 // due to items, ItemsCheckScripts exec remote scripts and return std, report, error
 func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkItemReport *NodeCheckItem) (string, *NodeCheckItem, error) {
 
-	checkItemReport = &NodeCheckItem{
-		Name:        fmt.Sprintf("check %v", item),
-		Description: fmt.Sprintf("检查 %v 环境", item),
-	}
+	checkItemReport = newNodeCheckItem(item)
 
 	// create item operation
 	checkItems := check.NewCheckOperations().CreateOperations(item)
@@ -94,43 +90,30 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Err.Reason = ItemErrEmpty
 		checkItemReport.Err.Detail = ItemErrEmpty
 		checkItemReport.Err.FixMethods = ItemHelperEmpty
-		return "", checkItemReport, fmt.Errorf("fail to construct %v operation", item)
+		return "", checkItemReport, fmt.Errorf("fail to construct check %v operation", item)
 	}
 
-	// close ssh client
-	defer checkItems.CloseSSH()
-
-	// create operation commands for specific item
-	op, err := checkItems.GetOperations(config)
+	// create command and run on remote node
+	stdOut, stdErr, err := checkItems.RunCommands(config)
 	if err != nil {
 		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = ItemErrOperation
-		checkItemReport.Err.Detail = err.Error()
+		checkItemReport.Err.Detail = fmt.Sprintf("stdErr: %v, err: %v", stdErr, err.Error())
 		checkItemReport.Err.FixMethods = ItemHelperOperation
-		return "", checkItemReport, fmt.Errorf("fail to construct %v commands", item)
-	}
-
-	// exec operations commands
-	stdOut, stdErr, err := op.Do()
-	if err != nil {
-		checkItemReport.Status = ItemFailed
-		checkItemReport.Err = new(pb.Error)
-		checkItemReport.Err.Reason = ItemErrScript
-		checkItemReport.Err.Detail = string(stdErr)
-		checkItemReport.Err.FixMethods = ItemHelperScript
-		return "", checkItemReport, fmt.Errorf("fail to run %v commands", item)
+		return "", checkItemReport, fmt.Errorf("fail to run check %v scripts", item)
 	}
 
 	checkItemStdOut := strings.Trim(string(stdOut), "\n")
 	return checkItemStdOut, checkItemReport, nil
 }
 
-func newNodeCheckItem() *NodeCheckItem {
+func newNodeCheckItem(item check.ItemEnum) *NodeCheckItem {
 
 	return &NodeCheckItem{
-		Status: ItemPending,
-		Err:    &pb.Error{},
+		Status:      ItemDoing,
+		Name:        fmt.Sprintf("check %v", item),
+		Description: fmt.Sprintf("检查 %v 环境", item),
 	}
 }
 
@@ -144,8 +127,8 @@ func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logger.Debug("Start to execute check docker")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.Docker)
+
 	comparedDockerVersion, checkItemReport, err := ExecuteCheckScript(check.Docker, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
 		logger.Errorf("check docker failed, err: %v", err)
@@ -155,10 +138,10 @@ func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	err = check.CheckDockerVersion(comparedDockerVersion, desiredDockerVersion, ">")
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "docker version too low"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprintf("please upgrade docker version to %v+", desiredDockerVersion)
 	} else {
 		logger.Debug(CheckPassed)
@@ -182,8 +165,8 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logrus.Debug("Start to execute check cpu")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.CPU)
+
 	cpuCore, checkItemReport, err := ExecuteCheckScript(check.CPU, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
 		logger.Errorf("check cpu failed, err: %v", err)
@@ -210,10 +193,10 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	err = check.CheckCPUNums(cpuCore, desiredCPUCore)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "cpu cores not enough"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize cpu cores to %v", desiredCPUCore)
 	} else {
 		logger.Debug(CheckPassed)
@@ -237,8 +220,8 @@ func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logrus.Debug("Start to execute check kernel")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.Kernel)
+
 	kernelVersion, checkItemReport, err := ExecuteCheckScript(check.Kernel, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
 		logger.Errorf("check kernel failed, err: %v", err)
@@ -248,10 +231,10 @@ func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	err = check.CheckKernelVersion(kernelVersion, desiredKernelVersion, ">")
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "kernel version too low"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize kernel version to %v", desiredKernelVersion)
 	} else {
 		logger.Debug(CheckPassed)
@@ -275,8 +258,8 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logrus.Debug("Start to execute check memory")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.Memory)
+
 	memoryCap, checkItemReport, err := ExecuteCheckScript(check.Memory, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
 		logger.Errorf("check memory failed, err: %v", err)
@@ -304,10 +287,10 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	err = check.CheckMemoryCapacity(memoryCap, desiredMemory)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "memory capacity not enough"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize memory capacity to %v", deploy.ReturnWithUnit(desiredMemory))
 	} else {
 		logger.Debug(CheckPassed)
@@ -332,8 +315,8 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logrus.Debug("Start to execute check disk volume")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.Disk)
+
 	rootDiskVolume, checkItemReport, err := ExecuteCheckScript(check.Disk, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
 		logger.Errorf("check root disk failed, err: %v", err)
@@ -361,10 +344,10 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	err = check.CheckRootDiskVolume(rootDiskVolume, desiredRootDiskVolume)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "root disk volume is not enough"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprintf("please optimize root disk volume to %s", deploy.ReturnWithUnit(desiredRootDiskVolume))
 	} else {
 		logger.Debug(CheckPassed)
@@ -388,8 +371,8 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logrus.Debug("Start to execute check distro")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.Distribution)
+
 	disName, checkItemReport, err := ExecuteCheckScript(check.Distribution, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
 		logger.Errorf("check distro failed, err: %v", err)
@@ -400,10 +383,10 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	err = check.CheckSystemDistribution(disName)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system distribution is not supported"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprintf("please change suitable distribution to %v", systemDistributions)
 	} else {
 		logger.Debug(CheckPassed)
@@ -427,16 +410,15 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logrus.Debug("Start to execute check system preference")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.SystemPreference)
+
 	_, checkItemReport, err := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
-		logger.Errorf("check system preference failed, err: %v", err)
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system preference is not supported"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprint("please modify system preference")
 	} else {
 		logger.Debug(CheckPassed)
@@ -460,8 +442,8 @@ func CheckSysManagerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logrus.Debug("Start to execute check system manager")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.SystemManager)
+
 	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemManager, ncAction.NodeCheckConfig, checkItemReport)
 	if err != nil {
 		logger.Errorf("check system manager failed, err: %v", err)
@@ -471,10 +453,10 @@ func CheckSysManagerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	err = check.CheckSystemManager(systemManager, desiredSystemManager)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "system manager is not clear"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprint("please check system manager is systemd")
 	} else {
 		logger.Debug(CheckPassed)
@@ -498,8 +480,8 @@ func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 
 	logrus.Debug("Start to execute check port occupied")
 
-	checkItemReport := newNodeCheckItem()
-	checkItemReport.Status = ItemDoing
+	checkItemReport := newNodeCheckItem(check.PortOccupied)
+
 	portOccupied, checkItemReport, err := ExecuteCheckScript(check.PortOccupied, ncAction.NodeCheckConfig, checkItemReport)
 
 	// trim can be done whatever error occurs
@@ -512,10 +494,10 @@ func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 	portResult, err := check.CheckPortOccupied(portOccupied)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
+		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = "port occupied check failed"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Status = ItemFailed
 		checkItemReport.Err.FixMethods = fmt.Sprintf("please close the process which occupied port: %v", portResult)
 	} else {
 		logger.Debug(CheckPassed)

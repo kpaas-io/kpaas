@@ -29,26 +29,27 @@ const (
 
 type InitTimeZoneOperation struct {
 	operation.BaseOperation
-	InitOperations
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitTimeZoneOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
-	ops := &InitTimeZoneOperation{}
+func (itOps *InitTimeZoneOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	itOps.Machine = m
+
 	itOps.NodeInitAction = initAction
 
-	ops.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
-	return ops, nil
-}
-
-func (itOps *InitTimeZoneOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
 	}
+
+	itOps.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
+
+	// run commands
+	stdOut, stdErr, err = itOps.Do()
+
+	return
 }
