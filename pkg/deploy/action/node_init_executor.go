@@ -89,7 +89,7 @@ func newNodeInitItem(item it.ItemEnum) *NodeInitItem {
 }
 
 // goroutine exec item init event and write to channel
-func InitAsyncExecute(item it.ItemEnum, ncAction *NodeInitAction, ch chan<- *NodeInitItem) {
+func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, ch chan<- *NodeInitItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":      ncAction.Node.GetName(),
@@ -133,10 +133,11 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	for item := range initGroup {
 		if initGroup[item] == true {
-			go InitAsyncExecute(item, nodeInitAction, channel)
+			go InitAsyncExecutor(item, nodeInitAction, channel)
 		}
 	}
 
+	// update init items
 	for report := range channel {
 		nodeInitAction.InitItems = append(nodeInitAction.InitItems, report)
 

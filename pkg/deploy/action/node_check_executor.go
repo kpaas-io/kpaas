@@ -501,6 +501,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	go CheckSysManagerExecutor(nodeCheckAction, channel)
 	go CheckPortOccupiedExecutor(nodeCheckAction, channel)
 
+	// update check items
 	for report := range channel {
 		nodeCheckAction.CheckItems = append(nodeCheckAction.CheckItems, report)
 
