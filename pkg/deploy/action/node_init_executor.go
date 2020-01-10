@@ -132,9 +132,7 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	channel := make(chan *NodeInitItem, len(initGroup))
 
 	for item := range initGroup {
-		if initGroup[item] == true {
-			go InitAsyncExecutor(item, nodeInitAction, channel)
-		}
+		go InitAsyncExecutor(item, nodeInitAction, channel)
 	}
 
 	// update init items
