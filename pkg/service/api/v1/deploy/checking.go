@@ -55,6 +55,7 @@ func CheckNodeList(c *gin.Context) {
 	if !checkClusterConfiguration() {
 
 		// Cluster Configuration check failed, no need to check the nodes
+		// Return true because this is a go check trigger API
 		h.R(c, api.SuccessfulOption{Success: true})
 		return
 	}
@@ -103,6 +104,7 @@ func GetCheckingNodeListResult(c *gin.Context) {
 	checkResults := getWizardCheckingData()
 	responseData.Nodes = *checkResults
 	responseData.Result = wizardData.GetCheckResult()
+	responseData.Cluster = getCheckedClusterConfiguration()
 
 	h.R(c, responseData)
 }
@@ -214,21 +216,25 @@ func getItemNameFromDeployControllerCheckItem(item *protos.CheckItem) string {
 
 func checkClusterConfiguration() bool {
 
-	errs := checkErrorClusterConfiguration()
-	return len(errs) <= 0
+	return len(checkWrongClusterConfiguration()) <= 0
 }
 
-func checkErrorClusterConfiguration() []*api.Error {
+func checkWrongClusterConfiguration() (errs []*api.CheckingItem) {
 
+	errs = make([]*api.CheckingItem, 0)
 	wizardData := wizard.GetCurrentWizard()
 	if len(wizardData.Nodes) <= 0 {
-		return []*api.Error{
-			{
+
+		errs = append(errs, &api.CheckingItem{
+			CheckingPoint: "Checking node information", // 检查节点信息
+			Result:        constant.CheckResultFailed,
+			Error: &api.Error{
 				Reason:     "No node information",         // 无节点信息
 				Detail:     "node list is empty",          // 节点列表为空
 				FixMethods: "please add node information", // 请添加节点信息
 			},
-		}
+		})
+		return
 	}
 
 	counters := map[constant.MachineRole]uint{
@@ -244,19 +250,28 @@ func checkErrorClusterConfiguration() []*api.Error {
 		}
 	}
 
-	errs := make([]*api.Error, 0)
 	for role, counter := range counters {
 
 		if counter > 0 {
 			continue
 		}
 
-		errs = append(errs, &api.Error{
-			Reason:     fmt.Sprintf("role: %s not enough", role),                                                // %s 角色的节点数不足
-			Detail:     fmt.Sprintf("role: %s at least one node", role),                                         // %s 角色节点数至少一个
-			FixMethods: fmt.Sprintf("Add new node for role: %s, or edit exist node to include this role", role), // 添加一个新节点包含 %s 角色，或者编辑已有节点使他包含这个角色
+		errs = append(errs, &api.CheckingItem{
+			CheckingPoint: fmt.Sprintf("Checking nodes for %s count", role),
+			Result:        constant.CheckResultFailed,
+			Error: &api.Error{
+				Reason:     fmt.Sprintf("nodes for %s are not enough", role),                                           // %s 角色的节点数不足
+				Detail:     fmt.Sprintf("%s needs at least one node", role),                                            // %s 角色节点数至少一个
+				FixMethods: fmt.Sprintf("Add new node for role: %s, or edit existing node to include this role", role), // 添加一个新节点包含 %s 角色，或者编辑已有节点使他包含这个角色
+			},
 		})
 	}
 
 	return errs
+}
+
+func getCheckedClusterConfiguration() api.CheckClusterResponseData {
+	return api.CheckClusterResponseData{
+		Items: checkWrongClusterConfiguration(),
+	}
 }
