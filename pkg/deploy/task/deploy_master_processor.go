@@ -17,6 +17,7 @@ package task
 import (
 	"fmt"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
@@ -82,6 +83,7 @@ func (p *deployMasterProcessor) createDeployMasterSubTask(index int, parent *dep
 		config := &InitMasterTaskConfig{
 			certKey:         parent.CertKey,
 			node:            parent.Nodes[index],
+			roles:           deploy.GetNodeRoles(parent.Nodes[index], parent.NodeConfigs),
 			etcdNodes:       parent.EtcdNodes,
 			MasterNodes:     parent.Nodes,
 			clusterConfig:   parent.ClusterConfig,
@@ -96,6 +98,7 @@ func (p *deployMasterProcessor) createDeployMasterSubTask(index int, parent *dep
 		config := &JoinMasterTaskConfig{
 			certKey:         parent.CertKey,
 			node:            parent.Nodes[index],
+			roles:           deploy.GetNodeRoles(parent.Nodes[index], parent.NodeConfigs),
 			masterNodes:     parent.Nodes,
 			clusterConfig:   parent.ClusterConfig,
 			logFileBasePath: parent.GetLogFileDir(),
