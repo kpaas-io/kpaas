@@ -175,7 +175,7 @@ definitions:
     type: object
   api.DeploymentResponseData:
     properties:
-      DeployItem:
+      deployItem:
         enum:
         - master
         - worker

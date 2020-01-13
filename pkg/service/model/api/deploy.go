@@ -26,7 +26,7 @@ type (
 	}
 
 	DeploymentResponseData struct {
-		DeployItem constant.DeployItem `json:"DeployItem" enums:"master,worker,etcd,ingress,network"`
+		DeployItem constant.DeployItem `json:"deployItem" enums:"master,worker,etcd,ingress,network"`
 		Nodes      []DeploymentNode    `json:"nodes"`
 	}
 

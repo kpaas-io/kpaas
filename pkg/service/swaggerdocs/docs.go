@@ -1307,7 +1307,7 @@ var doc = `{
         "api.DeploymentResponseData": {
             "type": "object",
             "properties": {
-                "DeployItem": {
+                "deployItem": {
                     "type": "string",
                     "enum": [
                         "master",
