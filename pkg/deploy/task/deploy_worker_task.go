@@ -55,13 +55,14 @@ func NewDeployWorkerTask(taskName string, taskConfig *DeployWorkerTaskConfig) (T
 
 	task := &deployWorkerTask{
 		Base: Base{
-			Name:              taskName,
-			TaskType:          TaskTypeDeployWorker,
-			Status:            TaskPending,
-			LogFileDir:        GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown/deploy-worker
-			CreationTimestamp: time.Now(),
-			Priority:          taskConfig.Priority,
-			Parent:            taskConfig.Parent,
+			Name:                taskName,
+			TaskType:            TaskTypeDeployWorker,
+			Status:              TaskPending,
+			LogFileDir:          GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown/deploy-worker
+			CreationTimestamp:   time.Now(),
+			Priority:            taskConfig.Priority,
+			Parent:              taskConfig.Parent,
+			FailureCanBeIgnored: true,
 		},
 		Nodes:       taskConfig.Nodes,
 		Cluster:     taskConfig.ClusterConfig,

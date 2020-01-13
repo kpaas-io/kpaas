@@ -293,6 +293,10 @@ definitions:
       mode:
         description: Wizard mode, normal or advanced
         type: string
+      networkOptions:
+        $ref: '#/definitions/api.NetworkOptions'
+        description: Network options
+        type: object
       nodes:
         description: Nodes Information
         items:

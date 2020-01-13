@@ -62,6 +62,23 @@ func (p *deployMasterProcessor) SplitTask(t Task) error {
 	return nil
 }
 
+func (p *deployMasterProcessor) ProcessStatus(t Task) error {
+	_, err := p.verifyTask(t)
+	if err != nil {
+		return err
+	}
+
+	for _, subTask := range t.GetSubTasks() {
+		if _, ok := subTask.(*InitMasterTask); ok && subTask.GetStatus() == TaskSuccessful {
+			// If init-master sub task is successful, we can ignore join-master sub task's failure
+			t.SetFailureCanBeIgnored(true)
+			break
+		}
+	}
+
+	return nil
+}
+
 // Verify if the task is valid.
 func (p *deployMasterProcessor) verifyTask(t Task) (*deployMasterTask, error) {
 	if t == nil {
