@@ -41,6 +41,10 @@ type Task interface {
 	GetPriority() int
 	// If a task is not a sub task, this will return ""
 	GetParent() string
+	// FailureCanBeIgnored indicate whether the failure of the task can be ingnored, if yes,
+	// the task's failure will not affect other task's execution.
+	GetFailureCanBeIgnored() bool
+	SetFailureCanBeIgnored(bool)
 }
 
 // Type represents the type of a task
@@ -59,16 +63,17 @@ const (
 )
 
 type Base struct {
-	Name              string
-	TaskType          Type
-	Actions           []action.Action
-	Status            Status
-	Err               *pb.Error
-	LogFileDir        string
-	CreationTimestamp time.Time
-	SubTasks          []Task
-	Priority          int
-	Parent            string
+	Name                string
+	TaskType            Type
+	Actions             []action.Action
+	Status              Status
+	Err                 *pb.Error
+	LogFileDir          string
+	CreationTimestamp   time.Time
+	SubTasks            []Task
+	Priority            int
+	Parent              string
+	FailureCanBeIgnored bool
 }
 
 func (b *Base) GetName() string {
@@ -121,6 +126,14 @@ func (b *Base) GetPriority() int {
 
 func (b *Base) GetParent() string {
 	return b.Parent
+}
+
+func (b *Base) GetFailureCanBeIgnored() bool {
+	return b.FailureCanBeIgnored
+}
+
+func (b *Base) SetFailureCanBeIgnored(val bool) {
+	b.FailureCanBeIgnored = val
 }
 
 // GenTaskLogFileDir is a helper to return the log file dir based on base path and task name

@@ -40,6 +40,13 @@ type ExtraResult interface {
 	ProcessExtraResult(task Task) error
 }
 
+// StatusHandler defines the interface to process the task's status, this let the concrete processor
+// has a chance to handle special case for task status
+type StatusHandler interface {
+	// ProcessStatus is supposed to be called after summarizing the task status.
+	ProcessStatus(task Task) error
+}
+
 var _processRegistry map[Type]Processor
 
 // RegisterProcessor is to register a Processor for a task type
@@ -239,12 +246,10 @@ func executeSubTasks(t Task) error {
 		}
 		wg.Wait()
 
-		// If any sub task in the current task group was failed, stop to execut other task groups and return.
+		// If any sub task in the current task group was failed and its failure can't be ignored,
+		// stop to execut other task groups and return.
 		for _, aSubTask := range taskGp {
-			if err := statTask(aSubTask); err != nil {
-				return err
-			}
-			if aSubTask.GetStatus() != TaskSuccessful {
+			if aSubTask.GetStatus() != TaskSuccessful && !aSubTask.GetFailureCanBeIgnored() {
 				return fmt.Errorf("[%s] sub task was failed", aSubTask.GetName())
 			}
 		}
@@ -329,19 +334,6 @@ func statTask(t Task) error {
 
 	logger.Debug("Start to gen task summary")
 
-	// If the task has sub taks, analyze the status of all of its sub tasks one by one.
-	for _, subTask := range t.GetSubTasks() {
-		if err := statTask(subTask); err != nil {
-			t.SetStatus(TaskFailed)
-			t.SetErr(&pb.Error{
-				Reason: "failed to generate the task summary",
-				Detail: err.Error(),
-			})
-			logger.Error("Finish to gen task summary")
-			return err
-		}
-	}
-
 	successful := 0
 	failed := 0
 	// combined error message in sub tasks and actions
@@ -380,8 +372,47 @@ func statTask(t Task) error {
 		t.SetStatus(TaskSuccessful)
 	}
 
+	// Give a chance to the Processor to process task status, some tasks
+	// have the requirement to redefine task status.
+	if err := processStatus(t); err != nil {
+		t.SetStatus(TaskFailed)
+		t.SetErr(&pb.Error{
+			Reason: "failed to process the task status",
+			Detail: err.Error(),
+		})
+		return err
+	}
+
 	logger.Debug("Finish to gen task summary")
 	return nil
+}
+
+func processStatus(t Task) error {
+	if t == nil {
+		return consts.ErrEmptyTask
+	}
+
+	logger := logrus.WithFields(logrus.Fields{
+		consts.LogFieldTask: t.GetName(),
+	})
+
+	// Create the task processor
+	processor, err := NewProcessor(t.GetType())
+	if err != nil {
+		t.SetErr(&pb.Error{
+			Reason: "failed to create task processor",
+			Detail: err.Error(),
+		})
+		logger.Debug("Failed to create task processor")
+		return err
+	}
+
+	// Check if the processor implemented the StatusHandler interface
+	statusHandler, ok := processor.(StatusHandler)
+	if !ok {
+		return nil
+	}
+	return statusHandler.ProcessStatus(t)
 }
 
 func processExtraResult(t Task) error {
@@ -400,7 +431,7 @@ func processExtraResult(t Task) error {
 			Reason: "failed to create task processor",
 			Detail: err.Error(),
 		})
-		logger.Debug("Failed to split task")
+		logger.Debug("Failed to create task processor")
 		return err
 	}
 

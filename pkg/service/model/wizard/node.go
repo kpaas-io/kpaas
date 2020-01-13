@@ -25,15 +25,15 @@ type (
 	Node struct {
 		ConnectionData
 
-		Name                string                                     // node name
-		Description         string                                     // node description
-		MachineRoles        []constant.MachineRole                     // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
-		Labels              []*Label                                   // Node labels
-		Taints              []*Taint                                   // Node taints
-		CheckReport         *CheckReport                               // Check node report
-		DeploymentReports   map[constant.MachineRole]*DeploymentReport // Deployment report for each role
-		DockerRootDirectory string                                     // Docker Root Directory
-		rwLock              sync.RWMutex                               // Read write lock
+		Name                string                                    // node name
+		Description         string                                    // node description
+		MachineRoles        []constant.MachineRole                    // machine role, like: master, worker, etcd. Master and worker roles are mutually exclusive.
+		Labels              []*Label                                  // Node labels
+		Taints              []*Taint                                  // Node taints
+		CheckReport         *CheckReport                              // Check node report
+		DeploymentReports   map[constant.DeployItem]*DeploymentReport // Deployment report for each role
+		DockerRootDirectory string                                    // Docker Root Directory
+		rwLock              sync.RWMutex                              // Read write lock
 	}
 
 	ConnectionData struct {
@@ -46,9 +46,9 @@ type (
 	}
 
 	DeploymentReport struct {
-		Role   constant.MachineRole
-		Status DeployStatus
-		Error  *common.FailureDetail
+		DeployItem constant.DeployItem
+		Status     DeployStatus
+		Error      *common.FailureDetail
 	}
 
 	CheckReport struct {
@@ -127,7 +127,7 @@ func (node *Node) init() {
 }
 
 func (node *Node) initDeploymentReports() {
-	node.DeploymentReports = make(map[constant.MachineRole]*DeploymentReport)
+	node.DeploymentReports = make(map[constant.DeployItem]*DeploymentReport)
 }
 
 func (node *Node) SetCheckResult(result constant.CheckResult, detail *common.FailureDetail) {
@@ -165,18 +165,18 @@ func (node *Node) SetCheckItem(itemName string, result constant.CheckResult, det
 	item.Error = detail
 }
 
-func (node *Node) SetDeployResult(role constant.MachineRole, status DeployStatus, detail *common.FailureDetail) {
+func (node *Node) SetDeployResult(deployItem constant.DeployItem, status DeployStatus, detail *common.FailureDetail) {
 
 	node.rwLock.Lock()
 	defer node.rwLock.Unlock()
 
-	if _, exist := node.DeploymentReports[role]; !exist {
-		node.DeploymentReports[role] = NewDeploymentReport()
-		node.DeploymentReports[role].Role = role
+	if _, exist := node.DeploymentReports[deployItem]; !exist {
+		node.DeploymentReports[deployItem] = NewDeploymentReport()
+		node.DeploymentReports[deployItem].DeployItem = deployItem
 	}
 
-	node.DeploymentReports[role].Status = status
-	node.DeploymentReports[role].Error = detail
+	node.DeploymentReports[deployItem].Status = status
+	node.DeploymentReports[deployItem].Error = detail
 }
 
 func (node *Node) IsMatchMachineRole(role constant.MachineRole) bool {

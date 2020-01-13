@@ -193,14 +193,14 @@ func TestGetWizardProgress5(t *testing.T) {
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			DeploymentReports: map[constant.MachineRole]*wizard.DeploymentReport{
-				constant.MachineRoleMaster: {
-					Role:   constant.MachineRoleMaster,
-					Status: wizard.DeployStatusSuccessful,
+			DeploymentReports: map[constant.DeployItem]*wizard.DeploymentReport{
+				constant.DeployItemMaster: {
+					DeployItem: constant.DeployItemMaster,
+					Status:     wizard.DeployStatusSuccessful,
 				},
-				constant.MachineRoleEtcd: {
-					Role:   constant.MachineRoleEtcd,
-					Status: wizard.DeployStatusSuccessful,
+				constant.DeployItemEtcd: {
+					DeployItem: constant.DeployItemEtcd,
+					Status:     wizard.DeployStatusSuccessful,
 				},
 			},
 			CheckReport: &wizard.CheckReport{
@@ -215,7 +215,7 @@ func TestGetWizardProgress5(t *testing.T) {
 	sortRoles(responseData.DeploymentData)
 	assert.Equal(t, []api.DeploymentResponseData{
 		{
-			Role: constant.MachineRoleMaster,
+			DeployItem: constant.DeployItemMaster,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
@@ -224,7 +224,7 @@ func TestGetWizardProgress5(t *testing.T) {
 			},
 		},
 		{
-			Role: constant.MachineRoleEtcd,
+			DeployItem: constant.DeployItemEtcd,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
@@ -263,6 +263,37 @@ func TestGetWizardProgress7(t *testing.T) {
 	assert.Equal(t, "", responseData.ClusterData.NetInterfaceName)
 	assert.Equal(t, "192.168.31.200", responseData.ClusterData.LoadbalancerIP)
 	assert.Equal(t, uint16(3434), responseData.ClusterData.LoadbalancerPort)
+}
+
+func TestGetWizardProgressNetworkOptions(t *testing.T) {
+	wizard.ClearCurrentWizardData()
+	wizardData := wizard.GetCurrentWizard()
+	wizardData.Info.ShortName = "test-cluster"
+	wizardData.Info.Name = "ClusterName"
+
+	wizardData.SetNetworkOptions(&api.NetworkOptions{
+		NetworkType: api.NetworkTypeCalico,
+		CalicoOptions: &api.CalicoOptions{
+			EncapsulationMode:    api.EncapsulationVxlan,
+			VxlanPort:            4567,
+			VethMtu:              1440,
+			InitialPodIPs:        "10.0.0.0/16",
+			IPDetectionMethod:    api.IPDetectionMethodInterface,
+			IPDetectionInterface: "bond0",
+		},
+	})
+
+	responseData := getWizardProgressData(t)
+	o := responseData.NetworkOptions
+
+	assert.Equal(t, "calico", string(o.NetworkType))
+	assert.NotNil(t, o.CalicoOptions)
+	assert.Equal(t, "vxlan", string(o.CalicoOptions.EncapsulationMode))
+	assert.Equal(t, 4567, o.CalicoOptions.VxlanPort)
+	assert.Equal(t, "10.0.0.0/16", o.CalicoOptions.InitialPodIPs)
+	assert.Equal(t, 1440, o.CalicoOptions.VethMtu)
+	assert.Equal(t, "interface", string(o.CalicoOptions.IPDetectionMethod))
+	assert.Equal(t, "bond0", string(o.CalicoOptions.IPDetectionInterface))
 }
 
 func getWizardProgressData(t *testing.T) (responseData *api.GetWizardResponse) {
