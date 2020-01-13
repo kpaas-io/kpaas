@@ -17,7 +17,6 @@ package action
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -89,8 +88,8 @@ func newNodeInitItem(item it.ItemEnum) *NodeInitItem {
 	}
 }
 
-// goroutine exec item init event
-func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.WaitGroup) {
+// goroutine exec item init event and write to channel
+func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, ch chan<- *NodeInitItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":      ncAction.Node.GetName(),
@@ -109,9 +108,8 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 		logger.Info(InitPassed)
 	}
 
-	UpdateInitItems(ncAction, initItemReport)
-
-	wg.Done()
+	// write report to channel
+	ch <- initItemReport
 }
 
 func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
@@ -130,14 +128,21 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 		logger.Error("initialization item group is empty")
 	}
 
-	var wg sync.WaitGroup
+	// make enough length of init items
+	channel := make(chan *NodeInitItem, len(initGroup))
+
 	for item := range initGroup {
-		wg.Add(1)
-		if initGroup[item] == true {
-			go InitAsyncExecutor(item, nodeInitAction, &wg)
+		go InitAsyncExecutor(item, nodeInitAction, channel)
+	}
+
+	// update init items
+	for report := range channel {
+		nodeInitAction.InitItems = append(nodeInitAction.InitItems, report)
+
+		if len(nodeInitAction.InitItems) == len(initGroup) {
+			break
 		}
 	}
-	wg.Wait()
 
 	// If any of init item was failed, we should return an error
 	failedItems := getFailedInitItems(nodeInitAction)
@@ -150,15 +155,6 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 
 	logger.Debug("Finish to execute node init action")
 	return nil
-}
-
-// update init items with matching name
-func UpdateInitItems(initAction *NodeInitAction, report *NodeInitItem) {
-
-	initAction.Lock()
-	defer initAction.Unlock()
-
-	initAction.InitItems = append(initAction.InitItems, report)
 }
 
 func getFailedInitItems(initAction *NodeInitAction) []string {

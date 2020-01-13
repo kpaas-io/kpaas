@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"math"
 	"strings"
-	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -118,7 +117,7 @@ func newNodeCheckItem(item check.ItemEnum) *NodeCheckItem {
 }
 
 // goroutine as executor for check docker
-func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckDockerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -148,15 +147,11 @@ func CheckDockerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 // goroutine as executor for check CPU
-func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckCPUExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -203,15 +198,11 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 // goroutine as executor for check kernel
-func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckKernelExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -241,15 +232,11 @@ func CheckKernelExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 // goroutine as executor for check memory
-func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckMemoryExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -298,15 +285,11 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 // goroutine as executor for check disk
-func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckRootDiskExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -354,15 +337,11 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 // goroutine as executor for check distribution
-func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckDistributionExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -393,15 +372,11 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 // goroutine as executor for check system preference
-func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckSysPrefExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -425,15 +400,11 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 // goroutine as executor for check system manager
-func CheckSysManagerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckSysManagerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -463,15 +434,11 @@ func CheckSysManagerExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 // goroutine as executor for port occupied check
-func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
+func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -504,11 +471,7 @@ func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, wg *sync.WaitGroup) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ncAction.Lock()
-	defer ncAction.Unlock()
-	ncAction.CheckItems = append(ncAction.CheckItems, checkItemReport)
-
-	wg.Done()
+	ch <- checkItemReport
 }
 
 func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
@@ -521,23 +484,31 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 		consts.LogFieldAction: act.GetName(),
 	})
 
-	var wg sync.WaitGroup
-
 	logger.Debug("Start to execute node check action")
+
+	// make enough length of check items
+	channel := make(chan *NodeCheckItem, 9)
 
 	// check docker, CPU, kernel, memory, disk, distribution, system preference
 	// system manager, port occupied
-	wg.Add(9)
-	go CheckDockerExecutor(nodeCheckAction, &wg)
-	go CheckCPUExecutor(nodeCheckAction, &wg)
-	go CheckKernelExecutor(nodeCheckAction, &wg)
-	go CheckMemoryExecutor(nodeCheckAction, &wg)
-	go CheckRootDiskExecutor(nodeCheckAction, &wg)
-	go CheckDistributionExecutor(nodeCheckAction, &wg)
-	go CheckSysPrefExecutor(nodeCheckAction, &wg)
-	go CheckSysManagerExecutor(nodeCheckAction, &wg)
-	go CheckPortOccupiedExecutor(nodeCheckAction, &wg)
-	wg.Wait()
+	go CheckDockerExecutor(nodeCheckAction, channel)
+	go CheckCPUExecutor(nodeCheckAction, channel)
+	go CheckKernelExecutor(nodeCheckAction, channel)
+	go CheckMemoryExecutor(nodeCheckAction, channel)
+	go CheckRootDiskExecutor(nodeCheckAction, channel)
+	go CheckDistributionExecutor(nodeCheckAction, channel)
+	go CheckSysPrefExecutor(nodeCheckAction, channel)
+	go CheckSysManagerExecutor(nodeCheckAction, channel)
+	go CheckPortOccupiedExecutor(nodeCheckAction, channel)
+
+	// update check items
+	for report := range channel {
+		nodeCheckAction.CheckItems = append(nodeCheckAction.CheckItems, report)
+
+		if len(nodeCheckAction.CheckItems) == 9 {
+			break
+		}
+	}
 
 	// If any of check item was failed, we should return an error
 	failedItems := getFailedCheckItems(nodeCheckAction)
