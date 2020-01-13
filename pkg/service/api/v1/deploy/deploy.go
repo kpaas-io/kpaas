@@ -249,7 +249,7 @@ func refreshDeployResultOneTime() {
 		}
 
 		wizardNode.SetDeployResult(
-			constant.DeployItem(item.DeployItem.ItemName),
+			constant.DeployItem(item.DeployItem.GetRole()),
 			convertDeployControllerDeployResultToModelDeployResult(item.GetStatus()),
 			failureDetail)
 	}
@@ -275,7 +275,7 @@ func computeClusterDeployStatus(resp *protos.GetDeployResultReply) wizard.Deploy
 			continue
 		}
 
-		if constant.MachineRole(deployItem.GetDeployItem().GetItemName()) != constant.MachineRoleMaster {
+		if constant.MachineRole(deployItem.GetDeployItem().GetRole()) != constant.MachineRoleMaster {
 			continue
 		}
 

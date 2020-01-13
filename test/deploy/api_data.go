@@ -354,7 +354,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 	var deployItemResults = []*pb.DeployItemResult{
 		&pb.DeployItemResult{
 			DeployItem: &pb.DeployItem{
-				ItemName: "etcd",
+				Role:     "etcd",
 				NodeName: _testConfig.Nodes[0].Name,
 			},
 			Status: string(constant.OperationStatusSuccessful),
@@ -362,7 +362,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 		},
 		&pb.DeployItemResult{
 			DeployItem: &pb.DeployItem{
-				ItemName: "etcd",
+				Role:     "etcd",
 				NodeName: _testConfig.Nodes[1].Name,
 			},
 			Status: string(constant.OperationStatusSuccessful),
@@ -370,7 +370,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 		},
 		&pb.DeployItemResult{
 			DeployItem: &pb.DeployItem{
-				ItemName: "etcd",
+				Role:     "etcd",
 				NodeName: _testConfig.Nodes[2].Name,
 			},
 			Status: string(constant.OperationStatusSuccessful),
@@ -378,7 +378,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 		},
 		&pb.DeployItemResult{
 			DeployItem: &pb.DeployItem{
-				ItemName: "master",
+				Role:     "master",
 				NodeName: _testConfig.Nodes[0].Name,
 			},
 			Status: string(constant.OperationStatusSuccessful),
@@ -386,7 +386,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 		},
 		&pb.DeployItemResult{
 			DeployItem: &pb.DeployItem{
-				ItemName: "master",
+				Role:     "master",
 				NodeName: _testConfig.Nodes[1].Name,
 			},
 			Status: string(constant.OperationStatusSuccessful),
@@ -394,7 +394,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 		},
 		&pb.DeployItemResult{
 			DeployItem: &pb.DeployItem{
-				ItemName: "master",
+				Role:     "master",
 				NodeName: _testConfig.Nodes[2].Name,
 			},
 			Status: string(constant.OperationStatusSuccessful),
@@ -402,7 +402,7 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 		},
 		&pb.DeployItemResult{
 			DeployItem: &pb.DeployItem{
-				ItemName: "worker",
+				Role:     "worker",
 				NodeName: _testConfig.Nodes[3].Name,
 			},
 			Status: string(constant.OperationStatusSuccessful),

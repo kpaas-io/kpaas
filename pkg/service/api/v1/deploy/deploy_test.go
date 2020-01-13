@@ -259,7 +259,7 @@ func TestComputeClusterDeployStatus(t *testing.T) {
 				Items: []*protos.DeployItemResult{
 					{
 						DeployItem: &protos.DeployItem{
-							ItemName: string(constant.MachineRoleEtcd),
+							Role: string(constant.MachineRoleEtcd),
 						},
 						Status: string(constant.OperationStatusFailed),
 					},
@@ -287,7 +287,7 @@ func TestComputeClusterDeployStatus(t *testing.T) {
 				Items: []*protos.DeployItemResult{
 					{
 						DeployItem: &protos.DeployItem{
-							ItemName: string(constant.MachineRoleMaster),
+							Role: string(constant.MachineRoleMaster),
 						},
 						Status: string(constant.OperationStatusFailed),
 					},
@@ -302,13 +302,13 @@ func TestComputeClusterDeployStatus(t *testing.T) {
 				Items: []*protos.DeployItemResult{
 					{
 						DeployItem: &protos.DeployItem{
-							ItemName: string(constant.MachineRoleMaster),
+							Role: string(constant.MachineRoleMaster),
 						},
 						Status: string(constant.OperationStatusSuccessful),
 					},
 					{
 						DeployItem: &protos.DeployItem{
-							ItemName: string(constant.MachineRoleMaster),
+							Role: string(constant.MachineRoleMaster),
 						},
 						Status: string(constant.OperationStatusFailed),
 					},

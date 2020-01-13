@@ -53,7 +53,7 @@ func (c *controller) getDeployResult(aTask task.Task) (*pb.GetDeployResultReply,
 		for _, node := range nodes {
 			roleNodeDeployItemResult[role][node] = &pb.DeployItemResult{
 				DeployItem: &pb.DeployItem{
-					ItemName: string(role),
+					Role:     string(role),
 					NodeName: node,
 				},
 				Status: initStatus,
