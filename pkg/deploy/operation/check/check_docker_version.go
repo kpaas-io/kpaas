@@ -23,27 +23,27 @@ import (
 
 type CheckDockerOperation struct {
 	operation.BaseOperation
-	CheckOperations
-	Machine machine.IMachine
 }
 
-func (ckops *CheckDockerOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckDockerOperation{}
+func (ckops *CheckDockerOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'"))
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckDockerOperation) CloseSSH() {
-	if ckops.Machine != nil {
-		ckops.Machine.Close()
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
 	}
+
+	// construct command for check docker
+	ckops.AddCommands(command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'"))
+
+	// run commands
+	stdOut, stdErr, err = ckops.Do()
+
+	return
 }
 
 // check docker version if version larger or equal than standard version

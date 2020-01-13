@@ -15,7 +15,6 @@
 package init
 
 import (
-	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
@@ -24,16 +23,8 @@ type ItemEnum string
 
 type OperationsGenerator struct{}
 
-type InitOperations struct {
-	Script         string
-	ScriptPath     string
-	Machine        machine.IMachine
-	InitNodeAction *operation.NodeInitAction
-}
-
-type InitAction interface {
-	GetOperations(config *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error)
-	CloseSSH()
+type InitOperation interface {
+	RunCommands(config *pb.Node, initAction *operation.NodeInitAction) ([]byte, []byte, error)
 }
 
 const (
@@ -60,7 +51,7 @@ func NewInitOperations() *OperationsGenerator {
 	return &OperationsGenerator{}
 }
 
-func (og *OperationsGenerator) CreateOperations(item ItemEnum, action *operation.NodeInitAction) InitAction {
+func (og *OperationsGenerator) CreateOperations(item ItemEnum, action *operation.NodeInitAction) InitOperation {
 	switch item {
 	case FireWall:
 		return &InitFireWallOperation{}

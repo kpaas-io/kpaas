@@ -23,27 +23,27 @@ import (
 
 type CheckCPUOperation struct {
 	operation.BaseOperation
-	CheckOperations
-	Machine machine.IMachine
 }
 
-func (ckops *CheckCPUOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckCPUOperation{}
+func (ckops *CheckCPUOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "cat", "/proc/cpuinfo | grep -w 'processor' | awk '{print $NF}' | wc -l"))
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckCPUOperation) CloseSSH() {
-	if ckops.Machine != nil {
-		ckops.Machine.Close()
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
 	}
+
+	// construct command for check cpu
+	ckops.AddCommands(command.NewShellCommand(m, "cat", "/proc/cpuinfo | grep -w 'processor' | awk '{print $NF}' | wc -l"))
+
+	// run commands
+	stdOut, stdErr, err = ckops.Do()
+
+	return
 }
 
 // check if CPU numbers larger or equal than desired cores

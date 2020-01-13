@@ -28,35 +28,34 @@ const (
 
 type CheckSysPrefOperation struct {
 	operation.BaseOperation
-	CheckOperations
-	Machine machine.IMachine
 }
 
-func (ckops *CheckSysPrefOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckSysPrefOperation{}
+func (ckops *CheckSysPrefOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	ckops.Machine = m
+
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
+	}
 
 	scriptFile, err := assets.Assets.Open(sysPrefScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
 	if err := m.PutFile(scriptFile, checkRemoteScriptPath+sysPrefScript); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", checkRemoteScriptPath+sysPrefScript))
-	return ops, nil
-}
+	ckops.AddCommands(command.NewShellCommand(m, "bash", checkRemoteScriptPath+sysPrefScript))
 
-// close ssh client
-func (ckops *CheckSysPrefOperation) CloseSSH() {
-	if ckops.Machine != nil {
-		ckops.Machine.Close()
-	}
+	// run commands
+	stdOut, stdErr, err = ckops.Do()
+
+	return
 }

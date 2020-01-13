@@ -15,8 +15,6 @@
 package check
 
 import (
-	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -26,15 +24,8 @@ type OperationsGenerator struct {
 	Node *pb.Node
 }
 
-type CheckOperations struct {
-	Script     string
-	ScriptPath string
-	Machine    machine.IMachine
-}
-
-type CheckAction interface {
-	GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error)
-	CloseSSH()
+type CheckOperation interface {
+	RunCommands(config *pb.NodeCheckConfig) ([]byte, []byte, error)
 }
 
 const (
@@ -54,7 +45,7 @@ func NewCheckOperations() *OperationsGenerator {
 	return &OperationsGenerator{}
 }
 
-func (og *OperationsGenerator) CreateOperations(item ItemEnum) CheckAction {
+func (og *OperationsGenerator) CreateOperations(item ItemEnum) CheckOperation {
 	switch item {
 	case Docker:
 		return &CheckDockerOperation{}

@@ -37,11 +37,13 @@ func GetWizardProgress(c *gin.Context) {
 
 	clusterInfo := getWizardClusterInfo()
 	nodes := getWizardNodes()
+	networkOptions := getWizardNetworkOptions()
 	checkingData := getWizardCheckingData()
 	deploymentData := getWizardDeploymentData()
 
 	responseData := api.GetWizardResponse{
 		ClusterData:         *clusterInfo,
+		NetworkOptions:      *networkOptions,
 		NodesData:           *nodes,
 		CheckingData:        *checkingData,
 		DeploymentData:      *deploymentData,
@@ -116,6 +118,10 @@ func getWizardNodes() *[]api.NodeData {
 	}
 
 	return nodes
+}
+
+func getWizardNetworkOptions() *api.NetworkOptions {
+	return wizard.GetCurrentWizard().GetNetworkOptions()
 }
 
 func getWizardCheckingData() *[]api.CheckingResultResponseData {
