@@ -15,10 +15,11 @@
 package check
 
 import (
+	"bytes"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -27,10 +28,12 @@ const (
 )
 
 type CheckSysPrefOperation struct {
-	operation.BaseOperation
+	shellCmd *command.ShellCommand
 }
 
-func (ckops *CheckSysPrefOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+func (ckops *CheckSysPrefOperation) RunCommands(config *pb.NodeCheckConfig, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
+
+	itemBuffer := &bytes.Buffer{}
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -52,10 +55,14 @@ func (ckops *CheckSysPrefOperation) RunCommands(config *pb.NodeCheckConfig) (std
 		return nil, nil, err
 	}
 
-	ckops.AddCommands(command.NewShellCommand(m, "bash", checkRemoteScriptPath+sysPrefScript))
+	ckops.shellCmd = command.NewShellCommand(m, "bash", checkRemoteScriptPath+sysPrefScript).
+		WithDescription("检查机器 system preference 是否满足最低要求").
+		WithExecuteLogWriter(itemBuffer)
 
 	// run commands
-	stdOut, stdErr, err = ckops.Do()
+	stdOut, stdErr, err = ckops.shellCmd.Execute()
+
+	logChan <- itemBuffer
 
 	return
 }

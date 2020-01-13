@@ -15,6 +15,8 @@
 package check
 
 import (
+	"bytes"
+
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -25,7 +27,7 @@ type OperationsGenerator struct {
 }
 
 type CheckOperation interface {
-	RunCommands(config *pb.NodeCheckConfig) ([]byte, []byte, error)
+	RunCommands(config *pb.NodeCheckConfig, logChan chan<- *bytes.Buffer) ([]byte, []byte, error)
 }
 
 const (
