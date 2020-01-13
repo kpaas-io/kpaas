@@ -17,7 +17,6 @@ package action
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -46,11 +45,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		"init_item": item,
 	})
 
-	initItemReport = &NodeInitItem{
-		Name:        fmt.Sprintf("init %v", item),
-		Description: fmt.Sprintf("初始化 %v 环境", item),
-		Err:         new(pb.Error),
-	}
+	initItemReport = newNodeInitItem(item)
 
 	initAction := &operation.NodeInitAction{
 		NodeInitConfig: action.NodeInitConfig,
@@ -65,30 +60,18 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		initItemReport.Err.Reason = ItemErrEmpty
 		initItemReport.Err.Detail = ItemErrEmpty
 		initItemReport.Err.FixMethods = ItemHelperEmpty
-		return "", initItemReport, fmt.Errorf("can not create %v's operation for node: %v", item, action.Node.Name)
+		return "", initItemReport, fmt.Errorf("fail to construct init %v operation for node %v: ", item, action.Node.Name)
 	}
 
-	// close ssh client
-	defer initItem.CloseSSH()
-
-	op, err := initItem.GetOperations(action.Node, initAction)
+	stdOut, stdErr, err := initItem.RunCommands(action.Node, initAction)
 	if err != nil {
-		logger.Errorf("can not create operation command, err: %v", err)
+		logger.Errorf("can not execute init %v operation command, err: %v", item, err)
 		initItemReport.Status = ItemFailed
-		initItemReport.Err.Reason = ItemErrOperation
-		initItemReport.Err.Detail = err.Error()
-		initItemReport.Err.FixMethods = ItemHelperOperation
-		return "", initItemReport, fmt.Errorf("can not create operation command %v for node: %v", item, action.Node.Name)
-	}
-
-	stdOut, stdErr, err := op.Do()
-	if err != nil {
-		logger.Errorf("can not execute operation command, err: %v", err)
-		initItemReport.Status = ItemFailed
+		initItemReport.Err = new(pb.Error)
 		initItemReport.Err.Reason = ItemErrScript
-		initItemReport.Err.Detail = string(stdErr)
-		initItemReport.Err.FixMethods = ItemHelperScript
-		return "", initItemReport, fmt.Errorf("can not execute %v operation command on node: %v", item, action.Node.Name)
+		initItemReport.Err.Detail = fmt.Sprintf("stdErr: %v, err: %v", stdErr, err.Error())
+		initItemReport.Err.FixMethods = ItemHelperOperation
+		return "", initItemReport, fmt.Errorf("can not execute init %v operation command on node: %v", item, action.Node.Name)
 	}
 
 	initItemStdOut := strings.Trim(string(stdOut), "\n")
@@ -96,16 +79,17 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 	return initItemStdOut, initItemReport, nil
 }
 
-func newNodeInitItem() *NodeInitItem {
+func newNodeInitItem(item it.ItemEnum) *NodeInitItem {
 
 	return &NodeInitItem{
-		Status: ItemPending,
-		Err:    &pb.Error{},
+		Status:      ItemDoing,
+		Name:        fmt.Sprintf("init %v", item),
+		Description: fmt.Sprintf("初始化 %v 环境", item),
 	}
 }
 
-// goroutine exec item init event
-func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.WaitGroup) {
+// goroutine exec item init event and write to channel
+func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, ch chan<- *NodeInitItem) {
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":      ncAction.Node.GetName(),
@@ -114,8 +98,7 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 
 	logger.Debugf("Start to execute init")
 
-	initItemReport := newNodeInitItem()
-	initItemReport.Status = ItemDoing
+	initItemReport := newNodeInitItem(item)
 	_, initItemReport, err := ExecuteInitScript(item, ncAction, initItemReport)
 	if err != nil {
 		logger.Errorf("%v: %v", InitFailed, err)
@@ -125,9 +108,8 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, wg *sync.Wait
 		logger.Info(InitPassed)
 	}
 
-	UpdateInitItems(ncAction, initItemReport)
-
-	wg.Done()
+	// write report to channel
+	ch <- initItemReport
 }
 
 func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
@@ -139,30 +121,28 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	logger := logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: act.GetName(),
 	})
-
-	var wg sync.WaitGroup
-
 	logger.Debug("Start to execute node init action")
 
-	// init events include firewall, hostalias, hostname, network, route, swap, timezone， kubetool
-	workerItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
-	masterItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool} // cloud machine can not test it.Haproxy, it.Keepalived}
-
-	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
-		for _, item := range masterItemEnums {
-			wg.Add(1)
-			go InitAsyncExecutor(item, nodeInitAction, &wg)
-		}
-		wg.Wait()
-	} else if containsRole(nodeInitAction, constant.MachineRoleWorker) {
-		for _, item := range workerItemEnums {
-			wg.Add(1)
-			go InitAsyncExecutor(item, nodeInitAction, &wg)
-		}
-		wg.Wait()
+	initGroup := constructInitGroup(nodeInitAction)
+	if len(initGroup) == 0 {
+		logger.Error("initialization item group is empty")
 	}
 
-	// TODO if etcd and ingress needs init separately
+	// make enough length of init items
+	channel := make(chan *NodeInitItem, len(initGroup))
+
+	for item := range initGroup {
+		go InitAsyncExecutor(item, nodeInitAction, channel)
+	}
+
+	// update init items
+	for report := range channel {
+		nodeInitAction.InitItems = append(nodeInitAction.InitItems, report)
+
+		if len(nodeInitAction.InitItems) == len(initGroup) {
+			break
+		}
+	}
 
 	// If any of init item was failed, we should return an error
 	failedItems := getFailedInitItems(nodeInitAction)
@@ -177,15 +157,6 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	return nil
 }
 
-// update init items with matching name
-func UpdateInitItems(initAction *NodeInitAction, report *NodeInitItem) {
-
-	initAction.Lock()
-	defer initAction.Unlock()
-
-	initAction.InitItems = append(initAction.InitItems, report)
-}
-
 func getFailedInitItems(initAction *NodeInitAction) []string {
 	var failedItemName []string
 	for _, item := range initAction.InitItems {
@@ -196,7 +167,7 @@ func getFailedInitItems(initAction *NodeInitAction) []string {
 	return failedItemName
 }
 
-// separate roles
+// check if contains role
 func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) bool {
 	for _, role := range initAction.NodeInitConfig.Roles {
 		if role == string(wantRole) {
@@ -204,4 +175,46 @@ func containsRole(initAction *NodeInitAction, wantRole constant.MachineRole) boo
 		}
 	}
 	return false
+}
+
+// according to roles, construct an init item group
+func constructInitGroup(nodeInitAction *NodeInitAction) map[it.ItemEnum]bool {
+	initGroup := make(map[it.ItemEnum]bool)
+
+	etcdItemEnums := make([]it.ItemEnum, 0)
+	masterItemEnums := make([]it.ItemEnum, 0)
+	workerItemEnums := make([]it.ItemEnum, 0)
+	ingressItemEnums := make([]it.ItemEnum, 0)
+
+	baseItemEnums := []it.ItemEnum{it.HostName, it.Swap, it.Route, it.Network, it.FireWall, it.TimeZone, it.HostName, it.HostAlias, it.KubeTool}
+
+	if nodeInitAction.ClusterConfig.GetKubeAPIServerConnect().GetType() == "keepalived" {
+		masterItemEnums = []it.ItemEnum{it.Haproxy, it.Keepalived}
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleEtcd) {
+		baseItemEnums = append(baseItemEnums, etcdItemEnums...)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleMaster) {
+		baseItemEnums = append(baseItemEnums, masterItemEnums...)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleIngress) {
+		baseItemEnums = append(baseItemEnums, ingressItemEnums...)
+	}
+
+	if containsRole(nodeInitAction, constant.MachineRoleWorker) {
+		baseItemEnums = append(baseItemEnums, workerItemEnums...)
+	}
+
+	logrus.Debugf("node: %v, init group: %v", nodeInitAction.Node.Name, initGroup)
+
+	for _, item := range baseItemEnums {
+		if _, ok := initGroup[item]; !ok {
+			initGroup[item] = true
+		}
+	}
+
+	return initGroup
 }

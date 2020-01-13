@@ -28,46 +28,37 @@ const (
 
 type InitHostaliasOperation struct {
 	operation.BaseOperation
-	InitOperations
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHostaliasOperation) getScript() string {
-	itOps.Script = hostAliasScript
-	return itOps.Script
-}
+func (itOps *InitHostaliasOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
-func (itOps *InitHostaliasOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
-func (itOps *InitHostaliasOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
-	ops := &InitHostaliasOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	itOps.Machine = m
+
 	itOps.NodeInitAction = initAction
 
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
+	}
+
+	scriptFile, err := assets.Assets.Open(hostAliasScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
-		return nil, err
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+hostAliasScript); err != nil {
+		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", itOps.getScriptPath()+itOps.getScript()))
-	return ops, nil
-}
+	itOps.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+hostAliasScript))
 
-func (itOps *InitHostaliasOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
-	}
+	// run commands
+	stdOut, stdErr, err = itOps.Do()
+
+	return
 }

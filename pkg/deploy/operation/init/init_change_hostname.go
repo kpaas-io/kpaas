@@ -23,47 +23,34 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const (
-	hostNameScript = "/scripts/init_change_hostname.sh"
-)
-
 type InitHostNameOperation struct {
 	operation.BaseOperation
-	InitOperations
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHostNameOperation) getScript() string {
-	itOps.Script = hostNameScript
-	return itOps.Script
-}
+func (itOps *InitHostNameOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
-func (itOps *InitHostNameOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
-func (itOps *InitHostNameOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
-	ops := &InitHostNameOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	itOps.Machine = m
+
 	itOps.NodeInitAction = initAction
+
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
+	}
 
 	currentName := node.Name
 	if currentName == "" {
-		return ops, fmt.Errorf("node name can not be empty")
+		return nil, nil, fmt.Errorf("node name can not be empty")
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "hostnamectl", fmt.Sprintf("set-hostname %v", currentName)))
-	return ops, nil
-}
+	itOps.AddCommands(command.NewShellCommand(m, "hostnamectl", fmt.Sprintf("set-hostname %v", currentName)))
 
-func (itOps *InitHostNameOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
-	}
+	// run commands
+	stdOut, stdErr, err = itOps.Do()
+
+	return
 }

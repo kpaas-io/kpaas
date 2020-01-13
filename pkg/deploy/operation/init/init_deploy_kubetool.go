@@ -31,22 +31,10 @@ import (
 
 type InitKubeToolOperation struct {
 	operation.BaseOperation
-	InitOperations
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKubeToolOperation) getScript() string {
-	itOps.Script = consts.DefaultKubeToolScript
-	return itOps.Script
-}
-
-func (itOps *InitKubeToolOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
-func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
+func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
 	var imageRepository string
 	var clusterDNSIP string
@@ -61,51 +49,52 @@ func (itOps *InitKubeToolOperation) GetOperations(node *pb.Node, initAction *ope
 	// we would use initAction's image repository in the future
 	imageRepository = fmt.Sprintf("--image-repository %v", constant.DefaultImageRepository)
 
-	ops := &InitKubeToolOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	itOps.Machine = m
+
 	itOps.NodeInitAction = initAction
 
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
+	}
+
 	// copy init_deploy_kubetool.sh to target machine
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(consts.DefaultKubeToolScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
-		return nil, err
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+consts.DefaultKubeToolScript); err != nil {
+		return nil, nil, err
 	}
 
 	// copy commmon lib.sh to target machine
 	scriptFile, err = assets.Assets.Open(DefaultCommonLibPath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+DefaultCommonLibPath); err != nil {
-		return nil, err
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+DefaultCommonLibPath); err != nil {
+		return nil, nil, err
 	}
 
 	// setup repos
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", itOps.getScriptPath()+itOps.getScript(),
+	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		pkgMirrorUrl)))
 
 	// install kubelet, kubeadm, kubectl
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", itOps.getScriptPath()+itOps.getScript(),
+	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
 		kubernetesVersion, imageRepository, clusterDNSIP, nodeIp)))
 
-	return ops, nil
-}
+	// run commands
+	stdOut, stdErr, err = itOps.Do()
 
-func (itOps *InitKubeToolOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
-	}
+	return
 }
 
 // get dns IP from subnet

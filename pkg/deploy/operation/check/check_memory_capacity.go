@@ -23,27 +23,26 @@ import (
 
 type CheckMemoryOperation struct {
 	operation.BaseOperation
-	CheckOperations
-	Machine machine.IMachine
 }
 
-func (ckops *CheckMemoryOperation) GetOperations(config *pb.NodeCheckConfig) (operation.Operation, error) {
-	ops := &CheckMemoryOperation{}
+func (ckops *CheckMemoryOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	ckops.Machine = m
 
-	ops.AddCommands(command.NewShellCommand(m, "free", "-b | awk '/Mem/{print $2}'"))
-	return ops, nil
-}
-
-// close ssh client
-func (ckops *CheckMemoryOperation) CloseSSH() {
-	if ckops.Machine != nil {
-		ckops.Machine.Close()
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
 	}
+
+	ckops.AddCommands(command.NewShellCommand(m, "free", "-b | awk '/Mem/{print $2}'"))
+
+	// run commands
+	stdOut, stdErr, err = ckops.Do()
+
+	return
 }
 
 // check if memory capacity satisfied with minimal requirement

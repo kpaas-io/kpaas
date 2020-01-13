@@ -259,6 +259,14 @@ func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply
 	return
 }
 
+func getGetCheckNodesLogData() (request *pb.GetCheckNodesLogRequest, reply *pb.GetCheckNodesLogReply) {
+	request = &pb.GetCheckNodesLogRequest{
+		NodeName: _testConfig.Nodes[0].Name,
+	}
+	reply = &pb.GetCheckNodesLogReply{}
+	return
+}
+
 var clusterConfig = &pb.ClusterConfig{
 	ClusterName: "TestCluster",
 	KubeAPIServerConnect: &pb.KubeAPIServerConnect{
@@ -408,6 +416,15 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 		Err:    nil,
 		Items:  deployItemResults,
 	}
+	return
+}
+
+func getGetDeployLogData() (request *pb.GetDeployLogRequest, reply *pb.GetDeployLogReply) {
+	request = &pb.GetDeployLogRequest{
+		Role:     "master",
+		NodeName: _testConfig.Nodes[0].Name,
+	}
+	reply = &pb.GetDeployLogReply{}
 	return
 }
 

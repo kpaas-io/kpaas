@@ -27,9 +27,7 @@ import (
 )
 
 const (
-	// we use master IP as keepalived listen IP, later we need use VIP to replace it
-	keepalivedEthernet = "eth0"
-	keepalivedScript   = "/scripts/init_deploy_haproxy_keepalived/setup_kubernetes_high_availability.sh"
+	keepalivedScript = "/scripts/init_deploy_haproxy_keepalived/setup_kubernetes_high_availability.sh"
 )
 
 func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
@@ -54,100 +52,85 @@ func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 
 type InitKeepalivedOperation struct {
 	operation.BaseOperation
-	InitOperations
-	Machine        machine.IMachine
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKeepalivedOperation) getScript() string {
-	itOps.Script = keepalivedScript
-	return itOps.Script
-}
+func (itOps *InitKeepalivedOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
 
-func (itOps *InitKeepalivedOperation) getScriptPath() string {
-	itOps.ScriptPath = operation.InitRemoteScriptPath
-	return itOps.ScriptPath
-}
-
-func (itOps *InitKeepalivedOperation) GetOperations(node *pb.Node, initAction *operation.NodeInitAction) (operation.Operation, error) {
-	ops := &InitKeepalivedOperation{}
 	m, err := machine.NewMachine(node)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	itOps.Machine = m
+
 	itOps.NodeInitAction = initAction
 
-	masterIP := itOps.getMastersIP()
-	if masterIP == "" {
-		err = fmt.Errorf("master ip can not be empty")
-		return nil, err
+	// close ssh client if machine is not nil
+	if m != nil {
+		defer m.Close()
+	}
+
+	// acquire floating IP for keepalived
+	floatingIP := initAction.ClusterConfig.KubeAPIServerConnect.Keepalived.Vip
+	if floatingIP == "" {
+		err = fmt.Errorf("floating ip can not be empty")
+		return nil, nil, err
+	}
+
+	// acquire floating ethernet for keepalived
+	floatingEthernet := initAction.ClusterConfig.KubeAPIServerConnect.Keepalived.NetInterfaceName
+	if floatingEthernet == "" {
+		err = fmt.Errorf("floating ethernet can not be empty")
+		return nil, nil, err
 	}
 
 	// put setup.sh to machine
-	scriptFile, err := assets.Assets.Open(itOps.getScript())
+	scriptFile, err := assets.Assets.Open(keepalivedScript)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+itOps.getScript()); err != nil {
-		return nil, err
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+keepalivedScript); err != nil {
+		return nil, nil, err
 	}
 
 	// put docker.sh to machine
 	scriptFile, err = assets.Assets.Open(HaDockerFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaDockerFilePath); err != nil {
-		return nil, err
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaDockerFilePath); err != nil {
+		return nil, nil, err
 	}
 
 	// put lib.sh to machine
 	scriptFile, err = assets.Assets.Open(HaLibFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaLibFilePath); err != nil {
-		return nil, err
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaLibFilePath); err != nil {
+		return nil, nil, err
 	}
 
 	// put systemd.sh to machine
 	scriptFile, err = assets.Assets.Open(HaSystemdFilePath)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer scriptFile.Close()
 
-	if err := m.PutFile(scriptFile, itOps.getScriptPath()+HaSystemdFilePath); err != nil {
-		return nil, err
+	if err := m.PutFile(scriptFile, operation.InitRemoteScriptPath+HaSystemdFilePath); err != nil {
+		return nil, nil, err
 	}
 
-	ops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", itOps.getScriptPath()+itOps.getScript(), masterIP, keepalivedEthernet)))
-	return ops, nil
-}
+	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", operation.InitRemoteScriptPath+keepalivedScript, floatingIP, floatingEthernet)))
 
-func (itOps *InitKeepalivedOperation) CloseSSH() {
-	if itOps.Machine != nil {
-		itOps.Machine.Close()
-	}
-}
+	// run commands
+	stdOut, stdErr, err = itOps.Do()
 
-// get master IP with config
-func (itOps *InitKeepalivedOperation) getMastersIP() string {
-	for _, node := range itOps.NodeInitAction.NodesConfig {
-		if groupByRole(node.Roles, "master"); true {
-			err := CheckHaproxyParameter(node.Node.Ip)
-			if err != nil {
-				return ""
-			}
-			return node.Node.Ip
-		}
-	}
-	return ""
+	return
 }
