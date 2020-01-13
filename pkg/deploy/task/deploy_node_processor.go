@@ -15,7 +15,6 @@
 package task
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -31,14 +30,12 @@ func init() {
 type DeployNodeProcessor struct {
 }
 
-var errOfNodesEmpty = errors.New("nodes is empty")
-
 // Spilt the task into one or more node deploy node actions
 func (processor *DeployNodeProcessor) SplitTask(task Task) error {
 	if err := processor.verifyTask(task); err != nil {
 
 		// No need to do something when nodes empty
-		if err == errOfNodesEmpty {
+		if err == consts.ErrEmptyNodes {
 			return nil
 		}
 
@@ -95,7 +92,7 @@ func (processor *DeployNodeProcessor) verifyTask(task Task) error {
 	}
 
 	if len(deployTask.Config.Nodes) == 0 {
-		return errOfNodesEmpty
+		return consts.ErrEmptyNodes
 	}
 
 	return nil

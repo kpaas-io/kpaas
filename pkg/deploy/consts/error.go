@@ -15,6 +15,7 @@
 package consts
 
 import (
+	"errors"
 	"fmt"
 
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
@@ -30,4 +31,6 @@ var (
 		Reason: MsgActionInvalidConfig,
 		Detail: MsgActionInvalidConfigNodeNotSet,
 	}
+
+	ErrEmptyNodes = errors.New("nodes is empty")
 )
