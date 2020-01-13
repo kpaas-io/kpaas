@@ -175,16 +175,18 @@ definitions:
     type: object
   api.DeploymentResponseData:
     properties:
-      nodes:
-        items:
-          $ref: '#/definitions/api.DeploymentNode'
-        type: array
-      role:
+      DeployItem:
         enum:
         - master
         - worker
         - etcd
+        - ingress
+        - network
         type: string
+      nodes:
+        items:
+          $ref: '#/definitions/api.DeploymentNode'
+        type: array
     type: object
   api.Error:
     properties:
@@ -235,7 +237,7 @@ definitions:
         - failed
         - workedButHaveError
         type: string
-      roles:
+      deployItems:
         items:
           $ref: '#/definitions/api.DeploymentResponseData'
         type: array
@@ -604,7 +606,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.Cluster'
-          type: object
       produces:
       - application/json
       responses:
@@ -731,7 +732,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.NetworkOptions'
-          type: object
       produces:
       - application/json
       responses:
@@ -772,7 +772,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.NodeData'
-          type: object
       produces:
       - application/json
       responses:
@@ -859,7 +858,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.UpdateNodeData'
-          type: object
       - description: Node IP Address
         in: path
         name: ip
@@ -1177,7 +1175,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.ConnectionData'
-          type: object
       produces:
       - application/json
       responses:
@@ -1226,7 +1223,6 @@ paths:
         required: true
         schema:
           $ref: '#/definitions/api.SSHCertificate'
-          type: object
       produces:
       - application/json
       responses:

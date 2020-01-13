@@ -120,14 +120,14 @@ func TestGetDeployReport(t *testing.T) {
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			DeploymentReports: map[constant.MachineRole]*wizard.DeploymentReport{
-				constant.MachineRoleMaster: {
-					Role:   constant.MachineRoleMaster,
-					Status: wizard.DeployStatusSuccessful,
+			DeploymentReports: map[constant.DeployItem]*wizard.DeploymentReport{
+				constant.DeployItemMaster: {
+					DeployItem: constant.DeployItemMaster,
+					Status:     wizard.DeployStatusSuccessful,
 				},
-				constant.MachineRoleEtcd: {
-					Role:   constant.MachineRoleEtcd,
-					Status: wizard.DeployStatusSuccessful,
+				constant.DeployItemEtcd: {
+					DeployItem: constant.DeployItemEtcd,
+					Status:     wizard.DeployStatusSuccessful,
 				},
 			},
 		},
@@ -151,7 +151,7 @@ func TestGetDeployReport(t *testing.T) {
 	assert.Equal(t, api.DeployClusterStatusSuccessful, responseData.DeployClusterStatus)
 	assert.Equal(t, []api.DeploymentResponseData{
 		{
-			Role: constant.MachineRoleMaster,
+			DeployItem: constant.DeployItemMaster,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
@@ -160,7 +160,7 @@ func TestGetDeployReport(t *testing.T) {
 			},
 		},
 		{
-			Role: constant.MachineRoleEtcd,
+			DeployItem: constant.DeployItemEtcd,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
@@ -168,7 +168,7 @@ func TestGetDeployReport(t *testing.T) {
 				},
 			},
 		},
-	}, sortRoles(responseData.Roles))
+	}, sortRoles(responseData.DeployItems))
 	assert.Nil(t, responseData.DeployClusterError)
 }
 
@@ -259,7 +259,7 @@ func TestComputeClusterDeployStatus(t *testing.T) {
 				Items: []*protos.DeployItemResult{
 					{
 						DeployItem: &protos.DeployItem{
-							Role: string(constant.MachineRoleEtcd),
+							ItemName: string(constant.MachineRoleEtcd),
 						},
 						Status: string(constant.OperationStatusFailed),
 					},
@@ -287,7 +287,7 @@ func TestComputeClusterDeployStatus(t *testing.T) {
 				Items: []*protos.DeployItemResult{
 					{
 						DeployItem: &protos.DeployItem{
-							Role: string(constant.MachineRoleMaster),
+							ItemName: string(constant.MachineRoleMaster),
 						},
 						Status: string(constant.OperationStatusFailed),
 					},
@@ -302,13 +302,13 @@ func TestComputeClusterDeployStatus(t *testing.T) {
 				Items: []*protos.DeployItemResult{
 					{
 						DeployItem: &protos.DeployItem{
-							Role: string(constant.MachineRoleMaster),
+							ItemName: string(constant.MachineRoleMaster),
 						},
 						Status: string(constant.OperationStatusSuccessful),
 					},
 					{
 						DeployItem: &protos.DeployItem{
-							Role: string(constant.MachineRoleMaster),
+							ItemName: string(constant.MachineRoleMaster),
 						},
 						Status: string(constant.OperationStatusFailed),
 					},
@@ -327,19 +327,19 @@ func TestComputeClusterDeployStatus(t *testing.T) {
 func sortRoles(roles []api.DeploymentResponseData) []api.DeploymentResponseData {
 
 	sort.SliceStable(roles, func(i, j int) bool {
-		if roles[i].Role == roles[j].Role {
+		if roles[i].DeployItem == roles[j].DeployItem {
 			return false
 		}
-		if roles[i].Role == constant.MachineRoleMaster {
+		if roles[i].DeployItem == constant.DeployItemMaster {
 			return true
 		}
-		if roles[j].Role == constant.MachineRoleMaster {
+		if roles[j].DeployItem == constant.DeployItemMaster {
 			return false
 		}
-		if roles[i].Role == constant.MachineRoleWorker {
+		if roles[i].DeployItem == constant.DeployItemWorker {
 			return true
 		}
-		if roles[j].Role == constant.MachineRoleWorker {
+		if roles[j].DeployItem == constant.DeployItemWorker {
 			return false
 		}
 		return false

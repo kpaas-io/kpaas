@@ -199,7 +199,7 @@ message GetDeployResultRequest {
 
 // DeployItem represents a deploy action in a node for a role. 
 message DeployItem {
-  string role = 1;
+  string itemName = 1;
   string nodeName = 2;
   bool failureCanBeIgnored = 3;
 }

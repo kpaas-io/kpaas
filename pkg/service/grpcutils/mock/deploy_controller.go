@@ -96,7 +96,7 @@ func (mock *DeployController) GetDeployResult(ctx context.Context, in *protos.Ge
 		Items: []*protos.DeployItemResult{
 			{
 				DeployItem: &protos.DeployItem{
-					Role:                string(constant.MachineRoleMaster),
+					ItemName:            string(constant.MachineRoleMaster),
 					NodeName:            "master1",
 					FailureCanBeIgnored: false,
 				},
@@ -105,7 +105,7 @@ func (mock *DeployController) GetDeployResult(ctx context.Context, in *protos.Ge
 			},
 			{
 				DeployItem: &protos.DeployItem{
-					Role:                string(constant.MachineRoleEtcd),
+					ItemName:            string(constant.MachineRoleEtcd),
 					NodeName:            "master1",
 					FailureCanBeIgnored: false,
 				},

@@ -103,7 +103,7 @@ func GetDeployReport(c *gin.Context) {
 	wizardData := wizard.GetCurrentWizard()
 	nodeList := getWizardDeploymentData()
 	responseData := api.GetDeploymentReportResponse{
-		Roles:               *nodeList,
+		DeployItems:         *nodeList,
 		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizardData.DeployClusterStatus),
 		DeployClusterError:  convertModelErrorToAPIError(wizardData.DeployClusterError),
 	}
@@ -249,7 +249,7 @@ func refreshDeployResultOneTime() {
 		}
 
 		wizardNode.SetDeployResult(
-			constant.MachineRole(item.DeployItem.Role),
+			constant.DeployItem(item.DeployItem.ItemName),
 			convertDeployControllerDeployResultToModelDeployResult(item.GetStatus()),
 			failureDetail)
 	}
@@ -275,7 +275,7 @@ func computeClusterDeployStatus(resp *protos.GetDeployResultReply) wizard.Deploy
 			continue
 		}
 
-		if constant.MachineRole(deployItem.GetDeployItem().GetRole()) != constant.MachineRoleMaster {
+		if constant.MachineRole(deployItem.GetDeployItem().GetItemName()) != constant.MachineRoleMaster {
 			continue
 		}
 

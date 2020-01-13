@@ -20,14 +20,14 @@ import (
 
 type (
 	GetDeploymentReportResponse struct {
-		Roles               []DeploymentResponseData `json:"roles"`
+		DeployItems         []DeploymentResponseData `json:"deployItems"`
 		DeployClusterStatus DeployClusterStatus      `json:"deployClusterStatus" enums:"pending,running,successful,failed,workedButHaveError"` // The cluster deployment status
 		DeployClusterError  *Error                   `json:"deployClusterError,omitempty"`                                                     // Deploy cluster error message
 	}
 
 	DeploymentResponseData struct {
-		Role  constant.MachineRole `json:"role" enums:"master,worker,etcd"`
-		Nodes []DeploymentNode     `json:"nodes"`
+		DeployItem constant.DeployItem `json:"DeployItem" enums:"master,worker,etcd,ingress,network"`
+		Nodes      []DeploymentNode    `json:"nodes"`
 	}
 
 	DeploymentNode struct {
