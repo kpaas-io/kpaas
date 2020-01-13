@@ -21,12 +21,8 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	deployOperation "github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-)
-
-const (
-	fixMethodSelfAnalyseIt = "Please follow the error message and download deploy log to analyse it. Please create issues if you find any problem."
 )
 
 type StartKubeletConfig struct {
@@ -37,7 +33,7 @@ type StartKubeletConfig struct {
 }
 
 type StartKubelet struct {
-	operation.BaseOperation
+	deployOperation.BaseOperation
 	config *StartKubeletConfig
 }
 
@@ -67,7 +63,7 @@ func (operation *StartKubelet) RunKubelet() *pb.Error {
 // doSomeThing is describe what the command done
 func (operation *StartKubelet) runCommand(shellCommand string, errorTitle string, doSomeThing string) *pb.Error {
 
-	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
+	return deployOperation.NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(operation.config.Machine, shellCommand), errorTitle, doSomeThing,
 	)
 }

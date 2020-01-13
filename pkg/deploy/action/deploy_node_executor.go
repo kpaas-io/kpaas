@@ -115,7 +115,7 @@ func (executor *deployNodeExecutor) connectMasterNode() *protos.Error {
 		return &protos.Error{
 			Reason:     "connecting failed",
 			Detail:     fmt.Sprintf("failed to connect master node, err: %s", err),
-			FixMethods: "please check deploy worker config to ensure master node can be connected successfully",
+			FixMethods: "please check deploy node config to ensure master node can be connected successfully",
 		}
 	}
 	return nil

@@ -1,4 +1,4 @@
-// Copyright 2019 Shanghai JingDuo Information Technology co., Ltd.
+// Copyright 2020 Shanghai JingDuo Information Technology co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package worker
+package operation
 
 import (
 	"fmt"
@@ -22,6 +22,10 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+)
+
+const (
+	FixMethodSelfAnalyseIt = "Please follow the error message and download deploy log to analyse it. Please create issues if you find any problem."
 )
 
 type CommandRunner struct {
@@ -65,7 +69,7 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 		return &pb.Error{
 			Reason:     errorTitle,                                                                                // {$errorTitle}
 			Detail:     fmt.Sprintf("We tried to %s, but command run error, error message: %v", doSomeThing, err), // 我们尝试{$doSomeThing}，命令运行出错了，错误信息： %v
-			FixMethods: fixMethodSelfAnalyseIt,                                                                    // 请根据错误提示，并且下载日志进行分析，如果遇到困难，可以提issue给我们
+			FixMethods: FixMethodSelfAnalyseIt,                                                                    // 请根据错误提示，并且下载日志进行分析，如果遇到困难，可以提issue给我们
 		}
 	}
 
@@ -74,7 +78,7 @@ func (runner *CommandRunner) RunCommand(command command.Command, errorTitle, doS
 		return &pb.Error{
 			Reason:     errorTitle,                                                                                              // {$errorTitle}
 			Detail:     fmt.Sprintf("We tried to %s, but command return error, error message: %s", doSomeThing, string(stderr)), // 我们尝试{$doSomeThing}，但是命令返回出错了，错误信息： %s
-			FixMethods: fixMethodSelfAnalyseIt,                                                                                  // 请根据错误提示，并且下载日志进行分析，如果遇到困难，可以提issue给我们
+			FixMethods: FixMethodSelfAnalyseIt,                                                                                  // 请根据错误提示，并且下载日志进行分析，如果遇到困难，可以提issue给我们
 		}
 	}
 	return nil

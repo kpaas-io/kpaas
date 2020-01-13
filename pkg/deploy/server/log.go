@@ -137,12 +137,13 @@ var roleActionTypeMap = map[constant.MachineRole]map[action.Type]struct{}{
 		action.ActionTypeJoinMaster: struct{}{},
 	},
 	constant.MachineRoleWorker: map[action.Type]struct{}{
-		action.ActionTypeNodeInit:     struct{}{},
-		action.ActionTypeDeployWorker: struct{}{},
+		action.ActionTypeNodeInit:   struct{}{},
+		action.ActionTypeDeployNode: struct{}{},
 	},
 	constant.MachineRoleIngress: map[action.Type]struct{}{
-		action.ActionTypeNodeInit: struct{}{},
-	}, // Deploy ingress action type is to be supported soon.
+		action.ActionTypeNodeInit:   struct{}{},
+		action.ActionTypeDeployNode: struct{}{},
+	},
 }
 
 // Check if an action is created for a deploy role.

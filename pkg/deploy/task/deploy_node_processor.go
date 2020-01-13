@@ -57,7 +57,7 @@ func (processor *DeployNodeProcessor) SplitTask(task Task) error {
 	// split task into actions: will create a action for every node, the action type
 	// is ActionTypeDeployNode
 
-	actions := make([]action.Action, 0, len(deployTask.Config.Nodes))
+	actions := make([]action.Action, 0, len(deployTask.Config.Nodes)+len(deployTask.Config.PostActions))
 	for _, node := range deployTask.Config.Nodes {
 		actionCfg := &action.DeployNodeActionConfig{
 			NodeCfg:         node,
@@ -71,6 +71,11 @@ func (processor *DeployNodeProcessor) SplitTask(task Task) error {
 		}
 		actions = append(actions, act)
 	}
+
+	if len(deployTask.Config.PostActions) > 0 {
+		actions = append(actions, deployTask.Config.PostActions...)
+	}
+
 	deployTask.Actions = actions
 
 	logger.Debugf("Finish to split deploy node task: %d actions", len(actions))

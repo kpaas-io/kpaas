@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/action"
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -28,6 +29,7 @@ type DeployNodeTaskConfig struct {
 	MasterNodes   []*protos.Node
 	Nodes         []*protos.NodeDeployConfig
 	ClusterConfig *protos.ClusterConfig
+	PostActions   []action.Action
 }
 
 type deployNodeTask struct {

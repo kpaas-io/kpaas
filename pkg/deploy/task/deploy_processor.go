@@ -21,6 +21,7 @@ import (
 	"k8s.io/kubernetes/cmd/kubeadm/app/phases/copycerts"
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/deploy/action"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
@@ -207,6 +208,16 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 		// Ingress is a worker too. Just one label more than a normal node
 		p.addIngressMarks(rn[constant.MachineRoleIngress])
 
+		installContourAction, err := action.NewDeployContourAction(&action.DeployContourActionConfig{
+			ClusterConfig:   parent.ClusterConfig,
+			MasterNodes:     p.unwrapNodes(rn[constant.MachineRoleMaster]),
+			LogFileBasePath: parent.GetLogFileDir(),
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
 		// Use the role name as the task name for now.
 		return NewDeployNodeTask(fmt.Sprintf("deploy-%s", role),
 			&DeployNodeTaskConfig{
@@ -218,6 +229,7 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 				Nodes:         rn[constant.MachineRoleIngress],
 				ClusterConfig: parent.ClusterConfig,
 				MasterNodes:   p.unwrapNodes(rn[constant.MachineRoleMaster]),
+				PostActions:   []action.Action{installContourAction},
 			},
 		)
 
