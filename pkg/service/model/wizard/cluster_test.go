@@ -1003,9 +1003,9 @@ func TestCluster_ClearClusterDeployData(t *testing.T) {
 				Nodes: []*Node{
 					{
 						Name: "node2",
-						DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-							constant.MachineRoleMaster: {
-								Role: constant.MachineRoleMaster,
+						DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+							constant.DeployItemMaster: {
+								DeployItem: constant.DeployItemMaster,
 							},
 						},
 					},
@@ -1017,7 +1017,7 @@ func TestCluster_ClearClusterDeployData(t *testing.T) {
 				Nodes: []*Node{
 					{
 						Name:              "node2",
-						DeploymentReports: map[constant.MachineRole]*DeploymentReport{},
+						DeploymentReports: map[constant.DeployItem]*DeploymentReport{},
 					},
 				},
 				DeployClusterStatus: DeployClusterStatusPending,
@@ -1029,9 +1029,9 @@ func TestCluster_ClearClusterDeployData(t *testing.T) {
 				Nodes: []*Node{
 					{
 						Name: "node2",
-						DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-							constant.MachineRoleMaster: {
-								Role: constant.MachineRoleMaster,
+						DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+							constant.DeployItemMaster: {
+								DeployItem: constant.DeployItemMaster,
 							},
 						},
 					},
@@ -1044,7 +1044,7 @@ func TestCluster_ClearClusterDeployData(t *testing.T) {
 				Nodes: []*Node{
 					{
 						Name:              "node2",
-						DeploymentReports: map[constant.MachineRole]*DeploymentReport{},
+						DeploymentReports: map[constant.DeployItem]*DeploymentReport{},
 					},
 				},
 				DeployClusterStatus: DeployClusterStatusPending,
@@ -1232,7 +1232,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1247,7 +1247,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1266,7 +1266,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1283,7 +1283,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1301,7 +1301,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1316,7 +1316,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1335,7 +1335,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1352,7 +1352,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1370,7 +1370,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1389,7 +1389,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1406,7 +1406,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},
@@ -1424,7 +1424,7 @@ func TestCluster_AddNodeList(t *testing.T) {
 					Labels:              []*Label{},
 					Taints:              []*Taint{},
 					CheckReport:         &CheckReport{},
-					DeploymentReports:   make(map[constant.MachineRole]*DeploymentReport),
+					DeploymentReports:   make(map[constant.DeployItem]*DeploymentReport),
 					DockerRootDirectory: "/var/lib/docker",
 					rwLock:              sync.RWMutex{},
 				},

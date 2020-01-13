@@ -103,7 +103,7 @@ func GetDeployReport(c *gin.Context) {
 	wizardData := wizard.GetCurrentWizard()
 	nodeList := getWizardDeploymentData()
 	responseData := api.GetDeploymentReportResponse{
-		Roles:               *nodeList,
+		DeployItems:         *nodeList,
 		DeployClusterStatus: convertModelDeployClusterStatusToAPIDeployClusterStatus(wizardData.DeployClusterStatus),
 		DeployClusterError:  convertModelErrorToAPIError(wizardData.DeployClusterError),
 	}
@@ -249,7 +249,7 @@ func refreshDeployResultOneTime() {
 		}
 
 		wizardNode.SetDeployResult(
-			constant.MachineRole(item.DeployItem.Role),
+			constant.DeployItem(item.DeployItem.GetRole()),
 			convertDeployControllerDeployResultToModelDeployResult(item.GetStatus()),
 			failureDetail)
 	}

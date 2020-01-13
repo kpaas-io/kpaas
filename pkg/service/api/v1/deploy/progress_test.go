@@ -193,14 +193,14 @@ func TestGetWizardProgress5(t *testing.T) {
 	wizardData.Nodes = []*wizard.Node{
 		{
 			Name: "master1",
-			DeploymentReports: map[constant.MachineRole]*wizard.DeploymentReport{
-				constant.MachineRoleMaster: {
-					Role:   constant.MachineRoleMaster,
-					Status: wizard.DeployStatusSuccessful,
+			DeploymentReports: map[constant.DeployItem]*wizard.DeploymentReport{
+				constant.DeployItemMaster: {
+					DeployItem: constant.DeployItemMaster,
+					Status:     wizard.DeployStatusSuccessful,
 				},
-				constant.MachineRoleEtcd: {
-					Role:   constant.MachineRoleEtcd,
-					Status: wizard.DeployStatusSuccessful,
+				constant.DeployItemEtcd: {
+					DeployItem: constant.DeployItemEtcd,
+					Status:     wizard.DeployStatusSuccessful,
 				},
 			},
 			CheckReport: &wizard.CheckReport{
@@ -215,7 +215,7 @@ func TestGetWizardProgress5(t *testing.T) {
 	sortRoles(responseData.DeploymentData)
 	assert.Equal(t, []api.DeploymentResponseData{
 		{
-			Role: constant.MachineRoleMaster,
+			DeployItem: constant.DeployItemMaster,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",
@@ -224,7 +224,7 @@ func TestGetWizardProgress5(t *testing.T) {
 			},
 		},
 		{
-			Role: constant.MachineRoleEtcd,
+			DeployItem: constant.DeployItemEtcd,
 			Nodes: []api.DeploymentNode{
 				{
 					Name:   "master1",

@@ -159,18 +159,18 @@ func getWizardDeploymentData() *[]api.DeploymentResponseData {
 	responseData := new([]api.DeploymentResponseData)
 	*responseData = make([]api.DeploymentResponseData, 0, 0)
 
-	deployList := make(map[constant.MachineRole][]*api.DeploymentNode)
+	deployList := make(map[constant.DeployItem][]*api.DeploymentNode)
 
 	for _, node := range wizardData.Nodes {
 
 		for _, report := range node.DeploymentReports {
 
-			role := report.Role
-			if _, machineRoleExist := deployList[role]; !machineRoleExist {
-				deployList[role] = make([]*api.DeploymentNode, 0, 0)
+			deployItem := report.DeployItem
+			if _, machineRoleExist := deployList[deployItem]; !machineRoleExist {
+				deployList[deployItem] = make([]*api.DeploymentNode, 0, 0)
 			}
 
-			deployList[role] = append(deployList[role], &api.DeploymentNode{
+			deployList[deployItem] = append(deployList[deployItem], &api.DeploymentNode{
 				Name:   node.Name,
 				Status: convertModelDeployStatusToAPIDeployStatus(report.Status),
 				Error:  convertModelErrorToAPIError(report.Error),
@@ -181,8 +181,8 @@ func getWizardDeploymentData() *[]api.DeploymentResponseData {
 	for role, nodes := range deployList {
 
 		nodeList := api.DeploymentResponseData{
-			Role:  role,
-			Nodes: make([]api.DeploymentNode, 0, len(nodes)),
+			DeployItem: role,
+			Nodes:      make([]api.DeploymentNode, 0, len(nodes)),
 		}
 		for _, node := range nodes {
 

@@ -146,7 +146,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -334,7 +333,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.NetworkOptions"
                         }
                     }
@@ -395,7 +393,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -483,7 +480,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -985,7 +981,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -1058,7 +1053,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
@@ -1313,19 +1307,21 @@ var doc = `{
         "api.DeploymentResponseData": {
             "type": "object",
             "properties": {
+                "deployItem": {
+                    "type": "string",
+                    "enum": [
+                        "master",
+                        "worker",
+                        "etcd",
+                        "ingress",
+                        "network"
+                    ]
+                },
                 "nodes": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.DeploymentNode"
                     }
-                },
-                "role": {
-                    "type": "string",
-                    "enum": [
-                        "master",
-                        "worker",
-                        "etcd"
-                    ]
                 }
             }
         },
@@ -1395,7 +1391,7 @@ var doc = `{
                         "workedButHaveError"
                     ]
                 },
-                "roles": {
+                "deployItems": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.DeploymentResponseData"
