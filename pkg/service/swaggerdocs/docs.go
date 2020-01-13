@@ -1473,6 +1473,11 @@ var doc = `{
                     "description": "Wizard mode, normal or advanced",
                     "type": "string"
                 },
+                "networkOptions": {
+                    "description": "Network options",
+                    "type": "object",
+                    "$ref": "#/definitions/api.NetworkOptions"
+                },
                 "nodes": {
                     "description": "Nodes Information",
                     "type": "array",
