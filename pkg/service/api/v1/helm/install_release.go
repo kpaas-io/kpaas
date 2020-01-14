@@ -20,20 +20,23 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/chart/loader"
 
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
-	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
-// installRelease inner function of calling helm actions to install a release
-func installRelease(c *gin.Context, r *api.HelmRelease) (*api.HelmRelease, error) {
-	logEntry := log.ReqEntry(c).
-		WithField("cluster", r.Cluster).WithField("namspace", r.Namespace).WithField("releaseName", r.Name)
+// RunInstallReleaseAction inner function of calling helm actions to install a release
+func RunInstallReleaseAction(logEntry *logrus.Entry, r *api.HelmRelease) (*api.HelmRelease, error) {
+	if logEntry == nil {
+		logEntry = logrus.WithField("namspace", r.Namespace).WithField("releaseName", r.Name)
+	} else {
+		logEntry = logEntry.
+			WithField("cluster", r.Cluster).WithField("namspace", r.Namespace).WithField("releaseName", r.Name)
+	}
 
 	// fetch kubeconfig for cluster
 	logEntry.Debug("getting action config...")
