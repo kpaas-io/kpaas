@@ -16,4 +16,7 @@ package consts
 
 const (
 	DefaultKubeToolScript = "/scripts/init_deploy_kubetool.sh"
+
+	MasterTanitKey    = "node-role.kubernetes.io/master"
+	MasterTaintEffect = "NoSchedule"
 )

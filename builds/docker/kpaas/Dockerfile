@@ -3,6 +3,7 @@ FROM alpine:latest
 COPY builds/release/ /app/
 COPY builds/docker/dashboard.conf /app/config/dashboard.conf
 COPY builds/docker/entrypoint.sh /app/entrypoint.sh
+COPY charts /app/charts
 
 RUN chmod 755 /app/dashboard
 RUN chmod 755 /app/service

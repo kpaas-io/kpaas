@@ -176,6 +176,7 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 
 		config := &DeployMasterTaskConfig{
 			CertKey:         certificateKey,
+			NodeConfigs:     parent.NodeConfigs,
 			EtcdNodes:       p.unwrapNodes(rn[constant.MachineRoleEtcd]),
 			Nodes:           p.unwrapNodes(rn[role]),
 			ClusterConfig:   parent.ClusterConfig,
