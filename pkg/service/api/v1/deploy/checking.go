@@ -42,7 +42,7 @@ import (
 func CheckNodeList(c *gin.Context) {
 
 	wizardData := wizard.GetCurrentWizard()
-	if len(wizardData.Nodes) <= 0 {
+	if len(wizardData.Nodes) == 0 {
 		h.E(c, h.ENotFound.WithPayload("No node information, node list is empty, please add node information"))
 		return
 	}
@@ -216,14 +216,14 @@ func getItemNameFromDeployControllerCheckItem(item *protos.CheckItem) string {
 
 func checkClusterConfiguration() bool {
 
-	return len(checkWrongClusterConfiguration()) <= 0
+	return len(checkWrongClusterConfiguration()) == 0
 }
 
 func checkWrongClusterConfiguration() (errs []*api.CheckingItem) {
 
 	errs = make([]*api.CheckingItem, 0)
 	wizardData := wizard.GetCurrentWizard()
-	if len(wizardData.Nodes) <= 0 {
+	if len(wizardData.Nodes) == 0 {
 
 		errs = append(errs, &api.CheckingItem{
 			CheckingPoint: "Checking node information", // 检查节点信息

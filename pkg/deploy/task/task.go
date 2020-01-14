@@ -157,3 +157,9 @@ func GetAllActions(aTask Task) []action.Action {
 	actions = append(actions, aTask.GetActions()...)
 	return actions
 }
+
+type BaseTaskConfig struct {
+	LogFileBasePath string
+	Priority        int
+	Parent          string
+}

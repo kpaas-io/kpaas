@@ -32,7 +32,7 @@ network_config:
 
 
 node:
-  image: calico/node
+  image: kpaas/calico-node
   tag: v3.10.1
   env:
     # Optional environment variables for configuring Calico node.
@@ -40,10 +40,10 @@ node:
     # - name: FELIX_LOGSEVERITYSCREEN
     #   value: "debug"
 calicoctl:
-  image: calico/ctl
+  image: kpaas/calico-ctl
   tag: v3.10.1
 typha:
-  image: calico/typha
+  image: kpaas/calico-typha
   tag: v3.10.1
   env:
     # Optional environment variables for configuring Typha.
@@ -51,7 +51,7 @@ typha:
     # - name: TYPHA_LOGSEVERITYSYS
     #   value: debug
 cni:
-  image: calico/cni
+  image: kpaas/calico-cni
   tag: v3.10.1
   env:
     # Optional environment variables for configuring Calico CNI.
@@ -59,7 +59,7 @@ cni:
     # - name: FOO
     #   value: bar
 kubeControllers:
-  image: calico/kube-controllers
+  image: kpaas/calico-kube-controllers
   tag: v3.10.1
   env:
     # Optional environment variables for configuring Calico kube controllers.
@@ -67,8 +67,8 @@ kubeControllers:
     # - name: LOG_LEVEL
     #   value: debug
 dikastes:
-  image: calico/dikastes
+  image: kpaas/calico-dikastes
   tag: v3.10.1
 flexvol:
-  image: calico/pod2daemon-flexvol
+  image: kpaas/calico-pod2daemon-flexvol
   tag: v3.10.1

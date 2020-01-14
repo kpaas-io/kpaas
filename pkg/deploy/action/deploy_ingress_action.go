@@ -21,21 +21,21 @@ import (
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const ActionTypeDeployWorker Type = "DeployWorker"
+const ActionTypeDeployIngress Type = "DeployIngress"
 
-type DeployWorkerActionConfig struct {
+type DeployIngressActionConfig struct {
 	NodeCfg         *pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig
 	MasterNodes     []*pb.Node
 	LogFileBasePath string
 }
 
-type DeployWorkerAction struct {
+type DeployIngressAction struct {
 	Base
 	config *DeployNodeActionConfig
 }
 
-func NewDeployWorkerAction(config *DeployNodeActionConfig) (Action, error) {
+func NewDeployIngressAction(config *DeployNodeActionConfig) (Action, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("action config is nil")
@@ -47,13 +47,13 @@ func NewDeployWorkerAction(config *DeployNodeActionConfig) (Action, error) {
 		return nil, fmt.Errorf("invalid action config: NodeCfg.Node is nil")
 	}
 
-	actionName := GenActionName(ActionTypeDeployWorker)
-	return &DeployWorkerAction{
+	actionName := GenActionName(ActionTypeDeployIngress)
+	return &DeployIngressAction{
 		Base: Base{
 			Name:              actionName,
-			ActionType:        ActionTypeDeployWorker,
+			ActionType:        ActionTypeDeployIngress,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName, config.NodeCfg.Node.Name), // /app/deploy/logs/unknown/deploy-worker/{node}-DeployWorker-{randomUint64}.log
+			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName, config.NodeCfg.Node.Name), // /app/deploy/logs/unknown/deploy-worker/{node}-DeployIngress-{randomUint64}.log
 			CreationTimestamp: time.Now(),
 			Node:              config.NodeCfg.Node,
 		},

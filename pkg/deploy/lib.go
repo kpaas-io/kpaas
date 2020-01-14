@@ -104,3 +104,13 @@ func ReturnWithUnit(size float64) (valueWithUnit string) {
 	}
 	return
 }
+
+func GetNodeRoles(node *pb.Node, nodeConfigs []*pb.NodeDeployConfig) []string {
+	for _, cfg := range nodeConfigs {
+		if node == cfg.Node {
+			return cfg.Roles
+		}
+	}
+
+	return nil
+}
