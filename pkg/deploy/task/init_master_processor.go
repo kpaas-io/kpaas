@@ -47,6 +47,7 @@ func (p *initMasterProcessor) SplitTask(t Task) error {
 	actionCfg := &action.InitMasterActionConfig{
 		CertKey:         task.CertKey,
 		Node:            task.Node,
+		Roles:           task.Roles,
 		EtcdNodes:       task.EtcdNodes,
 		MasterNodes:     task.MasterNodes,
 		ClusterConfig:   task.ClusterConfig,

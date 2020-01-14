@@ -26,6 +26,7 @@ const ActionTypeInitMaster Type = "InitMaster"
 type InitMasterActionConfig struct {
 	CertKey         string
 	Node            *pb.Node
+	Roles           []string
 	MasterNodes     []*pb.Node
 	EtcdNodes       []*pb.Node
 	ClusterConfig   *pb.ClusterConfig
@@ -35,6 +36,7 @@ type InitMasterActionConfig struct {
 type InitMasterAction struct {
 	Base
 	CertKey       string
+	Roles         []string
 	MasterNodes   []*pb.Node
 	EtcdNodes     []*pb.Node
 	ClusterConfig *pb.ClusterConfig
@@ -60,6 +62,7 @@ func NewInitMasterAction(cfg *InitMasterActionConfig) (Action, error) {
 			CreationTimestamp: time.Now(),
 		},
 		CertKey:       cfg.CertKey,
+		Roles:         cfg.Roles,
 		MasterNodes:   cfg.MasterNodes,
 		EtcdNodes:     cfg.EtcdNodes,
 		ClusterConfig: cfg.ClusterConfig,

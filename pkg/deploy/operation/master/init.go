@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -48,6 +49,7 @@ type InitMasterOperationConfig struct {
 	Logger        *logrus.Entry
 	CertKey       string
 	Node          *pb.Node
+	NeedUntaint   bool
 	MasterNodes   []*pb.Node
 	EtcdNodes     []*pb.Node
 	ClusterConfig *pb.ClusterConfig
@@ -59,6 +61,7 @@ type initMasterOperation struct {
 	Logger        *logrus.Entry
 	EtcdNodes     []*pb.Node
 	MasterNodes   []*pb.Node
+	NeedUntaint   bool
 	machine       machine.IMachine
 	ClusterConfig *pb.ClusterConfig
 }
@@ -67,6 +70,7 @@ func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOpera
 	ops := &initMasterOperation{
 		Logger:        config.Logger,
 		CertKey:       config.CertKey,
+		NeedUntaint:   config.NeedUntaint,
 		EtcdNodes:     config.EtcdNodes,
 		MasterNodes:   config.MasterNodes,
 		ClusterConfig: config.ClusterConfig,
@@ -163,17 +167,35 @@ func (op *initMasterOperation) Do() error {
 func (op *initMasterOperation) PostDo() error {
 	// wait until master cluster ready
 
+	var up bool
 	deadline := time.Now().Add(defaultControlPlaneReadyTimeout)
 	for retries := 0; time.Now().Before(deadline); retries++ {
 		err := masterUpAndRunning(op)
 		if err == nil {
-			return nil
+			up = true
+			break
 		}
 		op.Logger.Warnf("controlplane not ready, error: %v, will retry", err)
 		time.Sleep(time.Second << uint(retries))
 	}
 
-	return fmt.Errorf("wait for controlplane to be ready timeout after:%v", defaultControlPlaneReadyTimeout)
+	if !up {
+		return fmt.Errorf("wait for controlplane to be ready timeout after:%v", defaultControlPlaneReadyTimeout)
+	}
+
+	if !op.NeedUntaint {
+		return nil
+	}
+
+	taint := corev1.Taint{
+		Key:    consts.MasterTanitKey,
+		Effect: consts.MasterTaintEffect,
+	}
+	if err := operation.Untaint(op.machine.GetName(), taint, op.MasterNodes[0]); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func masterUpAndRunning(op *initMasterOperation) error {
