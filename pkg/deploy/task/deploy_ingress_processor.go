@@ -24,14 +24,14 @@ import (
 )
 
 func init() {
-	RegisterProcessor(TaskTypeDeployWorker, new(DeployWorkerProcessor))
+	RegisterProcessor(TaskTypeDeployIngress, new(DeployIngressProcessor))
 }
 
-type DeployWorkerProcessor struct {
+type DeployIngressProcessor struct {
 }
 
-// Spilt the task into one or more node deploy worker actions
-func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
+// Spilt the task into one or more node deploy ingress actions
+func (processor *DeployIngressProcessor) SplitTask(task Task) error {
 	if err := processor.verifyTask(task); err != nil {
 
 		// No need to do something when nodes empty
@@ -49,25 +49,37 @@ func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 
 	logger.Debug("Start to split deploy node task")
 
-	deployTask := task.(*deployWorkerTask)
+	deployTask := task.(*deployIngressTask)
 
 	// split task into actions: will create a action for every node, the action type
-	// is ActionTypeDeployWorker
+	// is ActionTypeDeployIngress
 
 	actions := make([]action.Action, 0, len(deployTask.Config.Nodes))
 	for _, node := range deployTask.Config.Nodes {
 		actionCfg := &action.DeployNodeActionConfig{
 			NodeCfg:         node,
 			ClusterConfig:   deployTask.Config.ClusterConfig,
-			LogFileBasePath: deployTask.LogFileDir, // /app/deploy/logs/unknown/deploy-worker
+			LogFileBasePath: deployTask.LogFileDir, // /app/deploy/logs/unknown/deploy-ingress
 			MasterNodes:     deployTask.Config.MasterNodes,
 		}
-		act, err := action.NewDeployWorkerAction(actionCfg)
+		act, err := action.NewDeployIngressAction(actionCfg)
 		if err != nil {
 			return err
 		}
 		actions = append(actions, act)
 	}
+
+	installContourAction, err := action.NewDeployContourAction(&action.DeployContourActionConfig{
+		ClusterConfig:   deployTask.Config.ClusterConfig,
+		MasterNodes:     deployTask.Config.MasterNodes,
+		LogFileBasePath: deployTask.LogFileDir, // /app/deploy/logs/unknown/deploy-ingress
+	})
+
+	if err != nil {
+		return err
+	}
+
+	actions = append(actions, installContourAction)
 
 	deployTask.Actions = actions
 
@@ -77,12 +89,12 @@ func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 }
 
 // Verify if the task is valid.
-func (processor *DeployWorkerProcessor) verifyTask(task Task) error {
+func (processor *DeployIngressProcessor) verifyTask(task Task) error {
 	if task == nil {
 		return consts.ErrEmptyTask
 	}
 
-	deployTask, ok := task.(*deployWorkerTask)
+	deployTask, ok := task.(*deployIngressTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, task)
 	}

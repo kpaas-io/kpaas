@@ -106,7 +106,7 @@ func getUploadBatchNodesRequestData(c *gin.Context) (nodeList []*api.NodeData, e
 
 	log.ReqEntry(c).Tracef("matches: %v", matches)
 
-	if len(matches) <= 0 {
+	if len(matches) == 0 {
 		err = fmt.Errorf("node list empty")
 		return
 	}

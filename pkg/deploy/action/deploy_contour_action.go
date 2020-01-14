@@ -1,4 +1,4 @@
-// Copyright 2019 Shanghai JingDuo Information Technology co., Ltd.
+// Copyright 2020 Shanghai JingDuo Information Technology co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,47 +15,44 @@
 package action
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const ActionTypeDeployWorker Type = "DeployWorker"
+const ActionTypeDeployContour Type = "DeployContour"
 
-type DeployWorkerActionConfig struct {
-	NodeCfg         *pb.NodeDeployConfig
+type DeployContourActionConfig struct {
 	ClusterConfig   *pb.ClusterConfig
 	MasterNodes     []*pb.Node
 	LogFileBasePath string
 }
 
-type DeployWorkerAction struct {
+type DeployContourAction struct {
 	Base
-	config *DeployNodeActionConfig
+	config *DeployContourActionConfig
 }
 
-func NewDeployWorkerAction(config *DeployNodeActionConfig) (Action, error) {
+func NewDeployContourAction(config *DeployContourActionConfig) (Action, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("action config is nil")
 	}
-	if config.NodeCfg == nil {
-		return nil, fmt.Errorf("invalid action config: NodeCfg is nil")
-	}
-	if config.NodeCfg.Node == nil {
-		return nil, fmt.Errorf("invalid action config: NodeCfg.Node is nil")
+	if len(config.MasterNodes) == 0 {
+		return nil, errors.New("master node is empty")
 	}
 
-	actionName := GenActionName(ActionTypeDeployWorker)
-	return &DeployWorkerAction{
+	actionName := GenActionName(ActionTypeDeployContour)
+	return &DeployContourAction{
 		Base: Base{
 			Name:              actionName,
-			ActionType:        ActionTypeDeployWorker,
+			ActionType:        ActionTypeDeployContour,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName, config.NodeCfg.Node.Name), // /app/deploy/logs/unknown/deploy-worker/{node}-DeployWorker-{randomUint64}.log
+			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName, config.ClusterConfig.ClusterName), // /app/deploy/logs/unknown/deploy-ingress/{clusterName}-DeployContour-{randomUint64}.log
 			CreationTimestamp: time.Now(),
-			Node:              config.NodeCfg.Node,
+			Node:              config.MasterNodes[0],
 		},
 		config: config,
 	}, nil

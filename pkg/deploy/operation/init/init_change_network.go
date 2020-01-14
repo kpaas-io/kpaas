@@ -15,6 +15,8 @@
 package init
 
 import (
+	"bytes"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -27,16 +29,18 @@ const (
 )
 
 type InitNetworkOperation struct {
-	operation.BaseOperation
+	shellCmd       *command.ShellCommand
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitNetworkOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+func (itOps *InitNetworkOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
 
@@ -55,10 +59,15 @@ func (itOps *InitNetworkOperation) RunCommands(node *pb.Node, initAction *operat
 		return nil, nil, err
 	}
 
-	itOps.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+networkScript))
+	itOps.shellCmd = command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+networkScript).
+		WithDescription("初始化网络配置").
+		WithExecuteLogWriter(logBuffer)
 
 	// run commands
-	stdOut, stdErr, err = itOps.Do()
+	stdOut, stdErr, err = itOps.shellCmd.Execute()
+
+	// write to log channel
+	logChan <- logBuffer
 
 	return
 }

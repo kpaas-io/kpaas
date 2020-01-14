@@ -15,6 +15,8 @@
 package check
 
 import (
+	"bytes"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -22,10 +24,12 @@ import (
 )
 
 type CheckRootDiskOperation struct {
-	operation.BaseOperation
+	shellCmd *command.ShellCommand
 }
 
-func (ckops *CheckRootDiskOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+func (ckops *CheckRootDiskOperation) RunCommands(config *pb.NodeCheckConfig, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
+
+	itemBuffer := &bytes.Buffer{}
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -37,10 +41,14 @@ func (ckops *CheckRootDiskOperation) RunCommands(config *pb.NodeCheckConfig) (st
 		defer m.Close()
 	}
 
-	ckops.AddCommands(command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'"))
+	ckops.shellCmd = command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'").
+		WithDescription("检查磁盘容量是否满足最低要求").
+		WithExecuteLogWriter(itemBuffer)
 
 	// run commands
-	stdOut, stdErr, err = ckops.Do()
+	stdOut, stdErr, err = ckops.shellCmd.Execute()
+
+	logChan <- itemBuffer
 
 	return
 }

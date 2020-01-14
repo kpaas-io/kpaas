@@ -21,6 +21,7 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
+	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
 const (
@@ -52,7 +53,8 @@ func InstallRelease(c *gin.Context) {
 		h.E(c, appErr)
 		return
 	}
-	res, err := installRelease(c, &release)
+	logEntry := log.ReqEntry(c)
+	res, err := RunInstallReleaseAction(logEntry, &release)
 	if err != nil {
 		h.E(c, err)
 		return

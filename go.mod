@@ -41,6 +41,7 @@ require (
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/yaml.v2 v2.2.5 // indirect
 	helm.sh/helm/v3 v3.0.1
+	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0
 	k8s.io/cli-runtime v0.0.0
 	k8s.io/client-go v1.16.0

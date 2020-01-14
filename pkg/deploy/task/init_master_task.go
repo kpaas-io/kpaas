@@ -36,6 +36,7 @@ type InitMasterTaskConfig struct {
 	etcdNodes       []*pb.Node
 	MasterNodes     []*pb.Node
 	node            *pb.Node
+	roles           []string
 	clusterConfig   *pb.ClusterConfig
 	logFileBasePath string
 	Priority        int
@@ -48,6 +49,7 @@ type InitMasterTask struct {
 	Operation     Operation
 	EtcdNodes     []*pb.Node
 	MasterNodes   []*pb.Node
+	Roles         []string
 	ClusterConfig *pb.ClusterConfig
 	Node          *pb.Node
 }
@@ -81,6 +83,7 @@ func NewInitMasterTask(taskName string, taskConfig *InitMasterTaskConfig) (Task,
 		},
 		CertKey:       taskConfig.certKey,
 		Node:          taskConfig.node,
+		Roles:         taskConfig.roles,
 		EtcdNodes:     taskConfig.etcdNodes,
 		MasterNodes:   taskConfig.MasterNodes,
 		ClusterConfig: taskConfig.clusterConfig,

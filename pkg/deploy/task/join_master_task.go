@@ -34,6 +34,7 @@ type JoinMasterTaskConfig struct {
 	certKey         string
 	operation       Operation
 	node            *pb.Node
+	roles           []string
 	masterNodes     []*pb.Node
 	clusterConfig   *pb.ClusterConfig
 	logFileBasePath string
@@ -46,6 +47,7 @@ type JoinMasterTask struct {
 	CertKey       string
 	Operation     Operation
 	Node          *pb.Node
+	Roles         []string
 	MasterNodes   []*pb.Node
 	ClusterConfig *pb.ClusterConfig
 }
@@ -75,6 +77,7 @@ func NewJoinMasterTask(taskName string, taskConfig *JoinMasterTaskConfig) (Task,
 		},
 		CertKey:       taskConfig.certKey,
 		Node:          taskConfig.node,
+		Roles:         taskConfig.roles,
 		MasterNodes:   taskConfig.masterNodes,
 		ClusterConfig: taskConfig.clusterConfig,
 		Operation:     JointMasterOperation,

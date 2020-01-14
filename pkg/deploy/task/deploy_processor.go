@@ -176,6 +176,7 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 
 		config := &DeployMasterTaskConfig{
 			CertKey:         certificateKey,
+			NodeConfigs:     parent.NodeConfigs,
 			EtcdNodes:       p.unwrapNodes(rn[constant.MachineRoleEtcd]),
 			Nodes:           p.unwrapNodes(rn[role]),
 			ClusterConfig:   parent.ClusterConfig,
@@ -188,17 +189,36 @@ func (p *deployProcessor) createDeploySubTask(role constant.MachineRole, parent 
 
 	case constant.MachineRoleWorker:
 
-		config := &DeployWorkerTaskConfig{
-			Nodes:           rn[constant.MachineRoleWorker],
-			ClusterConfig:   parent.ClusterConfig,
-			LogFileBasePath: parent.GetLogFileDir(), // /app/deploy/logs/unknown
-			Priority:        int(Priorities[role]),
-			Parent:          parent.GetName(),
-			MasterNodes:     p.unwrapNodes(rn[constant.MachineRoleMaster]),
-		}
+		// Use the role name as the task name for now.
+		return NewDeployWorkerTask(fmt.Sprintf("deploy-%s", role),
+			&DeployWorkerTaskConfig{
+				BaseTaskConfig: BaseTaskConfig{
+					LogFileBasePath: parent.GetLogFileDir(), // /app/deploy/logs/unknown
+					Priority:        int(Priorities[role]),
+					Parent:          parent.GetName(),
+				},
+				Nodes:         rn[constant.MachineRoleWorker],
+				ClusterConfig: parent.ClusterConfig,
+				MasterNodes:   p.unwrapNodes(rn[constant.MachineRoleMaster]),
+			},
+		)
+
+	case constant.MachineRoleIngress:
 
 		// Use the role name as the task name for now.
-		return NewDeployWorkerTask(fmt.Sprintf("deploy-%s", role), config)
+		return NewDeployIngressTask(fmt.Sprintf("deploy-%s", role),
+			&DeployIngressTaskConfig{
+				BaseTaskConfig: BaseTaskConfig{
+					LogFileBasePath: parent.GetLogFileDir(), // /app/deploy/logs/unknown
+					Priority:        int(Priorities[role]),
+					Parent:          parent.GetName(),
+				},
+				Nodes:         rn[constant.MachineRoleIngress],
+				ClusterConfig: parent.ClusterConfig,
+				MasterNodes:   p.unwrapNodes(rn[constant.MachineRoleMaster]),
+			},
+		)
+
 	default:
 		err = fmt.Errorf("unrecognized role:%v", role)
 	}

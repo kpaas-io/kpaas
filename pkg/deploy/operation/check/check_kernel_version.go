@@ -15,6 +15,8 @@
 package check
 
 import (
+	"bytes"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
@@ -22,10 +24,12 @@ import (
 )
 
 type CheckKernelOperation struct {
-	operation.BaseOperation
+	shellCmd *command.ShellCommand
 }
 
-func (ckops *CheckKernelOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+func (ckops *CheckKernelOperation) RunCommands(config *pb.NodeCheckConfig, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
+
+	itemBuffer := &bytes.Buffer{}
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -37,10 +41,16 @@ func (ckops *CheckKernelOperation) RunCommands(config *pb.NodeCheckConfig) (stdO
 		defer m.Close()
 	}
 
-	ckops.AddCommands(command.NewShellCommand(m, "uname", "-r"))
+	// construct command for check kernel
+	ckops.shellCmd = command.NewShellCommand(m, "uname", "-r").
+		WithDescription("检查机器 kernel 版本是否满足最低要求").
+		WithExecuteLogWriter(itemBuffer)
 
 	// run commands
-	stdOut, stdErr, err = ckops.Do()
+	stdOut, stdErr, err = ckops.shellCmd.Execute()
+
+	// write buffer to channel
+	logChan <- itemBuffer
 
 	return
 }
