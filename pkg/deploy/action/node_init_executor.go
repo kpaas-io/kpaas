@@ -131,18 +131,15 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	logger.Debug("Start to execute node init action")
 
 	executeLogBuf := act.GetExecuteLogBuffer()
-	if executeLogBuf == nil {
-		logrus.Error("init log buffer is empty")
-		return &pb.Error{
-			Reason:     "init log buffer is empty",
-			Detail:     "init log buffer can not be empty",
-			FixMethods: "please ensure init log buffer is initialized",
-		}
-	}
 
 	initGroup := constructInitGroup(nodeInitAction)
 	if len(initGroup) == 0 {
-		logger.Error("initialization item group is empty")
+		logger.Error("item initialization group is empty")
+		return &pb.Error{
+			Reason:     "init group is empty",
+			Detail:     "init group can not be empty",
+			FixMethods: "add init item into init group",
+		}
 	}
 
 	// make enough length of init items
@@ -165,13 +162,15 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 		}
 	}
 
-	// write to log file
 	var initCount int
-	for logs := range logChan {
-		initCount++
-		io.Copy(executeLogBuf, logs)
-		if initCount == len(initGroup) {
-			break
+	if executeLogBuf != nil {
+		for logs := range logChan {
+			initCount++
+			// write to log file
+			io.Copy(executeLogBuf, logs)
+			if initCount == len(initGroup) {
+				break
+			}
 		}
 	}
 
