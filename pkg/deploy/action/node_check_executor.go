@@ -511,35 +511,27 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	// init execute log
 	executeLogBuf := act.GetExecuteLogBuffer()
 
-	checkItemSets := []check.ItemEnum{check.Docker, check.CPU, check.Kernel, check.Memory, check.Disk, check.Distribution, check.SystemPreference, check.SystemManager, check.PortOccupied}
+	// build items function
+	checkItemFunctions := []func(*NodeCheckAction, chan<- *NodeCheckItem, chan<- *bytes.Buffer){
+		CheckDockerExecutor,
+		CheckCPUExecutor,
+		CheckKernelExecutor,
+		CheckMemoryExecutor,
+		CheckRootDiskExecutor,
+		CheckDistributionExecutor,
+		CheckSysPrefExecutor,
+		CheckSysManagerExecutor,
+		CheckPortOccupiedExecutor,
+	}
 
 	// make enough length of check items
-	nodeCheckch := make(chan *NodeCheckItem, len(checkItemSets))
-	nodeLogch := make(chan *bytes.Buffer, len(checkItemSets))
+	nodeCheckch := make(chan *NodeCheckItem, len(checkItemFunctions))
+	nodeLogch := make(chan *bytes.Buffer, len(checkItemFunctions))
 
 	// check docker, CPU, kernel, memory, disk, distribution, system preference, system manager, port occupied
-	for _, item := range checkItemSets {
+	for _, function := range checkItemFunctions {
 		wg.Add(1)
-		switch item {
-		case check.Docker:
-			go CheckDockerExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		case check.CPU:
-			go CheckCPUExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		case check.Kernel:
-			go CheckKernelExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		case check.Memory:
-			go CheckMemoryExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		case check.Disk:
-			go CheckRootDiskExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		case check.Distribution:
-			go CheckDistributionExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		case check.SystemPreference:
-			go CheckSysPrefExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		case check.SystemManager:
-			go CheckSysManagerExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		case check.PortOccupied:
-			go CheckPortOccupiedExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-		}
+		go function(nodeCheckAction, nodeCheckch, nodeLogch)
 	}
 
 	wg.Wait()
@@ -548,7 +540,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	for report := range nodeCheckch {
 		nodeCheckAction.CheckItems = append(nodeCheckAction.CheckItems, report)
 
-		if len(nodeCheckAction.CheckItems) == len(checkItemSets) {
+		if len(nodeCheckAction.CheckItems) == len(checkItemFunctions) {
 			break
 		}
 	}
@@ -559,7 +551,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 			count++
 			// write to log file
 			io.Copy(executeLogBuf, logs)
-			if count == len(checkItemSets) {
+			if count == len(checkItemFunctions) {
 				break
 			}
 		}
