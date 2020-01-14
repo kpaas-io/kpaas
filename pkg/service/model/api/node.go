@@ -104,7 +104,7 @@ func (node *NodeBaseData) Validate() error {
 		validator.ValidateString(node.Name, "name", validator.ItemNotEmptyLimit, NodeNameLengthLimit),
 		validator.ValidateRegexp(regexp.MustCompile(`[A-Za-z][\w\-]*\w?`), node.Name, "name"),
 		validator.ValidateString(node.Description, "description", validator.ItemNoLimit, NodeDescriptionLengthLimit),
-		validator.ValidateStringArrayOptions(rolesNames, "role", []string{string(constant.MachineRoleMaster), string(constant.MachineRoleWorker), string(constant.MachineRoleEtcd)}),
+		validator.ValidateStringArrayOptions(rolesNames, "role", []string{string(constant.MachineRoleMaster), string(constant.MachineRoleWorker), string(constant.MachineRoleEtcd), string(constant.MachineRoleIngress)}),
 	)
 
 	for _, label := range node.Labels {

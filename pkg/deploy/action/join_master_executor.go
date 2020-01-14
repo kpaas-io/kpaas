@@ -16,7 +16,9 @@ package action
 
 import (
 	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/sets"
 
+	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation/master"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
@@ -41,10 +43,17 @@ func (a *joinMasterExecutor) Execute(act Action) *pb.Error {
 
 	logger.Debugf("Start to join master:%v action", action.Node.Name)
 
+	var needUntaint bool
+	rolesSet := sets.NewString(action.Roles...)
+	if rolesSet.Has(string(constant.MachineRoleIngress)) || rolesSet.Has(string(constant.MachineRoleWorker)) {
+		needUntaint = true
+	}
+
 	config := &master.JoinMasterOperationConfig{
 		Logger:        logger,
 		CertKey:       action.CertKey,
 		Node:          action.Node,
+		NeedUntaint:   needUntaint,
 		MasterNodes:   action.MasterNodes,
 		ClusterConfig: action.ClusterConfig,
 	}

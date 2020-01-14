@@ -146,6 +146,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -333,6 +334,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NetworkOptions"
                         }
                     }
@@ -393,6 +395,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -480,6 +483,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -981,6 +985,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -1053,6 +1058,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }

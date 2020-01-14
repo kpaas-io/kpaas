@@ -30,6 +30,7 @@ type DeployMasterTaskConfig struct {
 	CertKey         string
 	EtcdNodes       []*pb.Node
 	Nodes           []*pb.Node
+	NodeConfigs     []*pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig
 	LogFileBasePath string
 	Priority        int
@@ -41,6 +42,7 @@ type deployMasterTask struct {
 	CertKey       string
 	Nodes         []*pb.Node
 	EtcdNodes     []*pb.Node
+	NodeConfigs   []*pb.NodeDeployConfig
 	ClusterConfig *pb.ClusterConfig
 }
 
@@ -74,6 +76,7 @@ func NewDeployMasterTask(taskName string, taskConfig *DeployMasterTaskConfig) (T
 			Parent:            taskConfig.Parent,
 		},
 		CertKey:       taskConfig.CertKey,
+		NodeConfigs:   taskConfig.NodeConfigs,
 		Nodes:         taskConfig.Nodes,
 		EtcdNodes:     taskConfig.EtcdNodes,
 		ClusterConfig: taskConfig.ClusterConfig,

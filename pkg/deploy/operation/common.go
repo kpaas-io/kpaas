@@ -17,13 +17,22 @@ package operation
 import (
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"unicode"
 
 	"github.com/sirupsen/logrus"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/utils/idcreator"
 )
 
 const (
@@ -229,4 +238,104 @@ func CheckIPValid(rawIP string) bool {
 		return true
 	}
 	return false
+}
+
+func AlreadyJoined(hostname string, masterNode *pb.Node) (bool, error) {
+	clientset, err := GetKubeClient(masterNode)
+	if err != nil {
+		logrus.Debug(err)
+		return false, err
+	}
+
+	node, err := clientset.CoreV1().Nodes().Get(hostname, metav1.GetOptions{})
+
+	if node.Name == hostname && err == nil {
+		return true, nil
+	}
+
+	if errors.IsNotFound(err) {
+		return false, nil
+	}
+
+	return false, err
+}
+
+func GetKubeClient(masterNode *pb.Node) (*kubernetes.Clientset, error) {
+	path, err := fetchKubeConfig(masterNode)
+	if err != nil {
+		logrus.Debug(err)
+		return nil, err
+	}
+
+	// Remove the temp kube config file
+	defer func() {
+		if errRm := os.Remove(path); errRm != nil {
+			logrus.Warnf("Failed to remove temp file %q, err: %v", path, errRm)
+		}
+	}()
+
+	config, err := clientcmd.BuildConfigFromFlags("", path)
+	if err != nil {
+		return nil, fmt.Errorf("faield to build kube client config, error:%v", err)
+	}
+
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		logrus.Debug(err)
+		return nil, err
+	}
+
+	return clientset, nil
+
+}
+
+func fetchKubeConfig(masterNode *pb.Node) (localKubeConfigPath string, err error) {
+	m, err := machine.NewMachine(masterNode)
+	if err != nil {
+		return
+	}
+
+	// Create a different temp file each time to avoid condition race and dirty content.
+	localKubeConfigPath = fmt.Sprintf("%v/%v.conf", os.TempDir(), idcreator.NextString())
+	remoteKubeConfigPath := consts.KubeConfigPath
+
+	if err = m.FetchFileToLocalPath(localKubeConfigPath, remoteKubeConfigPath); err != nil {
+		err = fmt.Errorf("failed to fetch remote kubeconfig path:%v, error:%v", remoteKubeConfigPath, err)
+		return
+	}
+
+	return
+}
+
+func Untaint(hostname string, tartgetTaint corev1.Taint, masterNode *pb.Node) error {
+	clientset, err := GetKubeClient(masterNode)
+	if err != nil {
+		return err
+	}
+
+	node, err := clientset.CoreV1().Nodes().Get(hostname, metav1.GetOptions{})
+
+	var hasTaint bool
+	taints := make([]corev1.Taint, 0)
+
+	for _, taint := range node.Spec.Taints {
+		if taint.Key == tartgetTaint.Key && taint.Effect == tartgetTaint.Effect {
+			hasTaint = true
+			continue
+		}
+		taints = append(taints, taint)
+	}
+
+	if !hasTaint {
+		return nil
+	}
+
+	node.Spec.Taints = taints
+
+	if _, err := clientset.CoreV1().Nodes().Update(node); err != nil {
+		logrus.Errorf("failed to untaint node:%v, error:%v", hostname, err)
+		return err
+	}
+
+	return nil
 }

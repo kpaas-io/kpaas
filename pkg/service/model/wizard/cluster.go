@@ -197,7 +197,7 @@ func (cluster *Cluster) DeleteNode(ip string) error {
 	defer cluster.lock.Unlock()
 	var found bool
 
-	if len(cluster.Nodes) <= 0 {
+	if len(cluster.Nodes) == 0 {
 		return h.EExists.WithPayload("node not exist")
 	}
 
@@ -256,7 +256,7 @@ func (cluster *Cluster) MarkNodeChecking() error {
 	cluster.lock.Lock()
 	defer cluster.lock.Unlock()
 
-	if len(cluster.Nodes) <= 0 {
+	if len(cluster.Nodes) == 0 {
 		return nil
 	}
 
@@ -274,7 +274,7 @@ func (cluster *Cluster) ClearClusterCheckingData() {
 	cluster.lock.Lock()
 	defer cluster.lock.Unlock()
 
-	if len(cluster.Nodes) <= 0 {
+	if len(cluster.Nodes) == 0 {
 		return
 	}
 
@@ -305,7 +305,7 @@ func (cluster *Cluster) ClearClusterDeployData() {
 	cluster.lock.Lock()
 	defer cluster.lock.Unlock()
 
-	if len(cluster.Nodes) <= 0 {
+	if len(cluster.Nodes) == 0 {
 		return
 	}
 
@@ -325,7 +325,7 @@ func (cluster *Cluster) MarkNodeDeploying() error {
 	cluster.lock.Lock()
 	defer cluster.lock.Unlock()
 
-	if len(cluster.Nodes) <= 0 {
+	if len(cluster.Nodes) == 0 {
 		return nil
 	}
 

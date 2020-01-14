@@ -16,6 +16,7 @@ package deploy
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -23,9 +24,11 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/service/api/v1/helm"
 	"github.com/kpaas-io/kpaas/pkg/service/config"
 	clientUtils "github.com/kpaas-io/kpaas/pkg/service/grpcutils/client"
 	"github.com/kpaas-io/kpaas/pkg/service/model/api"
+	"github.com/kpaas-io/kpaas/pkg/service/model/common"
 	"github.com/kpaas-io/kpaas/pkg/service/model/wizard"
 	"github.com/kpaas-io/kpaas/pkg/utils/h"
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
@@ -42,7 +45,7 @@ import (
 func Deploy(c *gin.Context) {
 
 	wizardData := wizard.GetCurrentWizard()
-	if len(wizardData.Nodes) <= 0 {
+	if len(wizardData.Nodes) == 0 {
 		h.E(c, h.ENotFound.WithPayload("No node information, node list is empty, please add node information"))
 		return
 	}
@@ -86,6 +89,7 @@ func Deploy(c *gin.Context) {
 		log.ReqEntry(c).Errorf("call deploy controller result error, error: %#v", resp.GetErr())
 	}
 
+	go deployNetwork()
 	go listenDeploymentData()
 
 	h.R(c, api.SuccessfulOption{Success: resp.GetAccepted()})
@@ -259,6 +263,7 @@ func refreshDeployResultOneTime() {
 
 		fetchKubeConfigContent()
 	}
+
 }
 
 func computeClusterDeployStatus(resp *protos.GetDeployResultReply) wizard.DeployClusterStatus {
@@ -318,4 +323,81 @@ func fetchKubeConfigContent() {
 	}
 	kubeConfig := string(fetchResponse.GetKubeConfig())
 	wizardData.KubeConfig = &kubeConfig
+}
+
+func deployNetwork() {
+	wizardData := wizard.GetCurrentWizard()
+	networkOptions := wizardData.GetNetworkOptions()
+
+	for _, node := range wizardData.Nodes {
+		node.SetDeployResult(
+			constant.DeployItemNetwork, wizard.DeployStatusPending, nil)
+	}
+	logrus.Debugf("waiting for kubernetes to be ready and kubeconfig")
+	for {
+		// abort deploying of network components if deploying of cluster failed.
+		if wizardData.GetDeployClusterStatus() == wizard.DeployClusterStatusFailed {
+			logrus.Errorf("deploy cluster failed, abort deploying of network components")
+			for _, node := range wizardData.Nodes {
+				node.SetDeployResult(
+					constant.DeployItemNetwork, wizard.DeployStatusAborted, nil,
+				)
+			}
+			return
+		}
+		fetchKubeConfigContent()
+		if wizardData.KubeConfig != nil {
+			break
+		}
+		time.Sleep(5 * time.Second)
+	}
+
+	// install calico by helm.
+	if networkOptions.NetworkType == api.NetworkTypeCalico {
+
+		err := installCalicoNetwork(networkOptions.CalicoOptions)
+		if err != nil {
+			for _, node := range wizardData.Nodes {
+				node.SetDeployResult(
+					constant.DeployItemNetwork, wizard.DeployStatusFailed,
+					&common.FailureDetail{
+						Reason:     "failed to install calico by helm",
+						Detail:     fmt.Sprintf("error %v happened in installing calico by helm", err),
+						FixMethods: "check help docs of helm about the error message",
+					})
+			}
+			return
+		}
+		for _, node := range wizardData.Nodes {
+			// TODO: check pod status of network components.
+			node.SetDeployResult(
+				constant.DeployItemNetwork, wizard.DeployStatusSuccessful, nil)
+		}
+	}
+}
+
+func installCalicoNetwork(options *api.CalicoOptions) error {
+	calicoValues := api.HelmValues{}
+	if options != nil {
+		calicoValues["encap_mode"] = string(options.EncapsulationMode)
+		calicoValues["vxlan_port"] = string(options.VxlanPort)
+		calicoValues["ipv4_pool"] = options.InitialPodIPs
+		calicoValues["ip_detection.method"] = string(options.IPDetectionMethod)
+		if options.IPDetectionMethod == api.IPDetectionMethodInterface {
+			calicoValues["ip_detection.interface"] = options.IPDetectionInterface
+		}
+		calicoValues["veth_mtu"] = options.VethMtu
+	}
+	_, err := helm.RunInstallReleaseAction(nil, &api.HelmRelease{
+		Name:      "calico",
+		Namespace: "kube-system",
+		// TODO: chart path here can be modified and put charts into docker image
+		Chart:  "charts/calico",
+		Values: calicoValues,
+	})
+	if err != nil {
+		logrus.WithError(err).Errorf("error happened in running helm release action")
+		return err
+	}
+	return nil
 }

@@ -30,7 +30,7 @@ func init() {
 func TestDeployWorker(t *testing.T) {
 	executor := new(deployWorkerExecutor)
 
-	normalAction, err := NewDeployWorkerAction(&DeployWorkerActionConfig{
+	normalAction, err := NewDeployWorkerAction(&DeployNodeActionConfig{
 		NodeCfg: &pb.NodeDeployConfig{
 			Node: &pb.Node{
 				Name: "normal",
@@ -55,7 +55,7 @@ func TestDeployWorker(t *testing.T) {
 	pbErr := executor.Execute(normalAction)
 	assert.Nil(t, pbErr)
 
-	errorAction, err := NewDeployWorkerAction(&DeployWorkerActionConfig{
+	errorAction, err := NewDeployWorkerAction(&DeployNodeActionConfig{
 		NodeCfg: &pb.NodeDeployConfig{
 			Node: &pb.Node{
 				Name: "error",
