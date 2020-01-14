@@ -15,6 +15,7 @@
 package init
 
 import (
+	"bytes"
 	"fmt"
 	"net"
 
@@ -30,11 +31,11 @@ import (
 )
 
 type InitKubeToolOperation struct {
-	operation.BaseOperation
+	shellCmd       *command.ShellCommand
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
 
 	var imageRepository string
 	var clusterDNSIP string
@@ -53,6 +54,8 @@ func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *opera
 	if err != nil {
 		return nil, nil, err
 	}
+
+	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
 
@@ -84,15 +87,22 @@ func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *opera
 	}
 
 	// setup repos
-	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
-		pkgMirrorUrl)))
+	itOps.shellCmd = command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup repos %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
+		pkgMirrorUrl)).
+		WithDescription("初始化 kubernetes repos 环境").
+		WithExecuteLogWriter(logBuffer)
 
 	// install kubelet, kubeadm, kubectl
-	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
-		kubernetesVersion, imageRepository, clusterDNSIP, nodeIp)))
+	itOps.shellCmd = command.NewShellCommand(m, "bash", fmt.Sprintf("%v setup kubelet %v %v %v %v", operation.InitRemoteScriptPath+consts.DefaultKubeToolScript,
+		kubernetesVersion, imageRepository, clusterDNSIP, nodeIp)).
+		WithDescription("初始化安装 kubernetes 工具").
+		WithExecuteLogWriter(logBuffer)
 
 	// run commands
-	stdOut, stdErr, err = itOps.Do()
+	stdOut, stdErr, err = itOps.shellCmd.Execute()
+
+	// write to log channel
+	logChan <- logBuffer
 
 	return
 }

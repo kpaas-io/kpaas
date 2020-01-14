@@ -15,6 +15,8 @@
 package init
 
 import (
+	"bytes"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
@@ -24,7 +26,7 @@ type ItemEnum string
 type OperationsGenerator struct{}
 
 type InitOperation interface {
-	RunCommands(config *pb.Node, initAction *operation.NodeInitAction) ([]byte, []byte, error)
+	RunCommands(config *pb.Node, initAction *operation.NodeInitAction, logChan chan<- *bytes.Buffer) ([]byte, []byte, error)
 }
 
 const (
