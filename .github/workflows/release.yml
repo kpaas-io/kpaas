@@ -195,25 +195,10 @@ jobs:
         env:
           tagName: ${{ github.ref }}
 
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v1
-
-      - name: Download last release commit hash
-        uses: actions/download-artifact@v1
-        with:
-          name: release-hash
-
       - name: Generate Changelog
         shell: bash
         run: |
-          commitHash=`cat release-hash/latest`
-          if [ -n "${commitHash}" ]; then
-            git log --oneline > CHANGELOG.txt
-          else
-            git log --oneline "${commitHash}"... > CHANGELOG.txt
-          fi
-
-          echo "\n\nDocker Image: https://hub.docker.com/r/kpaas/kpaas\n\`\`\`bash\ndocker pull kpaas/kpaas:${TAG}\n\`\`\`" >> CHANGELOG.txt
+          echo "\n\nDocker Image: https://hub.docker.com/r/kpaas/kpaas\n\`\`\`bash\ndocker pull kpaas/kpaas:${TAG}\n\`\`\`" > CHANGELOG.txt
 
         env:
           TAG: ${{ steps.calc-tag.outputs.TAG }}
@@ -225,14 +210,3 @@ jobs:
           name: Release ${{ steps.calc-tag.outputs.TAG }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUBTOKEN }}
-
-      - name: Log last release commit hash
-        shell: bash
-        run: |
-          git log -n 1 --pretty=format:%h > release-hash/latest
-
-      - name: Upload last release commit hash
-        uses: actions/upload-artifact@v1
-        with:
-          name: release-hash
-          path: release-hash/latest
