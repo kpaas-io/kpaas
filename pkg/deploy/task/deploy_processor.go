@@ -106,6 +106,15 @@ func (p *deployProcessor) SplitTask(t Task) error {
 		subTasks = append(subTasks, ingressTask)
 	}
 
+	// create the deploy config sub task with priority = 60
+	configTask, err := p.createConfigSubTask(deployTask, roles)
+	if err != nil {
+		err = fmt.Errorf("failed to create deploy config sub tasks: %s", err)
+		logger.Error(err)
+		return err
+	}
+	subTasks = append(subTasks, configTask)
+
 	deployTask.SubTasks = subTasks
 	logger.Debugf("Finish to split deploy task: %d sub tasks", len(subTasks))
 
@@ -152,6 +161,20 @@ func (p *deployProcessor) createInitSubTask(parent *DeployTask, rn map[constant.
 		ClusterConfig:   parent.ClusterConfig,
 	}
 	task, err = NewNodeInitTask(fmt.Sprintf("init"), config)
+	return
+}
+
+func (p *deployProcessor) createConfigSubTask(parent *DeployTask, rn map[constant.MachineRole][]*pb.NodeDeployConfig) (task Task, err error) {
+
+	config := &DeployConfigTaskConfig{
+		NodeConfigs:     parent.NodeConfigs,
+		LogFileBasePath: parent.GetLogFileDir(),
+		Priority:        int(ConfigPriority),
+		Parent:          parent.GetName(),
+		ClusterConfig:   parent.ClusterConfig,
+		MasterNodes:     p.unwrapNodes(rn[constant.MachineRoleMaster]),
+	}
+	task, err = NewDeployConfigTask(fmt.Sprintf("deploy-config"), config)
 	return
 }
 
