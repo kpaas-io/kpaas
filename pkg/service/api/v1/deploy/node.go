@@ -56,7 +56,7 @@ func GetNodeList(c *gin.Context) {
 func GetNode(c *gin.Context) {
 
 	ip := c.Param("ip")
-	if len(ip) <= 0 {
+	if len(ip) == 0 {
 
 		h.E(c, h.EParamsError.WithPayload("path parameter \"ip\" required"))
 		return
@@ -225,7 +225,7 @@ func UpdateNode(c *gin.Context) {
 func DeleteNode(c *gin.Context) {
 
 	ip := c.Param("ip")
-	if len(ip) <= 0 {
+	if len(ip) == 0 {
 		h.E(c, h.EParamsError.WithPayload("path parameter \"ip\" required"))
 		return
 	}
@@ -276,7 +276,7 @@ func getUpdateNodeRequestData(c *gin.Context) (*api.UpdateNodeData, string, bool
 	logger := log.ReqEntry(c)
 
 	ip := c.Param("ip")
-	if len(ip) <= 0 {
+	if len(ip) == 0 {
 
 		h.E(c, h.EParamsError.WithPayload("path parameter \"ip\" required"))
 		return nil, "", true
