@@ -508,32 +508,39 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 
 	logger.Debug("Start to execute node check action")
 
+	// init execute log
 	executeLogBuf := act.GetExecuteLogBuffer()
-	//if executeLogBuf == nil {
-	//	logger.Error("There is no buffer for log to store")
-	//	return &pb.Error{
-	//		Reason:     fmt.Sprint("log buffer is empty"),
-	//		Detail:     fmt.Sprint("log buffer can not be empty"),
-	//		FixMethods: fmt.Sprint("please init log buffer"),
-	//	}
-	//}
+
+	checkItemSets := []check.ItemEnum{check.Docker, check.CPU, check.Kernel, check.Memory, check.Disk, check.Distribution, check.SystemPreference, check.SystemManager, check.PortOccupied}
 
 	// make enough length of check items
-	nodeCheckch := make(chan *NodeCheckItem, 9)
-	nodeLogch := make(chan *bytes.Buffer, 9)
+	nodeCheckch := make(chan *NodeCheckItem, len(checkItemSets))
+	nodeLogch := make(chan *bytes.Buffer, len(checkItemSets))
 
-	// check docker, CPU, kernel, memory, disk, distribution, system preference
-	// system manager, port occupied
-	wg.Add(9)
-	go CheckDockerExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-	go CheckCPUExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-	go CheckKernelExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-	go CheckMemoryExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-	go CheckRootDiskExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-	go CheckDistributionExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-	go CheckSysPrefExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-	go CheckSysManagerExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
-	go CheckPortOccupiedExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+	// check docker, CPU, kernel, memory, disk, distribution, system preference, system manager, port occupied
+	for _, item := range checkItemSets {
+		wg.Add(1)
+		switch item {
+		case check.Docker:
+			go CheckDockerExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		case check.CPU:
+			go CheckCPUExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		case check.Kernel:
+			go CheckKernelExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		case check.Memory:
+			go CheckMemoryExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		case check.Disk:
+			go CheckRootDiskExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		case check.Distribution:
+			go CheckDistributionExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		case check.SystemPreference:
+			go CheckSysPrefExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		case check.SystemManager:
+			go CheckSysManagerExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		case check.PortOccupied:
+			go CheckPortOccupiedExecutor(nodeCheckAction, nodeCheckch, nodeLogch)
+		}
+	}
 
 	wg.Wait()
 
@@ -541,7 +548,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	for report := range nodeCheckch {
 		nodeCheckAction.CheckItems = append(nodeCheckAction.CheckItems, report)
 
-		if len(nodeCheckAction.CheckItems) == 9 {
+		if len(nodeCheckAction.CheckItems) == len(checkItemSets) {
 			break
 		}
 	}
@@ -552,7 +559,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 			count++
 			// write to log file
 			io.Copy(executeLogBuf, logs)
-			if count == 9 {
+			if count == len(checkItemSets) {
 				break
 			}
 		}
