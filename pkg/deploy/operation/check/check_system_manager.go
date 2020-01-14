@@ -15,19 +15,21 @@
 package check
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type CheckSystemManagerOperation struct {
-	operation.BaseOperation
+	shellCmd *command.ShellCommand
 }
 
-func (ckops *CheckSystemManagerOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+func (ckops *CheckSystemManagerOperation) RunCommands(config *pb.NodeCheckConfig, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
+
+	itemBuffer := &bytes.Buffer{}
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -39,10 +41,14 @@ func (ckops *CheckSystemManagerOperation) RunCommands(config *pb.NodeCheckConfig
 		defer m.Close()
 	}
 
-	ckops.AddCommands(command.NewShellCommand(m, "ps", "-p 1 | awk /1/'{print $4}'"))
+	ckops.shellCmd = command.NewShellCommand(m, "ps", "-p 1 | awk /1/'{print $4}'").
+		WithDescription("检查机器 system manager 是否满足最低要求").
+		WithExecuteLogWriter(itemBuffer)
 
 	// run commands
-	stdOut, stdErr, err = ckops.Do()
+	stdOut, stdErr, err = ckops.shellCmd.Execute()
+
+	logChan <- itemBuffer
 
 	return
 }

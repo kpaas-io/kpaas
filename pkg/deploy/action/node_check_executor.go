@@ -15,9 +15,12 @@
 package action
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"math"
 	"strings"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -68,6 +71,7 @@ const (
 )
 
 var systemDistributions = [3]string{check.DistributionCentos, check.DistributionUbuntu, check.DistributionRHEL}
+var wg sync.WaitGroup
 
 func init() {
 	RegisterExecutor(ActionTypeNodeCheck, new(nodeCheckExecutor))
@@ -77,7 +81,7 @@ type nodeCheckExecutor struct {
 }
 
 // due to items, ItemsCheckScripts exec remote scripts and return std, report, error
-func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkItemReport *NodeCheckItem) (string, *NodeCheckItem, error) {
+func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkItemReport *NodeCheckItem, logChan chan<- *bytes.Buffer) (string, *NodeCheckItem, error) {
 
 	checkItemReport = newNodeCheckItem(item)
 
@@ -93,7 +97,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 	}
 
 	// create command and run on remote node
-	stdOut, stdErr, err := checkItems.RunCommands(config)
+	stdOut, stdErr, err := checkItems.RunCommands(config, logChan)
 	if err != nil {
 		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
@@ -117,7 +121,9 @@ func newNodeCheckItem(item check.ItemEnum) *NodeCheckItem {
 }
 
 // goroutine as executor for check docker
-func CheckDockerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckDockerExecutor(ncAction *NodeCheckAction, checkChan chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -128,7 +134,7 @@ func CheckDockerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	checkItemReport := newNodeCheckItem(check.Docker)
 
-	comparedDockerVersion, checkItemReport, err := ExecuteCheckScript(check.Docker, ncAction.NodeCheckConfig, checkItemReport)
+	comparedDockerVersion, checkItemReport, err := ExecuteCheckScript(check.Docker, ncAction.NodeCheckConfig, checkItemReport, logChan)
 	if err != nil {
 		logger.Errorf("check docker failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
@@ -147,11 +153,13 @@ func CheckDockerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 		checkItemReport.Status = ItemDone
 	}
 
-	ch <- checkItemReport
+	checkChan <- checkItemReport
 }
 
 // goroutine as executor for check CPU
-func CheckCPUExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckCPUExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -162,7 +170,7 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	checkItemReport := newNodeCheckItem(check.CPU)
 
-	cpuCore, checkItemReport, err := ExecuteCheckScript(check.CPU, ncAction.NodeCheckConfig, checkItemReport)
+	cpuCore, checkItemReport, err := ExecuteCheckScript(check.CPU, ncAction.NodeCheckConfig, checkItemReport, logChan)
 	if err != nil {
 		logger.Errorf("check cpu failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
@@ -202,7 +210,9 @@ func CheckCPUExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 }
 
 // goroutine as executor for check kernel
-func CheckKernelExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckKernelExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -213,7 +223,7 @@ func CheckKernelExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	checkItemReport := newNodeCheckItem(check.Kernel)
 
-	kernelVersion, checkItemReport, err := ExecuteCheckScript(check.Kernel, ncAction.NodeCheckConfig, checkItemReport)
+	kernelVersion, checkItemReport, err := ExecuteCheckScript(check.Kernel, ncAction.NodeCheckConfig, checkItemReport, logChan)
 	if err != nil {
 		logger.Errorf("check kernel failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
@@ -236,7 +246,9 @@ func CheckKernelExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 }
 
 // goroutine as executor for check memory
-func CheckMemoryExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckMemoryExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -247,7 +259,7 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	checkItemReport := newNodeCheckItem(check.Memory)
 
-	memoryCap, checkItemReport, err := ExecuteCheckScript(check.Memory, ncAction.NodeCheckConfig, checkItemReport)
+	memoryCap, checkItemReport, err := ExecuteCheckScript(check.Memory, ncAction.NodeCheckConfig, checkItemReport, logChan)
 	if err != nil {
 		logger.Errorf("check memory failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
@@ -289,7 +301,9 @@ func CheckMemoryExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 }
 
 // goroutine as executor for check disk
-func CheckRootDiskExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckRootDiskExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -300,7 +314,7 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) 
 
 	checkItemReport := newNodeCheckItem(check.Disk)
 
-	rootDiskVolume, checkItemReport, err := ExecuteCheckScript(check.Disk, ncAction.NodeCheckConfig, checkItemReport)
+	rootDiskVolume, checkItemReport, err := ExecuteCheckScript(check.Disk, ncAction.NodeCheckConfig, checkItemReport, logChan)
 	if err != nil {
 		logger.Errorf("check root disk failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
@@ -341,7 +355,9 @@ func CheckRootDiskExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) 
 }
 
 // goroutine as executor for check distribution
-func CheckDistributionExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckDistributionExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -352,7 +368,7 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckIt
 
 	checkItemReport := newNodeCheckItem(check.Distribution)
 
-	disName, checkItemReport, err := ExecuteCheckScript(check.Distribution, ncAction.NodeCheckConfig, checkItemReport)
+	disName, checkItemReport, err := ExecuteCheckScript(check.Distribution, ncAction.NodeCheckConfig, checkItemReport, logChan)
 	if err != nil {
 		logger.Errorf("check distro failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
@@ -376,7 +392,9 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckIt
 }
 
 // goroutine as executor for check system preference
-func CheckSysPrefExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckSysPrefExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -387,7 +405,7 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 
 	checkItemReport := newNodeCheckItem(check.SystemPreference)
 
-	_, checkItemReport, err := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport)
+	_, checkItemReport, err := ExecuteCheckScript(check.SystemPreference, ncAction.NodeCheckConfig, checkItemReport, logChan)
 	if err != nil {
 		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Status = ItemFailed
@@ -404,7 +422,9 @@ func CheckSysPrefExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
 }
 
 // goroutine as executor for check system manager
-func CheckSysManagerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckSysManagerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -415,7 +435,7 @@ func CheckSysManagerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem
 
 	checkItemReport := newNodeCheckItem(check.SystemManager)
 
-	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemManager, ncAction.NodeCheckConfig, checkItemReport)
+	systemManager, checkItemReport, err := ExecuteCheckScript(check.SystemManager, ncAction.NodeCheckConfig, checkItemReport, logChan)
 	if err != nil {
 		logger.Errorf("check system manager failed, err: %v", err)
 		checkItemReport.Status = ItemFailed
@@ -438,7 +458,9 @@ func CheckSysManagerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem
 }
 
 // goroutine as executor for port occupied check
-func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem) {
+func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem, logChan chan<- *bytes.Buffer) {
+
+	defer wg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":       ncAction.Node.Name,
@@ -449,7 +471,7 @@ func CheckPortOccupiedExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckIt
 
 	checkItemReport := newNodeCheckItem(check.PortOccupied)
 
-	portOccupied, checkItemReport, err := ExecuteCheckScript(check.PortOccupied, ncAction.NodeCheckConfig, checkItemReport)
+	portOccupied, checkItemReport, err := ExecuteCheckScript(check.PortOccupied, ncAction.NodeCheckConfig, checkItemReport, logChan)
 
 	// trim can be done whatever error occurs
 	portOccupied = strings.TrimRight(portOccupied, ",")
@@ -486,27 +508,52 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 
 	logger.Debug("Start to execute node check action")
 
-	// make enough length of check items
-	channel := make(chan *NodeCheckItem, 9)
+	// init execute log
+	executeLogBuf := act.GetExecuteLogBuffer()
 
-	// check docker, CPU, kernel, memory, disk, distribution, system preference
-	// system manager, port occupied
-	go CheckDockerExecutor(nodeCheckAction, channel)
-	go CheckCPUExecutor(nodeCheckAction, channel)
-	go CheckKernelExecutor(nodeCheckAction, channel)
-	go CheckMemoryExecutor(nodeCheckAction, channel)
-	go CheckRootDiskExecutor(nodeCheckAction, channel)
-	go CheckDistributionExecutor(nodeCheckAction, channel)
-	go CheckSysPrefExecutor(nodeCheckAction, channel)
-	go CheckSysManagerExecutor(nodeCheckAction, channel)
-	go CheckPortOccupiedExecutor(nodeCheckAction, channel)
+	// build items function
+	checkItemFunctions := []func(*NodeCheckAction, chan<- *NodeCheckItem, chan<- *bytes.Buffer){
+		CheckDockerExecutor,
+		CheckCPUExecutor,
+		CheckKernelExecutor,
+		CheckMemoryExecutor,
+		CheckRootDiskExecutor,
+		CheckDistributionExecutor,
+		CheckSysPrefExecutor,
+		CheckSysManagerExecutor,
+		CheckPortOccupiedExecutor,
+	}
+
+	// make enough length of check items
+	nodeCheckch := make(chan *NodeCheckItem, len(checkItemFunctions))
+	nodeLogch := make(chan *bytes.Buffer, len(checkItemFunctions))
+
+	// check docker, CPU, kernel, memory, disk, distribution, system preference, system manager, port occupied
+	for _, function := range checkItemFunctions {
+		wg.Add(1)
+		go function(nodeCheckAction, nodeCheckch, nodeLogch)
+	}
+
+	wg.Wait()
 
 	// update check items
-	for report := range channel {
+	for report := range nodeCheckch {
 		nodeCheckAction.CheckItems = append(nodeCheckAction.CheckItems, report)
 
-		if len(nodeCheckAction.CheckItems) == 9 {
+		if len(nodeCheckAction.CheckItems) == len(checkItemFunctions) {
 			break
+		}
+	}
+
+	var count int
+	if executeLogBuf != nil {
+		for logs := range nodeLogch {
+			count++
+			// write to log file
+			io.Copy(executeLogBuf, logs)
+			if count == len(checkItemFunctions) {
+				break
+			}
 		}
 	}
 
