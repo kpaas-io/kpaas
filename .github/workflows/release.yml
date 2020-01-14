@@ -55,6 +55,12 @@ jobs:
           name: builds-${{ github.sha }}-entrypoint
           path: run/docker/entrypoint.sh
 
+      - name: Upload helm charts
+        uses: actions/upload-artifact@v1
+        with:
+          name: charts
+          path: charts
+
   build-node:
     if: github.repository == 'kpaas-io/kpaas'
     name: make frontend execution file
@@ -147,6 +153,11 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: builds-${{ github.sha }}-entrypoint
+
+      - name: Download helm charts
+        uses: actions/download-artifact@v1
+        with:
+          name: charts
 
       - name: Move builds
         shell: bash
