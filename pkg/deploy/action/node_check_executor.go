@@ -513,7 +513,7 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 		logger.Fatal("There is no buffer for log to store")
 		return &pb.Error{
 			Reason:     fmt.Sprint("log buffer is empty"),
-			Detail:     fmt.Sprint("log buffer is empty"),
+			Detail:     fmt.Sprint("log buffer can not be empty"),
 			FixMethods: fmt.Sprint("please init log buffer"),
 		}
 	}
@@ -537,8 +537,6 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 
 	wg.Wait()
 
-	logrus.Infof("THis is test odwadwadw dwad :%v ", nodeLogch)
-
 	// update check items
 	for report := range nodeCheckch {
 		nodeCheckAction.CheckItems = append(nodeCheckAction.CheckItems, report)
@@ -548,9 +546,14 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 		}
 	}
 
-	// write to log file
+	var count int
 	for logs := range nodeLogch {
+		count++
+		// write to log file
 		io.Copy(executeLogBuf, logs)
+		if count == 9 {
+			break
+		}
 	}
 
 	// If any of check item was failed, we should return an error
