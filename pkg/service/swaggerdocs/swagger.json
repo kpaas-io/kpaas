@@ -131,6 +131,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -318,6 +319,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NetworkOptions"
                         }
                     }
@@ -378,6 +380,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -465,6 +468,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -966,6 +970,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -1038,6 +1043,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
+                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
