@@ -17,6 +17,7 @@ package action
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"strings"
 	"sync"
 
@@ -27,7 +28,6 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	it "github.com/kpaas-io/kpaas/pkg/deploy/operation/init"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-	"io"
 )
 
 const (
