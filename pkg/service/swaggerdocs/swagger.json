@@ -131,7 +131,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -319,7 +318,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.NetworkOptions"
                         }
                     }
@@ -380,7 +378,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -468,7 +465,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -970,7 +966,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -1043,7 +1038,6 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
@@ -1298,19 +1292,21 @@
         "api.DeploymentResponseData": {
             "type": "object",
             "properties": {
+                "deployItem": {
+                    "type": "string",
+                    "enum": [
+                        "master",
+                        "worker",
+                        "etcd",
+                        "ingress",
+                        "network"
+                    ]
+                },
                 "nodes": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.DeploymentNode"
                     }
-                },
-                "role": {
-                    "type": "string",
-                    "enum": [
-                        "master",
-                        "worker",
-                        "etcd"
-                    ]
                 }
             }
         },
@@ -1380,7 +1376,7 @@
                         "workedButHaveError"
                     ]
                 },
-                "roles": {
+                "deployItems": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/api.DeploymentResponseData"
@@ -1457,6 +1453,11 @@
                 "mode": {
                     "description": "Wizard mode, normal or advanced",
                     "type": "string"
+                },
+                "networkOptions": {
+                    "description": "Network options",
+                    "type": "object",
+                    "$ref": "#/definitions/api.NetworkOptions"
                 },
                 "nodes": {
                     "description": "Nodes Information",

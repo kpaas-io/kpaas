@@ -299,7 +299,7 @@ func TestNode_SetDeployResult(t *testing.T) {
 	tests := []struct {
 		Input struct {
 			Node          *Node
-			Role          constant.MachineRole
+			Item          constant.DeployItem
 			Status        DeployStatus
 			FailureDetail *common.FailureDetail
 		}
@@ -308,23 +308,23 @@ func TestNode_SetDeployResult(t *testing.T) {
 		{
 			Input: struct {
 				Node          *Node
-				Role          constant.MachineRole
+				Item          constant.DeployItem
 				Status        DeployStatus
 				FailureDetail *common.FailureDetail
 			}{
 				Node: &Node{
-					DeploymentReports: map[constant.MachineRole]*DeploymentReport{},
+					DeploymentReports: map[constant.DeployItem]*DeploymentReport{},
 				},
-				Role:          constant.MachineRoleMaster,
+				Item:          constant.DeployItemMaster,
 				Status:        DeployStatusPending,
 				FailureDetail: nil,
 			},
 			Want: &Node{
-				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-					constant.MachineRoleMaster: {
-						Role:   constant.MachineRoleMaster,
-						Status: DeployStatusPending,
-						Error:  nil,
+				DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+					constant.DeployItemMaster: {
+						DeployItem: constant.DeployItemMaster,
+						Status:     DeployStatusPending,
+						Error:      nil,
 					},
 				},
 			},
@@ -332,29 +332,29 @@ func TestNode_SetDeployResult(t *testing.T) {
 		{
 			Input: struct {
 				Node          *Node
-				Role          constant.MachineRole
+				Item          constant.DeployItem
 				Status        DeployStatus
 				FailureDetail *common.FailureDetail
 			}{
 				Node: &Node{
-					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-						constant.MachineRoleMaster: {
-							Role:   constant.MachineRoleMaster,
-							Status: DeployStatusPending,
-							Error:  nil,
+					DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+						constant.DeployItemMaster: {
+							DeployItem: constant.DeployItemMaster,
+							Status:     DeployStatusPending,
+							Error:      nil,
 						},
 					},
 				},
-				Role:          constant.MachineRoleMaster,
+				Item:          constant.DeployItemMaster,
 				Status:        DeployStatusRunning,
 				FailureDetail: nil,
 			},
 			Want: &Node{
-				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-					constant.MachineRoleMaster: {
-						Role:   constant.MachineRoleMaster,
-						Status: DeployStatusRunning,
-						Error:  nil,
+				DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+					constant.DeployItemMaster: {
+						DeployItem: constant.DeployItemMaster,
+						Status:     DeployStatusRunning,
+						Error:      nil,
 					},
 				},
 			},
@@ -362,20 +362,20 @@ func TestNode_SetDeployResult(t *testing.T) {
 		{
 			Input: struct {
 				Node          *Node
-				Role          constant.MachineRole
+				Item          constant.DeployItem
 				Status        DeployStatus
 				FailureDetail *common.FailureDetail
 			}{
 				Node: &Node{
-					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-						constant.MachineRoleMaster: {
-							Role:   constant.MachineRoleMaster,
-							Status: DeployStatusRunning,
-							Error:  nil,
+					DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+						constant.DeployItemMaster: {
+							DeployItem: constant.DeployItemMaster,
+							Status:     DeployStatusRunning,
+							Error:      nil,
 						},
 					},
 				},
-				Role:   constant.MachineRoleMaster,
+				Item:   constant.DeployItemMaster,
 				Status: DeployStatusFailed,
 				FailureDetail: &common.FailureDetail{
 					Reason:     "reason",
@@ -385,10 +385,10 @@ func TestNode_SetDeployResult(t *testing.T) {
 				},
 			},
 			Want: &Node{
-				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-					constant.MachineRoleMaster: {
-						Role:   constant.MachineRoleMaster,
-						Status: DeployStatusFailed,
+				DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+					constant.DeployItemMaster: {
+						DeployItem: constant.DeployItemMaster,
+						Status:     DeployStatusFailed,
 						Error: &common.FailureDetail{
 							Reason:     "reason",
 							Detail:     "detail",
@@ -402,34 +402,34 @@ func TestNode_SetDeployResult(t *testing.T) {
 		{
 			Input: struct {
 				Node          *Node
-				Role          constant.MachineRole
+				Item          constant.DeployItem
 				Status        DeployStatus
 				FailureDetail *common.FailureDetail
 			}{
 				Node: &Node{
-					DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-						constant.MachineRoleMaster: {
-							Role:   constant.MachineRoleMaster,
-							Status: DeployStatusRunning,
-							Error:  nil,
+					DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+						constant.DeployItemMaster: {
+							DeployItem: constant.DeployItemMaster,
+							Status:     DeployStatusRunning,
+							Error:      nil,
 						},
 					},
 				},
-				Role:          constant.MachineRoleEtcd,
+				Item:          constant.DeployItemEtcd,
 				Status:        DeployStatusSuccessful,
 				FailureDetail: nil,
 			},
 			Want: &Node{
-				DeploymentReports: map[constant.MachineRole]*DeploymentReport{
-					constant.MachineRoleMaster: {
-						Role:   constant.MachineRoleMaster,
-						Status: DeployStatusRunning,
-						Error:  nil,
+				DeploymentReports: map[constant.DeployItem]*DeploymentReport{
+					constant.DeployItemMaster: {
+						DeployItem: constant.DeployItemMaster,
+						Status:     DeployStatusRunning,
+						Error:      nil,
 					},
-					constant.MachineRoleEtcd: {
-						Role:   constant.MachineRoleEtcd,
-						Status: DeployStatusSuccessful,
-						Error:  nil,
+					constant.DeployItemEtcd: {
+						DeployItem: constant.DeployItemEtcd,
+						Status:     DeployStatusSuccessful,
+						Error:      nil,
 					},
 				},
 			},
@@ -438,7 +438,7 @@ func TestNode_SetDeployResult(t *testing.T) {
 
 	for _, item := range tests {
 
-		item.Input.Node.SetDeployResult(item.Input.Role, item.Input.Status, item.Input.FailureDetail)
+		item.Input.Node.SetDeployResult(item.Input.Item, item.Input.Status, item.Input.FailureDetail)
 		assert.Equal(t, item.Want, item.Input.Node)
 	}
 }
