@@ -1,4 +1,4 @@
-// Copyright 2019 Shanghai JingDuo Information Technology co., Ltd.
+// Copyright 2020 Shanghai JingDuo Information Technology co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,25 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package consts
+package action
 
 import (
-	"errors"
-	"fmt"
-
-	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
+	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-var (
-	// Task
-	ErrEmptyTask error = fmt.Errorf(MsgEmptyTask)
+func init() {
+	RegisterExecutor(ActionTypeDeployWorker, new(deployWorkerExecutor))
+}
 
-	// Action
-	ErrEmptyAction       error     = fmt.Errorf(MsgEmptyAction)
-	PBErrActionNodeEmpty *pb.Error = &pb.Error{
-		Reason: MsgActionInvalidConfig,
-		Detail: MsgActionInvalidConfigNodeNotSet,
+type deployWorkerExecutor struct {
+	deployNodeExecutor
+}
+
+func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
+
+	action, ok := act.(*DeployWorkerAction)
+	if !ok {
+		return errOfTypeMismatched(new(DeployWorkerAction), act)
 	}
 
-	ErrEmptyNodes = errors.New("node is empty")
-)
+	return executor.deployNodeExecutor.Deploy(act, action.config)
+}

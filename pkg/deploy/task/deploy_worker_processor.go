@@ -24,14 +24,14 @@ import (
 )
 
 func init() {
-	RegisterProcessor(TaskTypeDeployNode, new(DeployNodeProcessor))
+	RegisterProcessor(TaskTypeDeployWorker, new(DeployWorkerProcessor))
 }
 
-type DeployNodeProcessor struct {
+type DeployWorkerProcessor struct {
 }
 
-// Spilt the task into one or more node deploy node actions
-func (processor *DeployNodeProcessor) SplitTask(task Task) error {
+// Spilt the task into one or more node deploy worker actions
+func (processor *DeployWorkerProcessor) SplitTask(task Task) error {
 	if err := processor.verifyTask(task); err != nil {
 
 		// No need to do something when nodes empty
@@ -49,28 +49,24 @@ func (processor *DeployNodeProcessor) SplitTask(task Task) error {
 
 	logger.Debug("Start to split deploy node task")
 
-	deployTask := task.(*deployNodeTask)
+	deployTask := task.(*deployWorkerTask)
 
 	// split task into actions: will create a action for every node, the action type
-	// is ActionTypeDeployNode
+	// is ActionTypeDeployWorker
 
-	actions := make([]action.Action, 0, len(deployTask.Config.Nodes)+len(deployTask.Config.PostActions))
+	actions := make([]action.Action, 0, len(deployTask.Config.Nodes))
 	for _, node := range deployTask.Config.Nodes {
 		actionCfg := &action.DeployNodeActionConfig{
 			NodeCfg:         node,
 			ClusterConfig:   deployTask.Config.ClusterConfig,
-			LogFileBasePath: deployTask.LogFileDir, // /app/deploy/logs/unknown/deploy-{role}
+			LogFileBasePath: deployTask.LogFileDir, // /app/deploy/logs/unknown/deploy-worker
 			MasterNodes:     deployTask.Config.MasterNodes,
 		}
-		act, err := action.NewDeployNodeAction(actionCfg)
+		act, err := action.NewDeployWorkerAction(actionCfg)
 		if err != nil {
 			return err
 		}
 		actions = append(actions, act)
-	}
-
-	if len(deployTask.Config.PostActions) > 0 {
-		actions = append(actions, deployTask.Config.PostActions...)
 	}
 
 	deployTask.Actions = actions
@@ -81,12 +77,12 @@ func (processor *DeployNodeProcessor) SplitTask(task Task) error {
 }
 
 // Verify if the task is valid.
-func (processor *DeployNodeProcessor) verifyTask(task Task) error {
+func (processor *DeployWorkerProcessor) verifyTask(task Task) error {
 	if task == nil {
 		return consts.ErrEmptyTask
 	}
 
-	deployTask, ok := task.(*deployNodeTask)
+	deployTask, ok := task.(*deployWorkerTask)
 	if !ok {
 		return fmt.Errorf("%s: %T", consts.MsgTaskTypeMismatched, task)
 	}

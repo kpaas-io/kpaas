@@ -137,12 +137,13 @@ var roleActionTypeMap = map[constant.MachineRole]map[action.Type]struct{}{
 		action.ActionTypeJoinMaster: struct{}{},
 	},
 	constant.MachineRoleWorker: map[action.Type]struct{}{
-		action.ActionTypeNodeInit:   struct{}{},
-		action.ActionTypeDeployNode: struct{}{},
+		action.ActionTypeNodeInit:     struct{}{},
+		action.ActionTypeDeployWorker: struct{}{},
 	},
 	constant.MachineRoleIngress: map[action.Type]struct{}{
-		action.ActionTypeNodeInit:   struct{}{},
-		action.ActionTypeDeployNode: struct{}{},
+		action.ActionTypeNodeInit:      struct{}{},
+		action.ActionTypeDeployIngress: struct{}{},
+		action.ActionTypeDeployContour: struct{}{},
 	},
 }
 

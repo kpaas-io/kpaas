@@ -18,28 +18,26 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kpaas-io/kpaas/pkg/deploy/action"
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const TaskTypeDeployNode Type = "DeployNode"
+const TaskTypeDeployWorker Type = "DeployWorker"
 
-type DeployNodeTaskConfig struct {
+type DeployWorkerTaskConfig struct {
 	BaseTaskConfig
 	MasterNodes   []*protos.Node
 	Nodes         []*protos.NodeDeployConfig
 	ClusterConfig *protos.ClusterConfig
-	PostActions   []action.Action
 }
 
-type deployNodeTask struct {
+type deployWorkerTask struct {
 	Base
-	Config *DeployNodeTaskConfig
+	Config *DeployWorkerTaskConfig
 }
 
-// NewDeployNodeTask returns a deploy k8s worker task based on the config.
+// NewDeployWorkerTask returns a deploy k8s worker task based on the config.
 // User should use this function to create a deploy worker task.
-func NewDeployNodeTask(taskName string, taskConfig *DeployNodeTaskConfig) (Task, error) {
+func NewDeployWorkerTask(taskName string, taskConfig *DeployWorkerTaskConfig) (Task, error) {
 
 	if taskConfig == nil {
 
@@ -51,12 +49,12 @@ func NewDeployNodeTask(taskName string, taskConfig *DeployNodeTaskConfig) (Task,
 		return nil, fmt.Errorf("invalid task config: nodes is empty")
 	}
 
-	task := &deployNodeTask{
+	task := &deployWorkerTask{
 		Base: Base{
 			Name:                taskName,
-			TaskType:            TaskTypeDeployNode,
+			TaskType:            TaskTypeDeployWorker,
 			Status:              TaskPending,
-			LogFileDir:          GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown/deploy-{role}
+			LogFileDir:          GenTaskLogFileDir(taskConfig.LogFileBasePath, taskName), // /app/deploy/logs/unknown/deploy-worker
 			CreationTimestamp:   time.Now(),
 			Priority:            taskConfig.Priority,
 			Parent:              taskConfig.Parent,

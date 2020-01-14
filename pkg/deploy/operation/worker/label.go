@@ -57,7 +57,7 @@ func (operation *AppendLabel) computeLabels() {
 
 func (operation *AppendLabel) computeClusterLabels() {
 
-	if len(operation.config.Cluster.GetNodeLabels()) <= 0 {
+	if len(operation.config.Cluster.GetNodeLabels()) == 0 {
 
 		operation.config.Logger.
 			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
@@ -73,7 +73,7 @@ func (operation *AppendLabel) computeClusterLabels() {
 
 func (operation *AppendLabel) computeNodeLabels() {
 
-	if len(operation.config.Node.GetLabels()) <= 0 {
+	if len(operation.config.Node.GetLabels()) == 0 {
 
 		operation.config.Logger.
 			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
@@ -89,7 +89,7 @@ func (operation *AppendLabel) computeNodeLabels() {
 
 func (operation *AppendLabel) append() *pb.Error {
 
-	if len(operation.labels) <= 0 {
+	if len(operation.labels) == 0 {
 
 		operation.config.Logger.
 			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).

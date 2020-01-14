@@ -182,8 +182,12 @@ func actionTypeToRole(actionType action.Type) constant.MachineRole {
 		return constant.MachineRoleEtcd
 	case action.ActionTypeInitMaster, action.ActionTypeJoinMaster:
 		return constant.MachineRoleMaster
-	case action.ActionTypeDeployNode:
+	case action.ActionTypeDeployWorker:
 		return constant.MachineRoleWorker
+	case action.ActionTypeDeployIngress:
+		return constant.MachineRoleIngress
+	case action.ActionTypeDeployContour:
+		return constant.MachineRoleIngress
 	// treat node init action as ectd role
 	case action.ActionTypeNodeInit:
 		return constant.MachineRoleEtcd

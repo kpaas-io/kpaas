@@ -1,4 +1,4 @@
-// Copyright 2020 Shanghai JingDuo Information Technology co., Ltd.
+// Copyright 2019 Shanghai JingDuo Information Technology co., Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,44 +15,47 @@
 package action
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-const ActionTypeDeployContour Type = "DeployContour"
+const ActionTypeDeployIngress Type = "DeployIngress"
 
-type DeployContourActionConfig struct {
+type DeployIngressActionConfig struct {
+	NodeCfg         *pb.NodeDeployConfig
 	ClusterConfig   *pb.ClusterConfig
 	MasterNodes     []*pb.Node
 	LogFileBasePath string
 }
 
-type DeployContourAction struct {
+type DeployIngressAction struct {
 	Base
-	config *DeployContourActionConfig
+	config *DeployNodeActionConfig
 }
 
-func NewDeployContourAction(config *DeployContourActionConfig) (Action, error) {
+func NewDeployIngressAction(config *DeployNodeActionConfig) (Action, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("action config is nil")
 	}
-	if len(config.MasterNodes) == 0 {
-		return nil, errors.New("master node is empty")
+	if config.NodeCfg == nil {
+		return nil, fmt.Errorf("invalid action config: NodeCfg is nil")
+	}
+	if config.NodeCfg.Node == nil {
+		return nil, fmt.Errorf("invalid action config: NodeCfg.Node is nil")
 	}
 
-	actionName := GenActionName(ActionTypeDeployContour)
-	return &DeployContourAction{
+	actionName := GenActionName(ActionTypeDeployIngress)
+	return &DeployIngressAction{
 		Base: Base{
 			Name:              actionName,
-			ActionType:        ActionTypeDeployContour,
+			ActionType:        ActionTypeDeployIngress,
 			Status:            ActionPending,
-			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName, config.ClusterConfig.ClusterName), // /app/deploy/logs/unknown/deploy-ingress/{clusterName}-DeployContour-{randomUint64}.log
+			LogFilePath:       GenActionLogFilePath(config.LogFileBasePath, actionName, config.NodeCfg.Node.Name), // /app/deploy/logs/unknown/deploy-worker/{node}-DeployIngress-{randomUint64}.log
 			CreationTimestamp: time.Now(),
-			Node:              config.MasterNodes[0],
+			Node:              config.NodeCfg.Node,
 		},
 		config: config,
 	}, nil

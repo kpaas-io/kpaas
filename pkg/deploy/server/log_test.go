@@ -61,7 +61,7 @@ func TestActionBelongsToRole(t *testing.T) {
 			want:  true,
 		},
 		{
-			input: inputS{action.ActionTypeDeployNode, constant.MachineRoleWorker},
+			input: inputS{action.ActionTypeDeployWorker, constant.MachineRoleWorker},
 			want:  true,
 		},
 		{

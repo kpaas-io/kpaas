@@ -49,7 +49,7 @@ func NewAppendAnnotation(config *AppendAnnotationConfig) *AppendAnnotation {
 
 func (operation *AppendAnnotation) append() *pb.Error {
 
-	if len(operation.config.Cluster.GetNodeAnnotations()) <= 0 {
+	if len(operation.config.Cluster.GetNodeAnnotations()) == 0 {
 
 		operation.config.Logger.
 			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).

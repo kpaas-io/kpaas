@@ -29,26 +29,26 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
-func init() {
-	RegisterExecutor(ActionTypeDeployNode, new(deployNodeExecutor))
-}
-
 type deployNodeExecutor struct {
 	logger           *logrus.Entry
 	machine          deployMachine.IMachine
 	masterMachine    deployMachine.IMachine
-	action           *DeployNodeAction
 	executeLogWriter io.Writer
+	config           *DeployNodeActionConfig
+	action           Action
 }
 
-func (executor *deployNodeExecutor) Execute(act Action) *protos.Error {
+type DeployNodeActionConfig struct {
+	NodeCfg         *protos.NodeDeployConfig
+	ClusterConfig   *protos.ClusterConfig
+	MasterNodes     []*protos.Node
+	LogFileBasePath string
+}
 
-	action, ok := act.(*DeployNodeAction)
-	if !ok {
-		return errOfTypeMismatched(new(DeployNodeAction), act)
-	}
+func (executor *deployNodeExecutor) Deploy(act Action, config *DeployNodeActionConfig) *protos.Error {
 
-	executor.action = action
+	executor.action = act
+	executor.config = config
 
 	executor.initLogger()
 	executor.initExecuteLogWriter()
@@ -92,12 +92,12 @@ func (executor *deployNodeExecutor) connectSSH() *protos.Error {
 	executor.logger.Debug("Start to connect ssh")
 
 	var err error
-	executor.machine, err = deployMachine.NewMachine(executor.action.config.NodeCfg.GetNode())
+	executor.machine, err = deployMachine.NewMachine(executor.config.NodeCfg.GetNode())
 	if err != nil {
 		pbError := &protos.Error{
-			Reason:     "Connect ssh error",                                                                                                                                                 // 连接SSH失败。
-			Detail:     fmt.Sprintf("SSH connect to %s(%s) failed , error: %v.", executor.action.config.NodeCfg.GetNode().GetName(), executor.action.config.NodeCfg.GetNode().GetIp(), err), // 连接%s(%s)失败，失败原因：%v。
-			FixMethods: "Please check node reliability, make SSH service is available.",                                                                                                     // 请检查节点的可用性，确保SSH服务可用。
+			Reason:     "Connect ssh error",                                                                                                                                   // 连接SSH失败。
+			Detail:     fmt.Sprintf("SSH connect to %s(%s) failed , error: %v.", executor.config.NodeCfg.GetNode().GetName(), executor.config.NodeCfg.GetNode().GetIp(), err), // 连接%s(%s)失败，失败原因：%v。
+			FixMethods: "Please check node reliability, make SSH service is available.",                                                                                       // 请检查节点的可用性，确保SSH服务可用。
 		}
 		executor.logger.WithField("error", pbError).Error("connect ssh error")
 		return pbError
@@ -109,7 +109,7 @@ func (executor *deployNodeExecutor) connectSSH() *protos.Error {
 
 func (executor *deployNodeExecutor) connectMasterNode() *protos.Error {
 	var err error
-	executor.masterMachine, err = deployMachine.NewMachine(executor.action.config.MasterNodes[0])
+	executor.masterMachine, err = deployMachine.NewMachine(executor.config.MasterNodes[0])
 	if err != nil {
 		logrus.WithFields(logrus.Fields{"error": err}).Error("failed to connect master node")
 		return &protos.Error{
@@ -130,8 +130,8 @@ func (executor *deployNodeExecutor) disconnectMasterNode() {
 func (executor *deployNodeExecutor) initLogger() {
 	executor.logger = logrus.WithFields(logrus.Fields{
 		consts.LogFieldAction: executor.action.GetName(),
-		"nodeName":            executor.action.config.NodeCfg.GetNode().GetName(),
-		"nodeIP":              executor.action.config.NodeCfg.GetNode().GetIp(),
+		"nodeName":            executor.config.NodeCfg.GetNode().GetName(),
+		"nodeIP":              executor.config.NodeCfg.GetNode().GetIp(),
 	})
 }
 
@@ -142,7 +142,7 @@ func (executor *deployNodeExecutor) startKubelet() *protos.Error {
 	operation := worker.NewStartKubelet(
 		&worker.StartKubeletConfig{
 			Machine:          executor.machine,
-			Node:             executor.action.config.NodeCfg,
+			Node:             executor.config.NodeCfg,
 			Logger:           executor.logger,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},
@@ -164,10 +164,10 @@ func (executor *deployNodeExecutor) joinCluster() *protos.Error {
 	operation := worker.NewJoinCluster(
 		&worker.JoinClusterConfig{
 			Machine:          executor.machine,
-			Node:             executor.action.config.NodeCfg,
+			Node:             executor.config.NodeCfg,
 			Logger:           executor.logger,
-			Cluster:          executor.action.config.ClusterConfig,
-			MasterNodes:      executor.action.config.MasterNodes,
+			Cluster:          executor.config.ClusterConfig,
+			MasterNodes:      executor.config.MasterNodes,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
@@ -189,8 +189,8 @@ func (executor *deployNodeExecutor) appendLabel() *protos.Error {
 		&worker.AppendLabelConfig{
 			MasterMachine:    executor.masterMachine,
 			Logger:           executor.logger,
-			Node:             executor.action.config.NodeCfg,
-			Cluster:          executor.action.config.ClusterConfig,
+			Node:             executor.config.NodeCfg,
+			Cluster:          executor.config.ClusterConfig,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
@@ -212,8 +212,8 @@ func (executor *deployNodeExecutor) appendAnnotation() *protos.Error {
 		&worker.AppendAnnotationConfig{
 			MasterMachine:    executor.masterMachine,
 			Logger:           executor.logger,
-			Node:             executor.action.config.NodeCfg,
-			Cluster:          executor.action.config.ClusterConfig,
+			Node:             executor.config.NodeCfg,
+			Cluster:          executor.config.ClusterConfig,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
@@ -235,8 +235,8 @@ func (executor *deployNodeExecutor) appendTaint() *protos.Error {
 		&worker.AppendTaintConfig{
 			Machine:          executor.masterMachine,
 			Logger:           executor.logger,
-			Node:             executor.action.config.NodeCfg,
-			Cluster:          executor.action.config.ClusterConfig,
+			Node:             executor.config.NodeCfg,
+			Cluster:          executor.config.ClusterConfig,
 			ExecuteLogWriter: executor.executeLogWriter,
 		},
 	)
@@ -252,6 +252,10 @@ func (executor *deployNodeExecutor) appendTaint() *protos.Error {
 
 func (executor *deployNodeExecutor) disconnectSSH() {
 
+	if executor.machine == nil {
+		return
+	}
+
 	executor.logger.Debug("Start to disconnect ssh")
 
 	executor.machine.Close()
@@ -261,17 +265,17 @@ func (executor *deployNodeExecutor) disconnectSSH() {
 
 func (executor *deployNodeExecutor) initExecuteLogWriter() {
 
-	if executor.action.LogFilePath == "" {
+	if executor.action.GetLogFilePath() == "" {
 		return
 	}
 
 	var err error
 	// LogFilePath /app/deploy/logs/unknown/deploy-{role}/{node}-DeployNode-{randomUint64}.log
-	err = os.MkdirAll(filepath.Dir(executor.action.LogFilePath), os.FileMode(0755))
+	err = os.MkdirAll(filepath.Dir(executor.action.GetLogFilePath()), os.FileMode(0755))
 	if err != nil {
 		return
 	}
-	executor.executeLogWriter, err = os.OpenFile(executor.action.LogFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
+	executor.executeLogWriter, err = os.OpenFile(executor.action.GetLogFilePath(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
 	if err != nil {
 		executor.logger.Errorf("init deploy node execute log writer error, error message: %v", err)
 		executor.executeLogWriter = bytes.NewBuffer([]byte{})
