@@ -119,7 +119,7 @@ func ValidateStringArrayOptions(strList []string, keyName string, options []stri
 
 	return func() error {
 
-		if len(strList) <= 0 {
+		if len(strList) == 0 {
 			return fmt.Errorf("%s is empty", keyName)
 		}
 

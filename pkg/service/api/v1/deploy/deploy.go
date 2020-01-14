@@ -42,7 +42,7 @@ import (
 func Deploy(c *gin.Context) {
 
 	wizardData := wizard.GetCurrentWizard()
-	if len(wizardData.Nodes) <= 0 {
+	if len(wizardData.Nodes) == 0 {
 		h.E(c, h.ENotFound.WithPayload("No node information, node list is empty, please add node information"))
 		return
 	}
