@@ -15,11 +15,8 @@
 package action
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 
@@ -52,7 +49,6 @@ func (executor *deployNodeExecutor) Deploy(act Action, config *DeployNodeActionC
 
 	executor.initLogger()
 	executor.initExecuteLogWriter()
-	defer executor.closeExecuteLogWriter()
 
 	executor.logger.Info("start to execute deploy node executor")
 
@@ -265,34 +261,5 @@ func (executor *deployNodeExecutor) disconnectSSH() {
 
 func (executor *deployNodeExecutor) initExecuteLogWriter() {
 
-	if executor.action.GetLogFilePath() == "" {
-		return
-	}
-
-	var err error
-	// LogFilePath /app/deploy/logs/unknown/deploy-{role}/{node}-DeployNode-{randomUint64}.log
-	err = os.MkdirAll(filepath.Dir(executor.action.GetLogFilePath()), os.FileMode(0755))
-	if err != nil {
-		return
-	}
-	executor.executeLogWriter, err = os.OpenFile(executor.action.GetLogFilePath(), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
-	if err != nil {
-		executor.logger.Errorf("init deploy node execute log writer error, error message: %v", err)
-		executor.executeLogWriter = bytes.NewBuffer([]byte{})
-		return
-	}
-}
-
-func (executor *deployNodeExecutor) closeExecuteLogWriter() {
-
-	switch writer := executor.executeLogWriter.(type) {
-	case *os.File:
-		err := writer.Close()
-		if err != nil {
-			executor.logger.Errorf("close deploy node execute log writer error, error message: %v", err)
-		}
-	case *bytes.Buffer:
-		// Open executed log file handle error, so write to logrus(at least we can find the log)
-		logrus.Infof("%s\n", writer.String())
-	}
+	executor.executeLogWriter = executor.action.GetExecuteLogBuffer()
 }

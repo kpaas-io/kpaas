@@ -15,11 +15,8 @@
 package action
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 
@@ -376,7 +373,6 @@ func (executor *deployContourExecutor) Execute(act Action) *protos.Error {
 
 	executor.initLogger()
 	executor.initExecuteLogWriter()
-	defer executor.closeExecuteLogWriter()
 
 	executor.logger.Info("start to execute deploy contour executor")
 
@@ -411,36 +407,7 @@ func (executor *deployContourExecutor) initLogger() {
 
 func (executor *deployContourExecutor) initExecuteLogWriter() {
 
-	if executor.action.LogFilePath == "" {
-		return
-	}
-
-	var err error
-	// LogFilePath /app/deploy/logs/unknown/deploy-ingress/{clusterName}-DeployContour-{randomUint64}.log
-	err = os.MkdirAll(filepath.Dir(executor.action.LogFilePath), os.FileMode(0755))
-	if err != nil {
-		return
-	}
-	executor.executeLogWriter, err = os.OpenFile(executor.action.LogFilePath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.FileMode(0644))
-	if err != nil {
-		executor.logger.Errorf("init deploy contour execute log writer error, error message: %v", err)
-		executor.executeLogWriter = bytes.NewBuffer([]byte{})
-		return
-	}
-}
-
-func (executor *deployContourExecutor) closeExecuteLogWriter() {
-
-	switch writer := executor.executeLogWriter.(type) {
-	case *os.File:
-		err := writer.Close()
-		if err != nil {
-			executor.logger.Errorf("close deploy contour execute log writer error, error message: %v", err)
-		}
-	case *bytes.Buffer:
-		// Open executed log file handle error, so write to logrus(at least we can find the log)
-		logrus.Infof("%s\n", writer.String())
-	}
+	executor.executeLogWriter = executor.action.GetExecuteLogBuffer()
 }
 
 func (executor *deployContourExecutor) connectMasterNode() *protos.Error {
