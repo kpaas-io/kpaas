@@ -17,6 +17,8 @@ package action
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"sync"
 	"math"
 	"strings"
 
@@ -28,8 +30,6 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	"github.com/kpaas-io/kpaas/pkg/deploy/operation/check"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
-	"io"
-	"sync"
 )
 
 // constant value for check
