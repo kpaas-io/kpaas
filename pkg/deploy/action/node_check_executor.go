@@ -18,9 +18,9 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"sync"
 	"math"
 	"strings"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -509,14 +509,14 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	logger.Debug("Start to execute node check action")
 
 	executeLogBuf := act.GetExecuteLogBuffer()
-	if executeLogBuf == nil {
-		logger.Fatal("There is no buffer for log to store")
-		return &pb.Error{
-			Reason:     fmt.Sprint("log buffer is empty"),
-			Detail:     fmt.Sprint("log buffer can not be empty"),
-			FixMethods: fmt.Sprint("please init log buffer"),
-		}
-	}
+	//if executeLogBuf == nil {
+	//	logger.Error("There is no buffer for log to store")
+	//	return &pb.Error{
+	//		Reason:     fmt.Sprint("log buffer is empty"),
+	//		Detail:     fmt.Sprint("log buffer can not be empty"),
+	//		FixMethods: fmt.Sprint("please init log buffer"),
+	//	}
+	//}
 
 	// make enough length of check items
 	nodeCheckch := make(chan *NodeCheckItem, 9)
@@ -547,12 +547,14 @@ func (a *nodeCheckExecutor) Execute(act Action) *pb.Error {
 	}
 
 	var count int
-	for logs := range nodeLogch {
-		count++
-		// write to log file
-		io.Copy(executeLogBuf, logs)
-		if count == 9 {
-			break
+	if executeLogBuf != nil {
+		for logs := range nodeLogch {
+			count++
+			// write to log file
+			io.Copy(executeLogBuf, logs)
+			if count == 9 {
+				break
+			}
 		}
 	}
 
