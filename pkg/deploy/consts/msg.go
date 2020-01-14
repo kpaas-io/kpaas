@@ -36,4 +36,7 @@ const (
 	MsgActionInvalidConfig           string = "the action config is invalid"
 	MsgActionInvalidConfigNodeNotSet string = "the action's target node is not set"
 	MsgEmptyAction                   string = "empty action"
+
+	// Fix methods messages
+	MsgFixMethodsPleaseContactUs = "Please contact us, https://github.com/kpaas-io/kpaas/issues"
 )

@@ -49,9 +49,9 @@ func (operation *ApplyYAML) Execute() *pb.Error {
 
 	if operation.config.FilePath == "" {
 		return &pb.Error{
-			Reason:     "Cannot apply yaml",               // 无法应用YAML
-			Detail:     "It's not specify yaml file path", // 没有指定YAML文件路径
-			FixMethods: "Please contact us",               // 请联系我们
+			Reason:     "Cannot apply yaml",                 // 无法应用YAML
+			Detail:     "It's not a specify yaml file path", // 没有指定YAML文件路径
+			FixMethods: consts.MsgFixMethodsPleaseContactUs, // 请联系我们
 		}
 	}
 

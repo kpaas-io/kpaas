@@ -21,6 +21,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
 	deployOperation "github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
@@ -49,16 +50,16 @@ func (operation *WriteFile) Execute() *pb.Error {
 
 	if operation.config.FilePath == "" {
 		return &pb.Error{
-			Reason:     "Cannot write file",          // 无法写文件
-			Detail:     "It's not specify file path", // 没有指定文件路径
-			FixMethods: "Please contact us",          // 请联系我们
+			Reason:     "Cannot write file",                 // 无法写文件
+			Detail:     "It's not a specify file path",      // 没有指定文件路径
+			FixMethods: consts.MsgFixMethodsPleaseContactUs, // 请联系我们
 		}
 	}
 	if operation.config.FileContent == "" {
 		return &pb.Error{
-			Reason:     "Cannot write file",             // 无法写文件
-			Detail:     "It's not specify file content", // 没有指定文件内容
-			FixMethods: "Please contact us",             // 请联系我们
+			Reason:     "Cannot write file",                 // 无法写文件
+			Detail:     "It's not a specify file content",   // 没有指定文件内容
+			FixMethods: consts.MsgFixMethodsPleaseContactUs, // 请联系我们
 		}
 	}
 
@@ -76,9 +77,9 @@ func (operation *WriteFile) Execute() *pb.Error {
 		_, _ = operation.config.ExecuteLogWriter.Write([]byte(fmt.Sprintf("Error: %v\n", err)))
 
 		return &pb.Error{
-			Reason:     "Cannot write file",                                // 无法写文件
-			Detail:     "When writing file content to %s, we go error: %s", // 我们在写文件（%s）时，发生了些问题。%s
-			FixMethods: deployOperation.FixMethodSelfAnalyseIt,             // 请通过部署日志进行排查，如果有其他问题，请联系我们
+			Reason:     "Cannot write file",                                 // 无法写文件
+			Detail:     "When writing file content to %s, we got error: %s", // 我们在写文件（%s）时，发生了些问题。%s
+			FixMethods: deployOperation.FixMethodSelfAnalyseIt,              // 请通过部署日志进行排查，如果有其他问题，请联系我们
 		}
 	}
 
