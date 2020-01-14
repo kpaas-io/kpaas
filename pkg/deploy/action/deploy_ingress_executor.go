@@ -19,19 +19,26 @@ import (
 )
 
 func init() {
-	RegisterExecutor(ActionTypeDeployWorker, new(deployWorkerExecutor))
+	RegisterExecutor(ActionTypeDeployIngress, new(deployIngressExecutor))
 }
 
-type deployWorkerExecutor struct {
+type deployIngressExecutor struct {
 	deployNodeExecutor
 }
 
-func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
+func (executor *deployIngressExecutor) Execute(act Action) *protos.Error {
 
-	action, ok := act.(*DeployWorkerAction)
+	action, ok := act.(*DeployIngressAction)
 	if !ok {
-		return errOfTypeMismatched(new(DeployWorkerAction), act)
+		return errOfTypeMismatched(new(DeployIngressAction), act)
 	}
 
+	executor.addIngressMarks(action.config.NodeCfg)
+
 	return executor.deployNodeExecutor.Deploy(act, action.config)
+}
+
+func (executor *deployIngressExecutor) addIngressMarks(node *protos.NodeDeployConfig) {
+
+	node.Labels["node-role.kubernetes.io/ingress"] = "envoy"
 }

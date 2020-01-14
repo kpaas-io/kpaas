@@ -63,7 +63,7 @@ func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 		WithField("node", operation.config.Node.GetNode().GetName()).
 		Debugf("control plane endpoint: %s", controlPlaneEndpoint)
 
-	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
+	return op.NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewShellCommand(
 			operation.config.Machine,
 			fmt.Sprintf("/bin/bash %s/%s", op.InitRemoteScriptPath, consts.DefaultKubeToolScript),

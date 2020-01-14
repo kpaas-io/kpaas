@@ -24,7 +24,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	deployOperation "github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -37,7 +37,7 @@ type AppendLabelConfig struct {
 }
 
 type AppendLabel struct {
-	operation.BaseOperation
+	deployOperation.BaseOperation
 	config *AppendLabelConfig
 	labels map[string]string
 }
@@ -57,7 +57,7 @@ func (operation *AppendLabel) computeLabels() {
 
 func (operation *AppendLabel) computeClusterLabels() {
 
-	if len(operation.config.Cluster.GetNodeLabels()) <= 0 {
+	if len(operation.config.Cluster.GetNodeLabels()) == 0 {
 
 		operation.config.Logger.
 			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
@@ -73,7 +73,7 @@ func (operation *AppendLabel) computeClusterLabels() {
 
 func (operation *AppendLabel) computeNodeLabels() {
 
-	if len(operation.config.Node.GetLabels()) <= 0 {
+	if len(operation.config.Node.GetLabels()) == 0 {
 
 		operation.config.Logger.
 			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
@@ -89,7 +89,7 @@ func (operation *AppendLabel) computeNodeLabels() {
 
 func (operation *AppendLabel) append() *pb.Error {
 
-	if len(operation.labels) <= 0 {
+	if len(operation.labels) == 0 {
 
 		operation.config.Logger.
 			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
@@ -106,7 +106,7 @@ func (operation *AppendLabel) append() *pb.Error {
 		WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName(), "labels": labels}).
 		Debugf("append labels")
 
-	return NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
+	return deployOperation.NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
 		command.NewKubectlCommand(operation.config.MasterMachine, consts.KubeConfigPath, "",
 			"label", "node", operation.config.Node.GetNode().GetName(),
 			strings.Join(labels, " "),
