@@ -64,6 +64,7 @@ type initMasterOperation struct {
 	NeedUntaint   bool
 	machine       machine.IMachine
 	ClusterConfig *pb.ClusterConfig
+	LogBuffer     *bytes.Buffer
 }
 
 func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOperation, error) {
@@ -74,6 +75,7 @@ func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOpera
 		EtcdNodes:     config.EtcdNodes,
 		MasterNodes:   config.MasterNodes,
 		ClusterConfig: config.ClusterConfig,
+		LogBuffer:     &bytes.Buffer{},
 	}
 
 	m, err := machine.NewMachine(config.Node)
@@ -121,10 +123,11 @@ func (op *initMasterOperation) PreDo() error {
 	}
 
 	op.AddCommands(
-		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
+		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet").
+			WithExecuteLogWriter(op.LogBuffer),
 		command.NewShellCommand(op.machine, "kubeadm", "init",
 			"--config", kubeadmConfigPath,
-			"--upload-certs"),
+			"--upload-certs").WithExecuteLogWriter(op.LogBuffer),
 	)
 	return nil
 }

@@ -15,6 +15,8 @@
 package action
 
 import (
+	"os"
+
 	"github.com/sirupsen/logrus"
 	"k8s.io/apimachinery/pkg/util/sets"
 
@@ -68,7 +70,18 @@ func (a *initMasterExecutor) Execute(act Action) *pb.Error {
 
 	logger.Debugf("Start to init master on nodes: %s", action.Node.Name)
 
-	if err := op.Do(); err != nil {
+	err = op.Do()
+
+	if act.GetLogFilePath() != "" {
+		logFile, e := os.OpenFile(act.GetLogFilePath(), os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(0644))
+		if e != nil {
+			logger.Warnf("create/open file %s failed: %v", act.GetLogFilePath(), e)
+		} else {
+			logFile.Write(op.LogBuffer.Bytes())
+		}
+	}
+
+	if err != nil {
 		return &pb.Error{
 			Reason:     "failed to do init master operation",
 			Detail:     err.Error(),
