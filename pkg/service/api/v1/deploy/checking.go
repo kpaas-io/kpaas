@@ -322,12 +322,12 @@ func checkClusterNodePortMinimum() (warnings []*api.CheckingItem) {
 	if wizardData.Info.NodePortMinimum <= suggestNodePortMinimum {
 
 		warnings = append(warnings, &api.CheckingItem{
-			CheckingPoint: fmt.Sprintf("Node port minimum setting too small warning"), // NodePort 最小端口号设置过小警告
+			CheckingPoint: fmt.Sprintf("Node minimum port too small"), // NodePort 最小端口号设置过小警告
 			Result:        constant.CheckResultWarning,
 			Error: &api.Error{
-				Reason:     "Node port minimum setting too small",                                                             // NodePort 最小端口号太小
-				Detail:     fmt.Sprintf("We suggest node port minimum port should be higher than %d", suggestNodePortMinimum), // 我们建议 NodePort 最小端口号大于 %d
-				FixMethods: fmt.Sprintf("Modify the node port minimum higher than %d", suggestNodePortMinimum),                // 修改最小端口号为大于 %d
+				Reason:     "Node minimum port too small",                                                                // NodePort 最小端口号太小
+				Detail:     fmt.Sprintf("We suggest minimal node port should be higher than %d", suggestNodePortMinimum), // 我们建议 NodePort 最小端口号大于 %d
+				FixMethods: fmt.Sprintf("Modify the node port larger than %d", suggestNodePortMinimum),                   // 修改最小端口号为大于 %d
 			},
 		})
 	}
@@ -342,12 +342,12 @@ func checkClusterNodePortInterval() (warnings []*api.CheckingItem) {
 	if wizardData.Info.NodePortMaximum-wizardData.Info.NodePortMinimum > suggestNodePortMaxInterval {
 
 		warnings = append(warnings, &api.CheckingItem{
-			CheckingPoint: "Node port interval setting too large warning", // NodePort 监控区间设置过大警告
+			CheckingPoint: "Node port interval setting too large", // NodePort 监控区间设置过大警告
 			Result:        constant.CheckResultWarning,
 			Error: &api.Error{
-				Reason:     "Node port interval setting too large",                                                           // NodePort 范围过大
-				Detail:     fmt.Sprintf("We suggest node port interval should be small than %d", suggestNodePortMaxInterval), // 我们建议 NodePort 端口号范围应该小于 %d
-				FixMethods: "Modify the node port interval",                                                                  // 修改端口范围
+				Reason:     "Node port interval setting too large",                                                             // NodePort 范围过大
+				Detail:     fmt.Sprintf("We suggest node port interval should be smaller than %d", suggestNodePortMaxInterval), // 我们建议 NodePort 端口号范围应该小于 %d
+				FixMethods: "Modify the node port interval",                                                                    // 修改端口范围
 			},
 		})
 	}
