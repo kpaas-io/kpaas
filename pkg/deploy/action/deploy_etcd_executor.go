@@ -47,6 +47,7 @@ func (a *deployEtcdExecutor) Execute(act Action) *pb.Error {
 		CACrt:        etcdAction.CACrt,
 		CAKey:        etcdAction.CAKey,
 		ClusterNodes: etcdAction.ClusterNodes,
+		LogWriter:    etcdAction.GetExecuteLogBuffer(),
 	}
 	op, err := etcd.NewDeployEtcdOperation(config)
 	if err != nil {
