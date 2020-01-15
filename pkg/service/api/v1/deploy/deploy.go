@@ -51,7 +51,7 @@ func Deploy(c *gin.Context) {
 	}
 
 	if !checkClusterConfiguration() {
-		h.E(c, h.EStatusError.WithPayload("current cluster configuration check status is not passed"))
+		h.E(c, h.EStatusError.WithPayload("current cluster configuration check is not passed"))
 		return
 	}
 

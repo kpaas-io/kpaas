@@ -302,12 +302,12 @@ func checkClusterHANodeCount() (warnings []*api.CheckingItem) {
 		}
 
 		warnings = append(warnings, &api.CheckingItem{
-			CheckingPoint: fmt.Sprintf("Nodes for %s high available", role),
+			CheckingPoint: fmt.Sprintf("%s high availability", role),
 			Result:        constant.CheckResultWarning,
 			Error: &api.Error{
-				Reason:     fmt.Sprintf("nodes for %s are not enough for high available", role),                                     // %s 角色的节点数不满足高可用数量
-				Detail:     fmt.Sprintf("We suggest nodes for %s count should be equal or more than %d nodes", role, haCount[role]), // 我们建议 %s 角色节点数大于等于%d 个
-				FixMethods: fmt.Sprintf("Add new node for role: %s, or edit existing node to include this role", role),              // 添加一个新节点包含 %s 角色，或者编辑已有节点使他包含这个角色
+				Reason:     fmt.Sprintf("nodes for %s are not enough for high availability", role),                            // %s 角色的节点数不满足高可用数量
+				Detail:     fmt.Sprintf("We suggest nodes count for %s should be equal or more than %d", role, haCount[role]), // 我们建议 %s 角色节点数大于等于%d 个
+				FixMethods: fmt.Sprintf("Add new node for role: %s, or edit existing node to include this role", role),        // 添加一个新节点包含 %s 角色，或者编辑已有节点使他包含这个角色
 			},
 		})
 	}
@@ -322,10 +322,10 @@ func checkClusterNodePortMinimum() (warnings []*api.CheckingItem) {
 	if wizardData.Info.NodePortMinimum <= suggestNodePortMinimum {
 
 		warnings = append(warnings, &api.CheckingItem{
-			CheckingPoint: fmt.Sprintf("Node minimum port too small"), // NodePort 最小端口号设置过小警告
+			CheckingPoint: fmt.Sprintf("Warning of too small value on node port minimum setting"), // NodePort 最小端口号设置过小警告
 			Result:        constant.CheckResultWarning,
 			Error: &api.Error{
-				Reason:     "Node minimum port too small",                                                                // NodePort 最小端口号太小
+				Reason:     "Node minimum port setting is too small",                                                     // NodePort 最小端口号太小
 				Detail:     fmt.Sprintf("We suggest minimal node port should be higher than %d", suggestNodePortMinimum), // 我们建议 NodePort 最小端口号大于 %d
 				FixMethods: fmt.Sprintf("Modify the node port larger than %d", suggestNodePortMinimum),                   // 修改最小端口号为大于 %d
 			},
@@ -342,10 +342,10 @@ func checkClusterNodePortInterval() (warnings []*api.CheckingItem) {
 	if wizardData.Info.NodePortMaximum-wizardData.Info.NodePortMinimum > suggestNodePortMaxInterval {
 
 		warnings = append(warnings, &api.CheckingItem{
-			CheckingPoint: "Node port interval setting too large", // NodePort 监控区间设置过大警告
+			CheckingPoint: "Warning of too large value on node port interval setting", // NodePort 区间设置过大警告
 			Result:        constant.CheckResultWarning,
 			Error: &api.Error{
-				Reason:     "Node port interval setting too large",                                                             // NodePort 范围过大
+				Reason:     "Node ports interval setting too large",                                                            // NodePort 范围过大
 				Detail:     fmt.Sprintf("We suggest node port interval should be smaller than %d", suggestNodePortMaxInterval), // 我们建议 NodePort 端口号范围应该小于 %d
 				FixMethods: "Modify the node port interval",                                                                    // 修改端口范围
 			},
