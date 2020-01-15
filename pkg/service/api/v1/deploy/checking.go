@@ -133,6 +133,22 @@ func getCallCheckNodesData() *protos.CheckNodesRequest {
 		requestData.Configs = append(requestData.Configs, nodeConfig)
 	}
 
+	// add network options for checking network connectivity.
+	if wizardNetworkOptions := wizardData.GetNetworkOptions(); wizardNetworkOptions != nil {
+		reqNetworkOptions := &protos.NetworkOptions{
+			NetworkType: string(wizardNetworkOptions.NetworkType),
+		}
+		if wizardNetworkOptions.NetworkType == api.NetworkTypeCalico &&
+			wizardNetworkOptions.CalicoOptions != nil {
+			reqNetworkOptions.CalicoOptions = &protos.CalicoOptions{
+				CheckConnectivityAll: false,
+				EncapsulationMode:    string(wizardNetworkOptions.CalicoOptions.EncapsulationMode),
+				VxlanPort:            uint32(wizardNetworkOptions.CalicoOptions.VxlanPort),
+			}
+		}
+		requestData.NetworkOptions = reqNetworkOptions
+	}
+
 	return requestData
 }
 

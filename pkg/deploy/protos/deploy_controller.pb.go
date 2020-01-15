@@ -49,11 +49,11 @@ It has these top-level messages:
 */
 package protos
 
-import (
-	fmt "fmt"
-	math "math"
+import proto "github.com/golang/protobuf/proto"
+import fmt "fmt"
+import math "math"
 
-	proto "github.com/golang/protobuf/proto"
+import (
 	context "golang.org/x/net/context"
 	grpc "google.golang.org/grpc"
 )
