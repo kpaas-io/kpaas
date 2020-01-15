@@ -78,6 +78,7 @@ func (a *initMasterExecutor) Execute(act Action) *pb.Error {
 			logger.Warnf("create/open file %s failed: %v", act.GetLogFilePath(), e)
 		} else {
 			logFile.Write(op.LogBuffer.Bytes())
+			logFile.Close()
 		}
 	}
 
