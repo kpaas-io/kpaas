@@ -45,10 +45,7 @@ func (ckops *CheckDistributionOperation) RunCommands(config *pb.NodeCheckConfig,
 		return nil, nil, err
 	}
 
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
+	defer m.Close()
 
 	ckops.shellCmd = command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'").
 		WithDescription("检查机器发行版是否满足最低要求").

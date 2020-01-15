@@ -40,10 +40,7 @@ func (ckops *CheckSysPrefOperation) RunCommands(config *pb.NodeCheckConfig, logC
 		return nil, nil, err
 	}
 
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
+	defer m.Close()
 
 	scriptFile, err := assets.Assets.Open(sysPrefScript)
 	if err != nil {
