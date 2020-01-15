@@ -52,7 +52,7 @@ func KubeConfigPathForCluster(clusterName string) (string, error) {
 	}
 	logEntry.WithField("filename", filename).
 		Debug("kubeconfig file not found locally, try to fetch it from wizard...")
-	err := os.MkdirAll(DefaultKubeConfigDirectory, 0644)
+	err := os.MkdirAll(kubeConfigDirectory, 0644)
 	if err != nil {
 		return "", fmt.Errorf("failed to create directory, error %v", err)
 	}
@@ -80,7 +80,7 @@ func KubeConfigPathForCluster(clusterName string) (string, error) {
 		return "", fmt.Errorf("no master node ready in cluster %s", clusterName)
 	}
 	logEntry.WithField("nodename", masterNode.Name).WithField("IP", masterNode.IP).
-		Debug("fetch kubeconfig from master  node...")
+		Debug("fetch kubeconfig from master node...")
 	connectionData := masterNode.ConnectionData
 	sshAuth := protos.Auth{
 		Username: masterNode.Username,
@@ -106,6 +106,13 @@ func KubeConfigPathForCluster(clusterName string) (string, error) {
 	}
 	kubeConfigContent := fetchResponse.GetKubeConfig()
 
-	ioutil.WriteFile(filename, kubeConfigContent, 0644)
+	logEntry.WithField("filename", filename).
+		Info("store kubeconfig")
+	logEntry.Debugf("kubeconfig content: %v", kubeConfigContent)
+	err = ioutil.WriteFile(filename, kubeConfigContent, 0644)
+	if err != nil {
+		logEntry.WithError(err).Errorf("failed to write kubeconfig into local file")
+		return "", err
+	}
 	return filename, nil
 }
