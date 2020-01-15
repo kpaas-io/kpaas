@@ -124,24 +124,28 @@ func (c *controller) getDeployLog(aTask task.Task, role constant.MachineRole, no
 	return result, nil
 }
 
-// Treat the node init action beglongs to each deploy role since it
+// Treat the node init and deploy config action beglongs to each deploy role since it
 // is needed for each deploy role.
 var roleActionTypeMap = map[constant.MachineRole]map[action.Type]struct{}{
 	constant.MachineRoleEtcd: map[action.Type]struct{}{
-		action.ActionTypeNodeInit:   struct{}{},
-		action.ActionTypeDeployEtcd: struct{}{},
+		action.ActionTypeNodeInit:     struct{}{},
+		action.ActionTypeDeployConfig: struct{}{},
+		action.ActionTypeDeployEtcd:   struct{}{},
 	},
 	constant.MachineRoleMaster: map[action.Type]struct{}{
-		action.ActionTypeNodeInit:   struct{}{},
-		action.ActionTypeInitMaster: struct{}{},
-		action.ActionTypeJoinMaster: struct{}{},
+		action.ActionTypeNodeInit:     struct{}{},
+		action.ActionTypeDeployConfig: struct{}{},
+		action.ActionTypeInitMaster:   struct{}{},
+		action.ActionTypeJoinMaster:   struct{}{},
 	},
 	constant.MachineRoleWorker: map[action.Type]struct{}{
 		action.ActionTypeNodeInit:     struct{}{},
+		action.ActionTypeDeployConfig: struct{}{},
 		action.ActionTypeDeployWorker: struct{}{},
 	},
 	constant.MachineRoleIngress: map[action.Type]struct{}{
 		action.ActionTypeNodeInit:      struct{}{},
+		action.ActionTypeDeployConfig:  struct{}{},
 		action.ActionTypeDeployIngress: struct{}{},
 		action.ActionTypeDeployContour: struct{}{},
 	},

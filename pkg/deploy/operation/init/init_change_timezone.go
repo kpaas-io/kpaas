@@ -40,14 +40,11 @@ func (itOps *InitTimeZoneOperation) RunCommands(node *pb.Node, initAction *opera
 		return nil, nil, err
 	}
 
+	defer m.Close()
+
 	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
-
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
 
 	itOps.shellCmd = command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)).
 		WithDescription(fmt.Sprintf("初始化时区为 %s", defaultTimeZone)).

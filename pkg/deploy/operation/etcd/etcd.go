@@ -20,6 +20,7 @@ import (
 	"crypto"
 	"crypto/x509"
 	"fmt"
+	"io"
 	"strings"
 	"time"
 
@@ -71,6 +72,7 @@ type DeployEtcdOperationConfig struct {
 	CAKey        crypto.Signer
 	Node         *pb.Node
 	ClusterNodes []*pb.Node
+	LogWriter    io.Writer
 }
 
 type deployEtcdOperation struct {
@@ -82,6 +84,7 @@ type deployEtcdOperation struct {
 	machine                         machine.IMachine
 	clusterNodes                    []*pb.Node
 	containerName                   string
+	LogWriter                       io.Writer
 }
 
 func NewDeployEtcdOperation(config *DeployEtcdOperationConfig) (*deployEtcdOperation, error) {
@@ -90,6 +93,7 @@ func NewDeployEtcdOperation(config *DeployEtcdOperationConfig) (*deployEtcdOpera
 		caCrt:        config.CACrt,
 		caKey:        config.CAKey,
 		clusterNodes: config.ClusterNodes,
+		LogWriter:    config.LogWriter,
 	}
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -119,7 +123,7 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 			"-q",
 			"--filter",
 			filterArg,
-		),
+		).WithExecuteLogWriter(d.LogWriter),
 	)
 
 	stdOut, stdErr, err := d.BaseOperation.Do()
@@ -145,7 +149,7 @@ func (d *deployEtcdOperation) removeExistEtcdContainer() error {
 			"rm",
 			"-f",
 			containerID,
-		),
+		).WithExecuteLogWriter(d.LogWriter),
 	)
 
 	stdOut, stdErr, err = d.BaseOperation.Do()
@@ -275,7 +279,7 @@ func (d *deployEtcdOperation) composeEtcdDockerCmd() {
 			nameArg,
 			defaultEtcdImageUrl,
 			strings.Join(cmd, " "),
-		),
+		).WithExecuteLogWriter(d.LogWriter),
 	)
 }
 

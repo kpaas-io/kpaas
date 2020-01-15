@@ -36,10 +36,7 @@ func (ckops *CheckKernelOperation) RunCommands(config *pb.NodeCheckConfig, logCh
 		return nil, nil, err
 	}
 
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
+	defer m.Close()
 
 	// construct command for check kernel
 	ckops.shellCmd = command.NewShellCommand(m, "uname", "-r").

@@ -50,6 +50,11 @@ func Deploy(c *gin.Context) {
 		return
 	}
 
+	if !checkClusterConfiguration() {
+		h.E(c, h.EStatusError.WithPayload("current cluster configuration check is not passed"))
+		return
+	}
+
 	if wizardData.GetCheckResult() != constant.CheckResultSuccessful {
 		h.E(c, h.EStatusError.WithPayload("current check result status is not passed"))
 		return

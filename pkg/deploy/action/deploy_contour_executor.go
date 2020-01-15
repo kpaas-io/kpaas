@@ -27,7 +27,7 @@ import (
 )
 
 const installContourFilePath = "/tmp/installContour.yaml"
-const contourYAML = `apiVersion: extensions/v1beta1
+const contourYAML = `apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   labels:

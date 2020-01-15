@@ -40,14 +40,11 @@ func (itOps *InitSwapOperation) RunCommands(node *pb.Node, initAction *operation
 		return nil, nil, err
 	}
 
+	defer m.Close()
+
 	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
-
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
 
 	scriptFile, err := assets.Assets.Open(swapScript)
 	if err != nil {

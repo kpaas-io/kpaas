@@ -49,6 +49,22 @@ func TestActionBelongsToRole(t *testing.T) {
 			want:  true,
 		},
 		{
+			input: inputS{action.ActionTypeDeployConfig, constant.MachineRoleEtcd},
+			want:  true,
+		},
+		{
+			input: inputS{action.ActionTypeDeployConfig, constant.MachineRoleMaster},
+			want:  true,
+		},
+		{
+			input: inputS{action.ActionTypeDeployConfig, constant.MachineRoleWorker},
+			want:  true,
+		},
+		{
+			input: inputS{action.ActionTypeDeployConfig, constant.MachineRoleIngress},
+			want:  true,
+		},
+		{
 			input: inputS{action.ActionTypeDeployEtcd, constant.MachineRoleEtcd},
 			want:  true,
 		},

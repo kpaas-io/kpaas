@@ -55,14 +55,11 @@ func (itOps *InitKubeToolOperation) RunCommands(node *pb.Node, initAction *opera
 		return nil, nil, err
 	}
 
+	defer m.Close()
+
 	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
-
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
 
 	// copy init_deploy_kubetool.sh to target machine
 	scriptFile, err := assets.Assets.Open(consts.DefaultKubeToolScript)

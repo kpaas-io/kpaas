@@ -36,14 +36,11 @@ func (itOps *InitHostNameOperation) RunCommands(node *pb.Node, initAction *opera
 		return nil, nil, err
 	}
 
+	defer m.Close()
+
 	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
-
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
 
 	currentName := node.Name
 	if currentName == "" {

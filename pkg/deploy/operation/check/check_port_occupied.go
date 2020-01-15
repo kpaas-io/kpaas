@@ -42,10 +42,7 @@ func (ckops *CheckPortOccupiedOperation) RunCommands(config *pb.NodeCheckConfig,
 		return nil, nil, err
 	}
 
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
+	defer m.Close()
 
 	scriptFile, err := assets.Assets.Open(portOccupiedScript)
 	if err != nil {
