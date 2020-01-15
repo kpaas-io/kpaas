@@ -322,7 +322,7 @@ func checkClusterNodePortMinimum() (warnings []*api.CheckingItem) {
 	if wizardData.Info.NodePortMinimum <= suggestNodePortMinimum {
 
 		warnings = append(warnings, &api.CheckingItem{
-			CheckingPoint: fmt.Sprintf("Warning of too small value on node port minimum setting"), // NodePort 最小端口号设置过小警告
+			CheckingPoint: fmt.Sprintf("Node minimum port setting is too small"), // NodePort 最小端口号设置过小警告
 			Result:        constant.CheckResultWarning,
 			Error: &api.Error{
 				Reason:     "Node minimum port setting is too small",                                                     // NodePort 最小端口号太小
@@ -342,7 +342,7 @@ func checkClusterNodePortInterval() (warnings []*api.CheckingItem) {
 	if wizardData.Info.NodePortMaximum-wizardData.Info.NodePortMinimum > suggestNodePortMaxInterval {
 
 		warnings = append(warnings, &api.CheckingItem{
-			CheckingPoint: "Warning of too large value on node port interval setting", // NodePort 区间设置过大警告
+			CheckingPoint: "Node ports interval setting too large", // NodePort 区间设置过大警告
 			Result:        constant.CheckResultWarning,
 			Error: &api.Error{
 				Reason:     "Node ports interval setting too large",                                                            // NodePort 范围过大
