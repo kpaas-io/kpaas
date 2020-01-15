@@ -56,6 +56,7 @@ func (a *initMasterExecutor) Execute(act Action) *pb.Error {
 		MasterNodes:   action.MasterNodes,
 		EtcdNodes:     action.EtcdNodes,
 		ClusterConfig: action.ClusterConfig,
+		LogWriter:     action.GetExecuteLogBuffer(),
 	}
 
 	op, err := master.NewInitMasterOperation(config)
