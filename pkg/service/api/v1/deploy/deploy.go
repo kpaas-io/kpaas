@@ -355,7 +355,7 @@ func deployNetwork() {
 	// install calico by helm.
 	if networkOptions.NetworkType == api.NetworkTypeCalico {
 
-		err := installCalicoNetwork(networkOptions.CalicoOptions)
+		err := installCalicoNetwork(networkOptions.CalicoOptions, wizardData.Info.ShortName)
 		if err != nil {
 			for _, node := range wizardData.Nodes {
 				node.SetDeployResult(
@@ -376,7 +376,7 @@ func deployNetwork() {
 	}
 }
 
-func installCalicoNetwork(options *api.CalicoOptions) error {
+func installCalicoNetwork(options *api.CalicoOptions, clusterName string) error {
 	calicoValues := api.HelmValues{}
 	if options != nil {
 		calicoValues["encap_mode"] = string(options.EncapsulationMode)
@@ -389,6 +389,7 @@ func installCalicoNetwork(options *api.CalicoOptions) error {
 		calicoValues["veth_mtu"] = options.VethMtu
 	}
 	_, err := helm.RunInstallReleaseAction(nil, &api.HelmRelease{
+		Cluster:   clusterName,
 		Name:      "calico",
 		Namespace: "kube-system",
 		// TODO: chart path here can be modified and put charts into docker image
