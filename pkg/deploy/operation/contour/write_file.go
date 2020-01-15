@@ -79,7 +79,7 @@ func (operation *WriteFile) Execute() *pb.Error {
 		return &pb.Error{
 			Reason:     "Cannot write file",                                 // 无法写文件
 			Detail:     "When writing file content to %s, we got error: %s", // 我们在写文件（%s）时，发生了些问题。%s
-			FixMethods: deployOperation.FixMethodSelfAnalyseIt,              // 请通过部署日志进行排查，如果有其他问题，请联系我们
+			FixMethods: consts.FixMethodSelfAnalyseIt,                       // 请通过部署日志进行排查，如果有其他问题，请联系我们
 		}
 	}
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package worker
+package config
 
 import (
 	"fmt"
@@ -24,12 +24,12 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	deployOperation "github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 type AppendTaintConfig struct {
-	Machine          deployMachine.IMachine
+	MasterMachine    deployMachine.IMachine
 	Logger           *logrus.Entry
 	Node             *pb.NodeDeployConfig
 	Cluster          *pb.ClusterConfig
@@ -37,7 +37,6 @@ type AppendTaintConfig struct {
 }
 
 type AppendTaint struct {
-	deployOperation.BaseOperation
 	config *AppendTaintConfig
 }
 
@@ -47,32 +46,32 @@ func NewAppendTaint(config *AppendTaintConfig) *AppendTaint {
 	}
 }
 
-func (operation *AppendTaint) append() *pb.Error {
+func (a *AppendTaint) append() *pb.Error {
 
-	if len(operation.config.Node.GetTaints()) == 0 {
+	if len(a.config.Node.GetTaints()) == 0 {
 		return nil
 	}
 
-	taints := make([]string, 0, len(operation.config.Node.GetTaints()))
-	for _, taint := range operation.config.Node.GetTaints() {
+	taints := make([]string, 0, len(a.config.Node.GetTaints()))
+	for _, taint := range a.config.Node.GetTaints() {
 		taints = append(taints, fmt.Sprintf("%s=%s:%s", taint.GetKey(), taint.GetValue(), taint.GetEffect()))
 	}
 
-	operation.config.Logger.
-		WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName(), "taints": taints}).
+	a.config.Logger.
+		WithFields(logrus.Fields{"node": a.config.Node.GetNode().GetName(), "taints": taints}).
 		Debug("append taints")
 
-	return deployOperation.NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
-		command.NewKubectlCommand(operation.config.Machine, consts.KubeConfigPath, "",
-			"taint", "node", operation.config.Node.GetNode().GetName(),
+	return operation.NewCommandRunner(a.config.ExecuteLogWriter).RunCommand(
+		command.NewKubectlCommand(a.config.MasterMachine, consts.KubeConfigPath, "",
+			"taint", "node", a.config.Node.GetNode().GetName(),
 			strings.Join(taints, " "),
 		),
 		"Append taint to node error", // 节点添加Taint错误
-		fmt.Sprintf("append taint to node: %s", operation.config.Node.GetNode().GetName()), // 添加Taint到 %s 节点
+		fmt.Sprintf("append taint to node: %s", a.config.Node.GetNode().GetName()), // 添加Taint到 %s 节点
 	)
 }
 
-func (operation *AppendTaint) Execute() *pb.Error {
+func (a *AppendTaint) Execute() *pb.Error {
 
-	return operation.append()
+	return a.append()
 }

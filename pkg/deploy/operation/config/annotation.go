@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package worker
+package config
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	deployMachine "github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	deployOperation "github.com/kpaas-io/kpaas/pkg/deploy/operation"
+	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -37,7 +37,6 @@ type AppendAnnotationConfig struct {
 }
 
 type AppendAnnotation struct {
-	deployOperation.BaseOperation
 	config *AppendAnnotationConfig
 }
 
@@ -47,36 +46,36 @@ func NewAppendAnnotation(config *AppendAnnotationConfig) *AppendAnnotation {
 	}
 }
 
-func (operation *AppendAnnotation) append() *pb.Error {
+func (a *AppendAnnotation) append() *pb.Error {
 
-	if len(operation.config.Cluster.GetNodeAnnotations()) == 0 {
+	if len(a.config.Cluster.GetNodeAnnotations()) == 0 {
 
-		operation.config.Logger.
-			WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName()}).
+		a.config.Logger.
+			WithFields(logrus.Fields{"node": a.config.Node.GetNode().GetName()}).
 			Debug("Not have annotation")
 		return nil
 	}
 
-	annotations := make([]string, 0, len(operation.config.Cluster.GetNodeAnnotations()))
-	for annotationKey, annotationValue := range operation.config.Cluster.GetNodeAnnotations() {
+	annotations := make([]string, 0, len(a.config.Cluster.GetNodeAnnotations()))
+	for annotationKey, annotationValue := range a.config.Cluster.GetNodeAnnotations() {
 		annotations = append(annotations, fmt.Sprintf("%s='%s'", annotationKey, annotationValue))
 	}
 
-	operation.config.Logger.
-		WithFields(logrus.Fields{"node": operation.config.Node.GetNode().GetName(), "annotations": annotations}).
+	a.config.Logger.
+		WithFields(logrus.Fields{"node": a.config.Node.GetNode().GetName(), "annotations": annotations}).
 		Debug("append annotation")
 
-	return deployOperation.NewCommandRunner(operation.config.ExecuteLogWriter).RunCommand(
-		command.NewKubectlCommand(operation.config.MasterMachine, consts.KubeConfigPath, "",
-			"annotate", "node", operation.config.Node.GetNode().GetName(),
+	return operation.NewCommandRunner(a.config.ExecuteLogWriter).RunCommand(
+		command.NewKubectlCommand(a.config.MasterMachine, consts.KubeConfigPath, "",
+			"annotate", "node", a.config.Node.GetNode().GetName(),
 			strings.Join(annotations, " "),
 		),
-		"Append annotation to node error", // 节点添加Annotation错误
-		fmt.Sprintf("append annotation to node: %s", operation.config.Node.GetNode().GetName()), // 添加Annotation到 %s 节点
+		"Append annotation to node error",                                               // 节点添加Annotation错误
+		fmt.Sprintf("append annotation to node: %s", a.config.Node.GetNode().GetName()), // 添加Annotation到 %s 节点
 	)
 }
 
-func (operation *AppendAnnotation) Execute() *pb.Error {
+func (a *AppendAnnotation) Execute() *pb.Error {
 
-	return operation.append()
+	return a.append()
 }

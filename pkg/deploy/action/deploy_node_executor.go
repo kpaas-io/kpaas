@@ -29,7 +29,6 @@ import (
 type deployNodeExecutor struct {
 	logger           *logrus.Entry
 	machine          deployMachine.IMachine
-	masterMachine    deployMachine.IMachine
 	executeLogWriter io.Writer
 	config           *DeployNodeActionConfig
 	action           Action
@@ -58,17 +57,9 @@ func (executor *deployNodeExecutor) Deploy(act Action, config *DeployNodeActionC
 	}
 	defer executor.disconnectSSH()
 
-	if err := executor.connectMasterNode(); err != nil {
-		return err
-	}
-	defer executor.disconnectMasterNode()
-
 	operations := []func() *protos.Error{
 		executor.startKubelet,
 		executor.joinCluster,
-		executor.appendLabel,
-		executor.appendAnnotation,
-		executor.appendTaint,
 	}
 
 	for _, operation := range operations {
@@ -101,26 +92,6 @@ func (executor *deployNodeExecutor) connectSSH() *protos.Error {
 
 	executor.logger.Debug("ssh connected")
 	return nil
-}
-
-func (executor *deployNodeExecutor) connectMasterNode() *protos.Error {
-	var err error
-	executor.masterMachine, err = deployMachine.NewMachine(executor.config.MasterNodes[0])
-	if err != nil {
-		logrus.WithFields(logrus.Fields{"error": err}).Error("failed to connect master node")
-		return &protos.Error{
-			Reason:     "connecting failed",
-			Detail:     fmt.Sprintf("failed to connect master node, err: %s", err),
-			FixMethods: "please check deploy node config to ensure master node can be connected successfully",
-		}
-	}
-	return nil
-}
-
-func (executor *deployNodeExecutor) disconnectMasterNode() {
-	if executor.masterMachine != nil {
-		executor.masterMachine.Close()
-	}
 }
 
 func (executor *deployNodeExecutor) initLogger() {
@@ -174,75 +145,6 @@ func (executor *deployNodeExecutor) joinCluster() *protos.Error {
 	}
 
 	executor.logger.Info("Finish to join cluster action")
-	return nil
-}
-
-func (executor *deployNodeExecutor) appendLabel() *protos.Error {
-
-	executor.logger.Debug("Start to append label")
-
-	operation := worker.NewAppendLabel(
-		&worker.AppendLabelConfig{
-			MasterMachine:    executor.masterMachine,
-			Logger:           executor.logger,
-			Node:             executor.config.NodeCfg,
-			Cluster:          executor.config.ClusterConfig,
-			ExecuteLogWriter: executor.executeLogWriter,
-		},
-	)
-
-	if err := operation.Execute(); err != nil {
-		executor.logger.WithField("error", err).Error("append label error")
-		return err
-	}
-
-	executor.logger.Info("Finish to append label action")
-	return nil
-}
-
-func (executor *deployNodeExecutor) appendAnnotation() *protos.Error {
-
-	executor.logger.Debug("Start to append annotation")
-
-	operation := worker.NewAppendAnnotation(
-		&worker.AppendAnnotationConfig{
-			MasterMachine:    executor.masterMachine,
-			Logger:           executor.logger,
-			Node:             executor.config.NodeCfg,
-			Cluster:          executor.config.ClusterConfig,
-			ExecuteLogWriter: executor.executeLogWriter,
-		},
-	)
-
-	if err := operation.Execute(); err != nil {
-		executor.logger.WithField("error", err).Error("append annotation error")
-		return err
-	}
-
-	executor.logger.Info("Finish to append annotation action")
-	return nil
-}
-
-func (executor *deployNodeExecutor) appendTaint() *protos.Error {
-
-	executor.logger.Debug("Start to append taint")
-
-	operation := worker.NewAppendTaint(
-		&worker.AppendTaintConfig{
-			Machine:          executor.masterMachine,
-			Logger:           executor.logger,
-			Node:             executor.config.NodeCfg,
-			Cluster:          executor.config.ClusterConfig,
-			ExecuteLogWriter: executor.executeLogWriter,
-		},
-	)
-
-	if err := operation.Execute(); err != nil {
-		executor.logger.WithField("error", err).Error("append taint error")
-		return err
-	}
-
-	executor.logger.Info("Finish to append taint action")
 	return nil
 }
 

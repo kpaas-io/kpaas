@@ -33,4 +33,6 @@ var (
 	}
 
 	ErrEmptyNodes = errors.New("node is empty")
+
+	FixMethodSelfAnalyseIt = "Please follow the error message and download deploy log to analyse it. Please create issues if you find any problem."
 )

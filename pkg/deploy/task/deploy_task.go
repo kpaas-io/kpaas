@@ -39,6 +39,7 @@ const (
 	DeployMasterPriority  Priority = 30
 	DeployWorkerPriority  Priority = 40
 	DeployIngressPriority Priority = 50
+	ConfigPriority        Priority = 60
 )
 
 var (
