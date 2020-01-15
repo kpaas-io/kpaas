@@ -15,8 +15,11 @@
 package action
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"strings"
+	"sync"
 
 	"github.com/sirupsen/logrus"
 
@@ -32,6 +35,8 @@ const (
 	InitFailed = "init failed"
 )
 
+var initWg sync.WaitGroup
+
 func init() {
 	RegisterExecutor(ActionTypeNodeInit, new(nodeInitExecutor))
 }
@@ -39,7 +44,7 @@ func init() {
 type nodeInitExecutor struct{}
 
 // due to items, ItemInitScripts exec remote scripts and return std, report, error
-func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport *NodeInitItem) (string, *NodeInitItem, error) {
+func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport *NodeInitItem, logChan chan<- *bytes.Buffer) (string, *NodeInitItem, error) {
 	logger := logrus.WithFields(logrus.Fields{
 		"node":      action.Node.GetName(),
 		"init_item": item,
@@ -63,7 +68,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		return "", initItemReport, fmt.Errorf("fail to construct init %v operation for node %v: ", item, action.Node.Name)
 	}
 
-	stdOut, stdErr, err := initItem.RunCommands(action.Node, initAction)
+	stdOut, stdErr, err := initItem.RunCommands(action.Node, initAction, logChan)
 	if err != nil {
 		logger.Errorf("can not execute init %v operation command, err: %v", item, err)
 		initItemReport.Status = ItemFailed
@@ -89,7 +94,9 @@ func newNodeInitItem(item it.ItemEnum) *NodeInitItem {
 }
 
 // goroutine exec item init event and write to channel
-func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, ch chan<- *NodeInitItem) {
+func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, ch chan<- *NodeInitItem, logChan chan<- *bytes.Buffer) {
+
+	defer initWg.Done()
 
 	logger := logrus.WithFields(logrus.Fields{
 		"node":      ncAction.Node.GetName(),
@@ -99,7 +106,7 @@ func InitAsyncExecutor(item it.ItemEnum, ncAction *NodeInitAction, ch chan<- *No
 	logger.Debugf("Start to execute init")
 
 	initItemReport := newNodeInitItem(item)
-	_, initItemReport, err := ExecuteInitScript(item, ncAction, initItemReport)
+	_, initItemReport, err := ExecuteInitScript(item, ncAction, initItemReport, logChan)
 	if err != nil {
 		logger.Errorf("%v: %v", InitFailed, err)
 		initItemReport.Status = ItemFailed
@@ -123,24 +130,47 @@ func (a *nodeInitExecutor) Execute(act Action) *pb.Error {
 	})
 	logger.Debug("Start to execute node init action")
 
+	executeLogBuf := act.GetExecuteLogBuffer()
+
 	initGroup := constructInitGroup(nodeInitAction)
 	if len(initGroup) == 0 {
-		logger.Error("initialization item group is empty")
+		logger.Error("item initialization group is empty")
+		return &pb.Error{
+			Reason:     "init group is empty",
+			Detail:     "init group can not be empty",
+			FixMethods: "add init item into init group",
+		}
 	}
 
 	// make enough length of init items
-	channel := make(chan *NodeInitItem, len(initGroup))
+	initChan := make(chan *NodeInitItem, len(initGroup))
+	logChan := make(chan *bytes.Buffer, len(initGroup))
 
 	for item := range initGroup {
-		go InitAsyncExecutor(item, nodeInitAction, channel)
+		initWg.Add(1)
+		go InitAsyncExecutor(item, nodeInitAction, initChan, logChan)
 	}
 
+	initWg.Wait()
+
 	// update init items
-	for report := range channel {
+	for report := range initChan {
 		nodeInitAction.InitItems = append(nodeInitAction.InitItems, report)
 
 		if len(nodeInitAction.InitItems) == len(initGroup) {
 			break
+		}
+	}
+
+	var initCount int
+	if executeLogBuf != nil {
+		for logs := range logChan {
+			initCount++
+			// write to log file
+			io.Copy(executeLogBuf, logs)
+			if initCount == len(initGroup) {
+				break
+			}
 		}
 	}
 

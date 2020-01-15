@@ -15,6 +15,7 @@
 package init
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -28,16 +29,18 @@ const (
 )
 
 type InitTimeZoneOperation struct {
-	operation.BaseOperation
+	shellCmd       *command.ShellCommand
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitTimeZoneOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+func (itOps *InitTimeZoneOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
 
@@ -46,10 +49,15 @@ func (itOps *InitTimeZoneOperation) RunCommands(node *pb.Node, initAction *opera
 		defer m.Close()
 	}
 
-	itOps.AddCommands(command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)))
+	itOps.shellCmd = command.NewShellCommand(m, "timedatectl", fmt.Sprintf("set-timezone %v", defaultTimeZone)).
+		WithDescription(fmt.Sprintf("初始化时区为 %s", defaultTimeZone)).
+		WithExecuteLogWriter(logBuffer)
 
 	// run commands
-	stdOut, stdErr, err = itOps.Do()
+	stdOut, stdErr, err = itOps.shellCmd.Execute()
+
+	// write to log channel
+	logChan <- logBuffer
 
 	return
 }

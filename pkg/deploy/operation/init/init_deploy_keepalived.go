@@ -15,6 +15,7 @@
 package init
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -51,16 +52,18 @@ func CheckKeepalivedParameter(ipAddress string, ethernet string) error {
 }
 
 type InitKeepalivedOperation struct {
-	operation.BaseOperation
+	shellCmd       *command.ShellCommand
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitKeepalivedOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+func (itOps *InitKeepalivedOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
 
@@ -127,10 +130,15 @@ func (itOps *InitKeepalivedOperation) RunCommands(node *pb.Node, initAction *ope
 		return nil, nil, err
 	}
 
-	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", operation.InitRemoteScriptPath+keepalivedScript, floatingIP, floatingEthernet)))
+	itOps.shellCmd = command.NewShellCommand(m, "bash", fmt.Sprintf("%v -n '%v' -i %v keepalived run", operation.InitRemoteScriptPath+keepalivedScript, floatingIP, floatingEthernet)).
+		WithDescription("初始化部署 keepalived 工具").
+		WithExecuteLogWriter(logBuffer)
 
 	// run commands
-	stdOut, stdErr, err = itOps.Do()
+	stdOut, stdErr, err = itOps.shellCmd.Execute()
+
+	// write to log channel
+	logChan <- logBuffer
 
 	return
 }
