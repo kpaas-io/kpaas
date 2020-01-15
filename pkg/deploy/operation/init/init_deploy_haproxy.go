@@ -15,6 +15,7 @@
 package init
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -57,16 +58,18 @@ func CheckHaproxyParameter(ipAddresses ...string) error {
 }
 
 type InitHaproxyOperation struct {
-	operation.BaseOperation
+	shellCmd       *command.ShellCommand
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHaproxyOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+func (itOps *InitHaproxyOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
 
@@ -130,10 +133,15 @@ func (itOps *InitHaproxyOperation) RunCommands(node *pb.Node, initAction *operat
 		return nil, nil, err
 	}
 
-	itOps.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v -u '%v' haproxy run", operation.InitRemoteScriptPath+haproxyScript, haproxyStr)))
+	itOps.shellCmd = command.NewShellCommand(m, "bash", fmt.Sprintf("%v -u '%v' haproxy run", operation.InitRemoteScriptPath+haproxyScript, haproxyStr)).
+		WithDescription("初始化部署 haproxy 工具").
+		WithExecuteLogWriter(logBuffer)
 
 	// run commands
-	stdOut, stdErr, err = itOps.Do()
+	stdOut, stdErr, err = itOps.shellCmd.Execute()
+
+	// write to log channel
+	logChan <- logBuffer
 
 	return
 }
