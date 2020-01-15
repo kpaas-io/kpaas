@@ -305,7 +305,7 @@ func getDeployData() (request *pb.DeployRequest, reply *pb.DeployReply) {
 			},
 			&pb.NodeDeployConfig{
 				Node:  _testConfig.Nodes[1],
-				Roles: []string{"etcd", "master"},
+				Roles: []string{"etcd", "master", "ingress"},
 				Labels: map[string]string{
 					"kpaas-io/role": "master",
 					"testkey":       "testvalue",
@@ -320,7 +320,7 @@ func getDeployData() (request *pb.DeployRequest, reply *pb.DeployReply) {
 			},
 			&pb.NodeDeployConfig{
 				Node:  _testConfig.Nodes[2],
-				Roles: []string{"etcd", "master"},
+				Roles: []string{"etcd", "master", "ingress"},
 				Labels: map[string]string{
 					"kpaas-io/role": "master",
 					"testkey":       "testvalue",
@@ -402,8 +402,96 @@ func getDeployResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDep
 		},
 		&pb.DeployItemResult{
 			DeployItem: &pb.DeployItem{
+				Role:     "ingress",
+				NodeName: _testConfig.Nodes[1].Name,
+			},
+			Status: string(constant.OperationStatusSuccessful),
+			Err:    nil,
+		},
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "ingress",
+				NodeName: _testConfig.Nodes[2].Name,
+			},
+			Status: string(constant.OperationStatusSuccessful),
+			Err:    nil,
+		},
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
 				Role:     "worker",
 				NodeName: _testConfig.Nodes[3].Name,
+			},
+			Status: string(constant.OperationStatusSuccessful),
+			Err:    nil,
+		},
+	}
+
+	request = &pb.GetDeployResultRequest{}
+	reply = &pb.GetDeployResultReply{
+		Status: string(constant.OperationStatusSuccessful),
+		Err:    nil,
+		Items:  deployItemResults,
+	}
+	return
+}
+
+func getDeployAllInOneData() (request *pb.DeployRequest, reply *pb.DeployReply) {
+	request = &pb.DeployRequest{
+		NodeConfigs: []*pb.NodeDeployConfig{
+			&pb.NodeDeployConfig{
+				Node:  _testConfig.Nodes[0],
+				Roles: []string{"etcd", "master", "worker", "ingress"},
+				Labels: map[string]string{
+					"kpaas-io/test": "abcdef",
+					"testkey":       "testvalue",
+				},
+				Taints: []*pb.Taint{
+					&pb.Taint{
+						Key:    "kpaas-io/test",
+						Value:  "testtaints",
+						Effect: "NoSchedule",
+					},
+				},
+			},
+		},
+		ClusterConfig: clusterConfig,
+	}
+	reply = &pb.DeployReply{
+		Accepted: true,
+	}
+	return
+}
+
+func getDeployAllInOneResultData() (request *pb.GetDeployResultRequest, reply *pb.GetDeployResultReply) {
+	var deployItemResults = []*pb.DeployItemResult{
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "etcd",
+				NodeName: _testConfig.Nodes[0].Name,
+			},
+			Status: string(constant.OperationStatusSuccessful),
+			Err:    nil,
+		},
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "master",
+				NodeName: _testConfig.Nodes[0].Name,
+			},
+			Status: string(constant.OperationStatusSuccessful),
+			Err:    nil,
+		},
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "worker",
+				NodeName: _testConfig.Nodes[0].Name,
+			},
+			Status: string(constant.OperationStatusSuccessful),
+			Err:    nil,
+		},
+		&pb.DeployItemResult{
+			DeployItem: &pb.DeployItem{
+				Role:     "ingress",
+				NodeName: _testConfig.Nodes[0].Name,
 			},
 			Status: string(constant.OperationStatusSuccessful),
 			Err:    nil,
