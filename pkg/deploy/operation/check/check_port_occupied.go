@@ -15,13 +15,13 @@
 package check
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
-	"github.com/kpaas-io/kpaas/pkg/deploy/operation"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -30,10 +30,12 @@ const (
 )
 
 type CheckPortOccupiedOperation struct {
-	operation.BaseOperation
+	shellCmd *command.ShellCommand
 }
 
-func (ckops *CheckPortOccupiedOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+func (ckops *CheckPortOccupiedOperation) RunCommands(config *pb.NodeCheckConfig, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
+
+	itemBuffer := &bytes.Buffer{}
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -66,10 +68,16 @@ func (ckops *CheckPortOccupiedOperation) RunCommands(config *pb.NodeCheckConfig)
 	}
 	roles = strings.TrimRight(roles, ",")
 
-	ckops.AddCommands(command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", checkRemoteScriptPath+portOccupiedScript, roles)))
+	// construct command for check docker
+	ckops.shellCmd = command.NewShellCommand(m, "bash", fmt.Sprintf("%v %v", checkRemoteScriptPath+portOccupiedScript, roles)).
+		WithDescription("检查机器端口是否被占用").
+		WithExecuteLogWriter(itemBuffer)
 
 	// run commands
-	stdOut, stdErr, err = ckops.Do()
+	stdOut, stdErr, err = ckops.shellCmd.Execute()
+
+	// write buffer to channel
+	logChan <- itemBuffer
 
 	return
 }

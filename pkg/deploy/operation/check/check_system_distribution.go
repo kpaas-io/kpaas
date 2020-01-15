@@ -15,6 +15,7 @@
 package check
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/sirupsen/logrus"
@@ -32,10 +33,12 @@ const (
 )
 
 type CheckDistributionOperation struct {
-	operation.BaseOperation
+	shellCmd *command.ShellCommand
 }
 
-func (ckops *CheckDistributionOperation) RunCommands(config *pb.NodeCheckConfig) (stdOut, stdErr []byte, err error) {
+func (ckops *CheckDistributionOperation) RunCommands(config *pb.NodeCheckConfig, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
+
+	itemBuffer := &bytes.Buffer{}
 
 	m, err := machine.NewMachine(config.Node)
 	if err != nil {
@@ -47,10 +50,14 @@ func (ckops *CheckDistributionOperation) RunCommands(config *pb.NodeCheckConfig)
 		defer m.Close()
 	}
 
-	ckops.AddCommands(command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'"))
+	ckops.shellCmd = command.NewShellCommand(m, "cat", "/etc/*-release | grep -w 'ID' | awk '/ID/{print $1}' | awk -F '=' '{print $2}'").
+		WithDescription("检查机器发行版是否满足最低要求").
+		WithExecuteLogWriter(itemBuffer)
 
 	// run commands
-	stdOut, stdErr, err = ckops.Do()
+	stdOut, stdErr, err = ckops.shellCmd.Execute()
+
+	logChan <- itemBuffer
 
 	return
 }

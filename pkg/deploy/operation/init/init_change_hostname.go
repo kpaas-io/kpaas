@@ -15,6 +15,7 @@
 package init
 
 import (
+	"bytes"
 	"fmt"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
@@ -24,16 +25,18 @@ import (
 )
 
 type InitHostNameOperation struct {
-	operation.BaseOperation
+	shellCmd       *command.ShellCommand
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitHostNameOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+func (itOps *InitHostNameOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
 
@@ -47,10 +50,15 @@ func (itOps *InitHostNameOperation) RunCommands(node *pb.Node, initAction *opera
 		return nil, nil, fmt.Errorf("node name can not be empty")
 	}
 
-	itOps.AddCommands(command.NewShellCommand(m, "hostnamectl", fmt.Sprintf("set-hostname %v", currentName)))
+	itOps.shellCmd = command.NewShellCommand(m, "hostnamectl", fmt.Sprintf("set-hostname %v", currentName)).
+		WithDescription("初始化 host 文件").
+		WithExecuteLogWriter(logBuffer)
 
 	// run commands
-	stdOut, stdErr, err = itOps.Do()
+	stdOut, stdErr, err = itOps.shellCmd.Execute()
+
+	// write to log channel
+	logChan <- logBuffer
 
 	return
 }

@@ -15,6 +15,8 @@
 package init
 
 import (
+	"bytes"
+
 	"github.com/kpaas-io/kpaas/pkg/deploy/assets"
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
 	"github.com/kpaas-io/kpaas/pkg/deploy/machine"
@@ -27,16 +29,18 @@ const (
 )
 
 type InitFireWallOperation struct {
-	operation.BaseOperation
+	shellCmd       *command.ShellCommand
 	NodeInitAction *operation.NodeInitAction
 }
 
-func (itOps *InitFireWallOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction) (stdOut, stdErr []byte, err error) {
+func (itOps *InitFireWallOperation) RunCommands(node *pb.Node, initAction *operation.NodeInitAction, logChan chan<- *bytes.Buffer) (stdOut, stdErr []byte, err error) {
 
 	m, err := machine.NewMachine(node)
 	if err != nil {
 		return nil, nil, err
 	}
+
+	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
 
@@ -55,9 +59,16 @@ func (itOps *InitFireWallOperation) RunCommands(node *pb.Node, initAction *opera
 		return nil, nil, err
 	}
 
-	itOps.AddCommands(command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+fireWallScript))
+	// construct init firewall commands
+	itOps.shellCmd = command.NewShellCommand(m, "bash", operation.InitRemoteScriptPath+fireWallScript).
+		WithDescription("初始化关闭防火墙").
+		WithExecuteLogWriter(logBuffer)
 
-	stdOut, stdErr, err = itOps.Do()
+	// execute commands
+	stdOut, stdErr, err = itOps.shellCmd.Execute()
+
+	// write to log channel
+	logChan <- logBuffer
 
 	return
 }
