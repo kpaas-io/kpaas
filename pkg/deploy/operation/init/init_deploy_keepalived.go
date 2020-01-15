@@ -63,14 +63,11 @@ func (itOps *InitKeepalivedOperation) RunCommands(node *pb.Node, initAction *ope
 		return nil, nil, err
 	}
 
+	defer m.Close()
+
 	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
-
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
 
 	// acquire floating IP for keepalived
 	floatingIP := initAction.ClusterConfig.KubeAPIServerConnect.Keepalived.Vip

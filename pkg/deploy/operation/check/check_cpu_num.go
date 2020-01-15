@@ -36,10 +36,7 @@ func (ckops *CheckCPUOperation) RunCommands(config *pb.NodeCheckConfig, logChan 
 		return nil, nil, err
 	}
 
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
+	defer m.Close()
 
 	// construct command for check cpu
 	ckops.shellCmd = command.NewShellCommand(m, "cat", "/proc/cpuinfo | grep -w 'processor' | awk '{print $NF}' | wc -l").

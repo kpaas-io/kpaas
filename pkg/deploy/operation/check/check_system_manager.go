@@ -36,10 +36,7 @@ func (ckops *CheckSystemManagerOperation) RunCommands(config *pb.NodeCheckConfig
 		return nil, nil, err
 	}
 
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
+	defer m.Close()
 
 	ckops.shellCmd = command.NewShellCommand(m, "ps", "-p 1 | awk /1/'{print $4}'").
 		WithDescription("检查机器 system manager 是否满足最低要求").
