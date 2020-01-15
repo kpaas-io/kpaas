@@ -148,11 +148,13 @@ func TestCheckNodes(t *testing.T) {
 	actualGetLogReply, errGetLog := client.GetCheckNodesLog(ctxGetLog, requestGetLog)
 	assert.NoError(t, errGetLog)
 	assert.NotNil(t, actualGetLogReply)
+	logStr := string(actualGetLogReply.Log)
+	t.Log(logStr)
 	// Just a simple check on the content of the log
 	assert.Equal(t, true, len(actualGetLogReply.Log) > 100)
 }
 
-func TestDeploy(t *testing.T) {
+func TestDeployMultipleNodes(t *testing.T) {
 	if _testConfig.Skip {
 		t.SkipNow()
 	}
@@ -160,7 +162,7 @@ func TestDeploy(t *testing.T) {
 	// Deploy request
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	deployRequest, expetecdDeployReply := getDeployData()
+	deployRequest, expetecdDeployReply := getDeployMultipleNodesData()
 	actualDeployReply, err := client.Deploy(ctx, deployRequest)
 	assert.NoError(t, err)
 	assert.NotNil(t, actualDeployReply)
@@ -184,6 +186,8 @@ func TestDeploy(t *testing.T) {
 		return false, nil
 	})
 	assert.NoError(t, err)
+	sortDeployResults(expetecdResultReply)
+	sortDeployResults(actualResultReply)
 	assert.NotNil(t, actualResultReply)
 	assert.Equal(t, expetecdResultReply, actualResultReply)
 
@@ -194,6 +198,58 @@ func TestDeploy(t *testing.T) {
 	actualGetLogReply, errGetLog := client.GetDeployLog(ctxGetLog, requestGetLog)
 	assert.NoError(t, errGetLog)
 	assert.NotNil(t, actualGetLogReply)
+	logStr := string(actualGetLogReply.Log)
+	t.Log(logStr)
+	// Just a simple check on the content of the log
+	assert.Equal(t, true, len(actualGetLogReply.Log) > 100)
+}
+
+func TestDeployAllInOne(t *testing.T) {
+	if _testConfig.Skip {
+		t.SkipNow()
+	}
+
+	// Deploy request
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	deployRequest, expetecdDeployReply := getDeployAllInOneData()
+	actualDeployReply, err := client.Deploy(ctx, deployRequest)
+	assert.NoError(t, err)
+	assert.NotNil(t, actualDeployReply)
+	assert.Equal(t, expetecdDeployReply, actualDeployReply)
+
+	// GetDeployResult request
+	var actualResultReply *pb.GetDeployResultReply
+	resultRequest, expetecdResultReply := getDeployAllInOneResultData()
+	// Call GetDeployResult repeatly until the related task is done or failed.
+	err = wait.Poll(5*time.Second, 10*time.Minute, func() (done bool, err error) {
+		ctxPoll, cancelPoll := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancelPoll()
+		actualResultReply, err = client.GetDeployResult(ctxPoll, resultRequest)
+		if err != nil {
+			return false, err
+		}
+		if actualResultReply.Status == string(constant.OperationStatusFailed) ||
+			actualResultReply.Status == string(constant.OperationStatusSuccessful) {
+			return true, nil
+		}
+		return false, nil
+	})
+	assert.NoError(t, err)
+	sortDeployResults(expetecdResultReply)
+	sortDeployResults(actualResultReply)
+	assert.NotNil(t, actualResultReply)
+	assert.Equal(t, expetecdResultReply, actualResultReply)
+
+	// Test GetDeployLog
+	ctxGetLog, cancelGetLog := context.WithTimeout(context.Background(), 10000*time.Second)
+	defer cancelGetLog()
+	requestGetLog, _ := getGetDeployLogData()
+	actualGetLogReply, errGetLog := client.GetDeployLog(ctxGetLog, requestGetLog)
+	assert.NoError(t, errGetLog)
+	assert.NotNil(t, actualGetLogReply)
+	logStr := string(actualGetLogReply.Log)
+	t.Log(logStr)
 	// Just a simple check on the content of the log
 	assert.Equal(t, true, len(actualGetLogReply.Log) > 100)
 }
@@ -223,4 +279,21 @@ func sortCheckNodesResult(r *pb.GetCheckNodesResultReply) {
 	for _, nodeCheckResult := range r.Nodes {
 		sortItemCheckResults(nodeCheckResult.Items)
 	}
+}
+
+func sortDeployItemResults(items []*pb.DeployItemResult) {
+	sort.Slice(items, func(i, j int) bool {
+		if items[i].DeployItem.Role == items[j].DeployItem.Role {
+			return items[i].DeployItem.NodeName <= items[j].DeployItem.NodeName
+		}
+		return items[i].DeployItem.Role < items[j].DeployItem.Role
+	})
+}
+
+func sortDeployResults(result *pb.GetDeployResultReply) {
+	if result == nil {
+		return
+	}
+
+	sortDeployItemResults(result.Items)
 }

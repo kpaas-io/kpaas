@@ -69,14 +69,11 @@ func (itOps *InitHaproxyOperation) RunCommands(node *pb.Node, initAction *operat
 		return nil, nil, err
 	}
 
+	defer m.Close()
+
 	logBuffer := &bytes.Buffer{}
 
 	itOps.NodeInitAction = initAction
-
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
 
 	if masterIps := itOps.getMastersIP(); len(masterIps) == 0 {
 		err = fmt.Errorf("master ip can not be empty")

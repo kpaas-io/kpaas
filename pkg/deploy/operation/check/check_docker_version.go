@@ -36,10 +36,7 @@ func (ckops *CheckDockerOperation) RunCommands(config *pb.NodeCheckConfig, logCh
 		return nil, nil, err
 	}
 
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
+	defer m.Close()
 
 	// construct command for check docker
 	ckops.shellCmd = command.NewShellCommand(m, "docker", "version | grep -C1 'Client' | grep -w 'Version:' | awk '{print $2}'").

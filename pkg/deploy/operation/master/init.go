@@ -18,6 +18,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -53,6 +54,7 @@ type InitMasterOperationConfig struct {
 	MasterNodes   []*pb.Node
 	EtcdNodes     []*pb.Node
 	ClusterConfig *pb.ClusterConfig
+	LogWriter     io.Writer
 }
 
 type initMasterOperation struct {
@@ -64,6 +66,7 @@ type initMasterOperation struct {
 	NeedUntaint   bool
 	machine       machine.IMachine
 	ClusterConfig *pb.ClusterConfig
+	LogWriter     io.Writer
 }
 
 func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOperation, error) {
@@ -74,6 +77,7 @@ func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOpera
 		EtcdNodes:     config.EtcdNodes,
 		MasterNodes:   config.MasterNodes,
 		ClusterConfig: config.ClusterConfig,
+		LogWriter:     config.LogWriter,
 	}
 
 	m, err := machine.NewMachine(config.Node)
@@ -121,10 +125,10 @@ func (op *initMasterOperation) PreDo() error {
 	}
 
 	op.AddCommands(
-		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
+		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet").WithExecuteLogWriter(op.LogWriter),
 		command.NewShellCommand(op.machine, "kubeadm", "init",
 			"--config", kubeadmConfigPath,
-			"--upload-certs"),
+			"--upload-certs").WithExecuteLogWriter(op.LogWriter),
 	)
 	return nil
 }

@@ -36,10 +36,7 @@ func (ckops *CheckRootDiskOperation) RunCommands(config *pb.NodeCheckConfig, log
 		return nil, nil, err
 	}
 
-	// close ssh client if machine is not nil
-	if m != nil {
-		defer m.Close()
-	}
+	defer m.Close()
 
 	ckops.shellCmd = command.NewShellCommand(m, "df", "-B1 / | awk '/\\//{print $2}'").
 		WithDescription("检查磁盘容量是否满足最低要求").

@@ -32,6 +32,9 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/utils/log"
 )
 
+const suggestNodePortMinimum = 16384
+const suggestNodePortMaxInterval = 10000
+
 // @ID CheckNodeList
 // @Summary check node list
 // @Description Check if the node meets the pre-deployment requirements
@@ -128,6 +131,22 @@ func getCallCheckNodesData() *protos.CheckNodesRequest {
 		}
 
 		requestData.Configs = append(requestData.Configs, nodeConfig)
+	}
+
+	// add network options for checking network connectivity.
+	if wizardNetworkOptions := wizardData.GetNetworkOptions(); wizardNetworkOptions != nil {
+		reqNetworkOptions := &protos.NetworkOptions{
+			NetworkType: string(wizardNetworkOptions.NetworkType),
+		}
+		if wizardNetworkOptions.NetworkType == api.NetworkTypeCalico &&
+			wizardNetworkOptions.CalicoOptions != nil {
+			reqNetworkOptions.CalicoOptions = &protos.CalicoOptions{
+				CheckConnectivityAll: false,
+				EncapsulationMode:    string(wizardNetworkOptions.CalicoOptions.EncapsulationMode),
+				VxlanPort:            uint32(wizardNetworkOptions.CalicoOptions.VxlanPort),
+			}
+		}
+		requestData.NetworkOptions = reqNetworkOptions
 	}
 
 	return requestData
@@ -270,8 +289,98 @@ func checkWrongClusterConfiguration() (errs []*api.CheckingItem) {
 	return errs
 }
 
+func checkClusterHANodeCount() (warnings []*api.CheckingItem) {
+
+	warnings = make([]*api.CheckingItem, 0)
+	wizardData := wizard.GetCurrentWizard()
+	counters := map[constant.MachineRole]uint{
+		constant.MachineRoleEtcd:    0,
+		constant.MachineRoleMaster:  0,
+		constant.MachineRoleWorker:  0,
+		constant.MachineRoleIngress: 0,
+	}
+	haCount := map[constant.MachineRole]uint{
+		constant.MachineRoleEtcd:    3,
+		constant.MachineRoleMaster:  2,
+		constant.MachineRoleWorker:  2,
+		constant.MachineRoleIngress: 2,
+	}
+	for _, node := range wizardData.Nodes {
+
+		for _, role := range node.MachineRoles {
+			counters[role]++
+		}
+	}
+	for role, counter := range counters {
+
+		if counter >= haCount[role] {
+			continue
+		}
+
+		warnings = append(warnings, &api.CheckingItem{
+			CheckingPoint: fmt.Sprintf("%s high availability", role),
+			Result:        constant.CheckResultWarning,
+			Error: &api.Error{
+				Reason:     fmt.Sprintf("nodes for %s are not enough for high availability", role),                            // %s 角色的节点数不满足高可用数量
+				Detail:     fmt.Sprintf("We suggest nodes count for %s should be equal or more than %d", role, haCount[role]), // 我们建议 %s 角色节点数大于等于%d 个
+				FixMethods: fmt.Sprintf("Add new node for role: %s, or edit existing node to include this role", role),        // 添加一个新节点包含 %s 角色，或者编辑已有节点使他包含这个角色
+			},
+		})
+	}
+
+	return
+}
+
+func checkClusterNodePortMinimum() (warnings []*api.CheckingItem) {
+
+	warnings = make([]*api.CheckingItem, 0)
+	wizardData := wizard.GetCurrentWizard()
+	if wizardData.Info.NodePortMinimum < suggestNodePortMinimum {
+
+		warnings = append(warnings, &api.CheckingItem{
+			CheckingPoint: fmt.Sprintf("Node minimum port setting is too small"), // NodePort 最小端口号设置过小警告
+			Result:        constant.CheckResultWarning,
+			Error: &api.Error{
+				Reason:     "Node minimum port setting is too small",                                                     // NodePort 最小端口号太小
+				Detail:     fmt.Sprintf("We suggest minimal node port should be higher than %d", suggestNodePortMinimum), // 我们建议 NodePort 最小端口号大于 %d
+				FixMethods: fmt.Sprintf("Modify the node port larger than %d", suggestNodePortMinimum),                   // 修改最小端口号为大于 %d
+			},
+		})
+	}
+
+	return
+}
+
+func checkClusterNodePortInterval() (warnings []*api.CheckingItem) {
+
+	warnings = make([]*api.CheckingItem, 0)
+	wizardData := wizard.GetCurrentWizard()
+	if wizardData.Info.NodePortMaximum-wizardData.Info.NodePortMinimum > suggestNodePortMaxInterval {
+
+		warnings = append(warnings, &api.CheckingItem{
+			CheckingPoint: "Node ports interval setting too large", // NodePort 区间设置过大警告
+			Result:        constant.CheckResultWarning,
+			Error: &api.Error{
+				Reason:     "Node ports interval setting too large",                                                            // NodePort 范围过大
+				Detail:     fmt.Sprintf("We suggest node port interval should be smaller than %d", suggestNodePortMaxInterval), // 我们建议 NodePort 端口号范围应该小于 %d
+				FixMethods: "Modify the node port interval",                                                                    // 修改端口范围
+			},
+		})
+	}
+
+	return
+}
+
 func getCheckedClusterConfiguration() api.CheckClusterResponseData {
+
+	items := make([]*api.CheckingItem, 0)
+
+	items = append(items, checkWrongClusterConfiguration()...)
+	items = append(items, checkClusterHANodeCount()...)
+	items = append(items, checkClusterNodePortMinimum()...)
+	items = append(items, checkClusterNodePortInterval()...)
+
 	return api.CheckClusterResponseData{
-		Items: checkWrongClusterConfiguration(),
+		Items: items,
 	}
 }
