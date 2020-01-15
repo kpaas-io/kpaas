@@ -72,8 +72,9 @@ func (e *deployConfigExecutor) Execute(act Action) *pb.Error {
 
 	if len(errs) != 0 {
 		pbErr := &pb.Error{
-			Reason: "failed to do deploy config",
-			Detail: fmt.Sprint(errs),
+			Reason:     "failed to do deploy config",
+			Detail:     fmt.Sprint(errs),
+			FixMethods: consts.FixMethodSelfAnalyseIt,
 		}
 		return pbErr
 	}
