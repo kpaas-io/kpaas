@@ -285,7 +285,7 @@ var clusterConfig = &pb.ClusterConfig{
 	// KubernetesVersion: "",
 }
 
-func getDeployData() (request *pb.DeployRequest, reply *pb.DeployReply) {
+func getDeployMultipleNodesData() (request *pb.DeployRequest, reply *pb.DeployReply) {
 	request = &pb.DeployRequest{
 		NodeConfigs: []*pb.NodeDeployConfig{
 			&pb.NodeDeployConfig{
