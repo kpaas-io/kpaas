@@ -39,6 +39,8 @@ func (executor *deployIngressExecutor) Execute(act Action) *protos.Error {
 }
 
 func (executor *deployIngressExecutor) addIngressMarks(node *protos.NodeDeployConfig) {
-
+	if node.Labels == nil {
+		node.Labels = map[string]string{}
+	}
 	node.Labels["node-role.kubernetes.io/ingress"] = "envoy"
 }
