@@ -56,6 +56,7 @@ func (a *joinMasterExecutor) Execute(act Action) *pb.Error {
 		NeedUntaint:   needUntaint,
 		MasterNodes:   action.MasterNodes,
 		ClusterConfig: action.ClusterConfig,
+		LogWriter:     action.GetExecuteLogBuffer(),
 	}
 
 	op, err := master.NewJoinMasterOperation(config)
