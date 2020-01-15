@@ -89,6 +89,12 @@ func TestDeploy3(t *testing.T) {
 	wizardData.ClusterCheckResult = constant.CheckResultSuccessful
 	node := wizard.NewNode()
 	node.Name = "master1"
+	node.MachineRoles = []constant.MachineRole{
+		constant.MachineRoleEtcd,
+		constant.MachineRoleMaster,
+		constant.MachineRoleWorker,
+		constant.MachineRoleIngress,
+	}
 	node.CheckReport = &wizard.CheckReport{
 		CheckResult: constant.CheckResultSuccessful,
 	}
