@@ -319,7 +319,7 @@ func checkClusterNodePortMinimum() (warnings []*api.CheckingItem) {
 
 	warnings = make([]*api.CheckingItem, 0)
 	wizardData := wizard.GetCurrentWizard()
-	if wizardData.Info.NodePortMinimum <= suggestNodePortMinimum {
+	if wizardData.Info.NodePortMinimum < suggestNodePortMinimum {
 
 		warnings = append(warnings, &api.CheckingItem{
 			CheckingPoint: fmt.Sprintf("Node minimum port setting is too small"), // NodePort 最小端口号设置过小警告
