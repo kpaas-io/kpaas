@@ -18,8 +18,10 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -53,6 +55,7 @@ type InitMasterOperationConfig struct {
 	MasterNodes   []*pb.Node
 	EtcdNodes     []*pb.Node
 	ClusterConfig *pb.ClusterConfig
+	LogFilePath   string
 }
 
 type initMasterOperation struct {
@@ -64,6 +67,7 @@ type initMasterOperation struct {
 	NeedUntaint   bool
 	machine       machine.IMachine
 	ClusterConfig *pb.ClusterConfig
+	LogFilePath   string
 }
 
 func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOperation, error) {
@@ -74,6 +78,7 @@ func NewInitMasterOperation(config *InitMasterOperationConfig) (*initMasterOpera
 		EtcdNodes:     config.EtcdNodes,
 		MasterNodes:   config.MasterNodes,
 		ClusterConfig: config.ClusterConfig,
+		LogFilePath:   config.LogFilePath,
 	}
 
 	m, err := machine.NewMachine(config.Node)
@@ -145,12 +150,25 @@ func (op *initMasterOperation) Do() error {
 
 	op.Logger.Debug("prepare init master done, start initializing master, this might take a while ...")
 
-	// init first master
-	stdOut, stdErr, err := op.BaseOperation.Do()
-	op.Logger.Debugf("init master result:\nstdout:\n%s\nstderr:\n%s\nerror:%v", stdOut, stdErr, err)
+	// construct the log writer
+	var logWriter io.WriteCloser
+	if op.LogFilePath != "" {
+		logFile, err := os.OpenFile(op.LogFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, os.FileMode(0644))
+		if err != nil {
+			op.Logger.Warningf("create log file failed: %v", err)
+		}
+		logWriter = logFile
+	}
+	defer func() {
+		if logWriter != nil {
+			logWriter.Close()
+		}
+	}()
 
+	// init first master
+	err := op.BaseOperation.DoWithLogWriter(logWriter)
 	if err != nil {
-		return fmt.Errorf("failed to initilize first master, error:%s", stdErr)
+		return fmt.Errorf("failed to initilize first master, error:%v", err)
 	}
 
 	op.Logger.Debug("init master done, start post do")

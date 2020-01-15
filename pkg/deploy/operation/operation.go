@@ -16,13 +16,18 @@ package operation
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"time"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/command"
+	"github.com/kpaas-io/kpaas/pkg/deploy/utils"
 )
 
 type Operation interface {
 	AddCommands(commands ...command.Command)
 	Do() ([]byte, []byte, error)
+	DoWithLogWriter(writer io.Writer) error
 }
 
 type BaseOperation struct {
@@ -43,6 +48,31 @@ func (op *BaseOperation) Do() (stdout, stderr []byte, err error) {
 	}
 
 	return
+}
+
+func (op *BaseOperation) DoWithLogWriter(writer io.Writer) error {
+	for _, cmd := range op.Commands {
+		startTime := time.Now()
+		stdout, stderr, err := cmd.Execute()
+		endTime := time.Now()
+		// if writer nil, just write log to stdout
+		if writer == nil {
+			writer = os.Stdout
+		}
+		utils.WriteExecuteLog(writer, &utils.ExecuteLogItem{
+			StartTime: startTime,
+			EndTime:   endTime,
+			Command:   cmd.GetCommand(),
+			Stdout:    stdout,
+			Stderr:    stderr,
+			Err:       err,
+		})
+		if err != nil {
+			err = fmt.Errorf("run cmd %v error: %w", cmd, err)
+			return err
+		}
+	}
+	return nil
 }
 
 func (op *BaseOperation) ResetCommands() {
