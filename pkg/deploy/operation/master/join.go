@@ -16,6 +16,7 @@ package master
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/sirupsen/logrus"
 	corev1 "k8s.io/api/core/v1"
@@ -35,6 +36,7 @@ type JoinMasterOperationConfig struct {
 	NeedUntaint   bool
 	MasterNodes   []*pb.Node
 	ClusterConfig *pb.ClusterConfig
+	LogWriter     io.Writer
 }
 
 type joinMasterOperation struct {
@@ -45,6 +47,7 @@ type joinMasterOperation struct {
 	MasterNodes   []*pb.Node
 	machine       machine.IMachine
 	ClusterConfig *pb.ClusterConfig
+	LogWriter     io.Writer
 }
 
 func NewJoinMasterOperation(config *JoinMasterOperationConfig) (*joinMasterOperation, error) {
@@ -54,6 +57,7 @@ func NewJoinMasterOperation(config *JoinMasterOperationConfig) (*joinMasterOpera
 		NeedUntaint:   config.NeedUntaint,
 		MasterNodes:   config.MasterNodes,
 		ClusterConfig: config.ClusterConfig,
+		LogWriter:     config.LogWriter,
 	}
 
 	m, err := machine.NewMachine(config.Node)
@@ -77,12 +81,12 @@ func (op *joinMasterOperation) PreDo() error {
 	}
 
 	op.AddCommands(
-		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet"),
+		command.NewShellCommand(op.machine, "systemctl", "start", "kubelet").WithExecuteLogWriter(op.LogWriter),
 		command.NewShellCommand(op.machine, "kubeadm", "join", endpoint,
 			"--token", Token,
 			"--control-plane",
 			"--certificate-key", op.CertKey,
-			"--discovery-token-unsafe-skip-ca-verification"),
+			"--discovery-token-unsafe-skip-ca-verification").WithExecuteLogWriter(op.LogWriter),
 	)
 
 	return nil
