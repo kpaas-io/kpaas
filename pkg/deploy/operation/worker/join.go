@@ -50,6 +50,19 @@ func NewJoinCluster(config *JoinClusterConfig) *JoinCluster {
 
 func (operation *JoinCluster) JoinKubernetes() *pb.Error {
 
+	isJoined, err := op.AlreadyJoined(operation.config.Machine.GetNode().GetName(), operation.config.MasterNodes[0])
+	if err != nil {
+
+		operation.config.Logger.
+			WithField("node", operation.config.Node.GetNode().GetName()).
+			WithError(err).
+			Errorf("get is joined error")
+	}
+
+	if isJoined {
+		return nil
+	}
+
 	operation.config.Logger.Debug("Start to compute control plane endpoint")
 	controlPlaneEndpoint, err := deploy.GetControlPlaneEndpoint(operation.config.Cluster, operation.config.MasterNodes)
 	if err != nil {
