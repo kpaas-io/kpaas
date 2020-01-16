@@ -147,22 +147,22 @@ func makeConnectivityCheckActionCalico(
 			&action.ConnectivityCheckItem{
 				Protocol:    consts.ProtocolTCP,
 				Port:        uint16(179),
-				Name:        fmt.Sprintf("connectivity-check-BGP"),
-				Description: "check connectivity to BGP port",
+				Name:        "connectivity-BGP",
+				Description: "检查BGP端口连通性",
 				Status:      action.ItemPending,
 			},
 			&action.ConnectivityCheckItem{
 				Protocol:    consts.ProtocolTCP,
 				Port:        uint16(6443),
-				Name:        fmt.Sprintf("connectivity-check-kube-API"),
-				Description: "check connectivity to kubernetes API port",
+				Name:        "connectivity-kube-API",
+				Description: "检查kubernetes API 服务端口连通性",
 				Status:      action.ItemPending,
 			},
 			&action.ConnectivityCheckItem{
 				Protocol:    consts.ProtocolUDP,
 				Port:        uint16(calicoOptions.VxlanPort),
-				Name:        fmt.Sprintf("connectivity-check-vxlan"),
-				Description: "check connectivity for vxlan packets",
+				Name:        "connectivity-vxlan",
+				Description: "检查vxlan连通性",
 
 				Status: action.ItemPending,
 			},
