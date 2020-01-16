@@ -20,6 +20,18 @@ const (
 	NetworkTypeCalico NetworkType = "calico"
 )
 
+type EncapsulationMode string
+
+const (
+	EncapsulationModeVxlan = "vxlan"
+	EncapsulationModeIpip  = "ipip"
+	EncapsulationModeNone  = "none"
+)
+
+const (
+	DefaultVxlanPort = 4789
+)
+
 type Protocol string
 
 const (

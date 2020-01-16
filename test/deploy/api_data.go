@@ -249,16 +249,16 @@ func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply
 			Description: "检查 port-occupied 环境",
 		},
 		&pb.CheckItem{
-			Name:        "connectivity-check-BGP",
-			Description: "check connectivity to BGP port",
+			Name:        "connectivity-BGP",
+			Description: "检查BGP端口连通性",
 		},
 		&pb.CheckItem{
-			Name:        "connectivity-check-kube-API",
-			Description: "check connectivity to kubernetes API port",
+			Name:        "connectivity-kube-API",
+			Description: "检查kubernetes API 服务端口连通性",
 		},
 		&pb.CheckItem{
-			Name:        "connectivity-check-vxlan",
-			Description: "check connectivity for vxlan packets",
+			Name:        "connectivity-vxlan",
+			Description: "检查vxlan连通性",
 		},
 	}
 	var itemsResult []*pb.ItemCheckResult

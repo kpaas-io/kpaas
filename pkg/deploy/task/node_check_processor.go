@@ -23,6 +23,7 @@ import (
 
 	"github.com/kpaas-io/kpaas/pkg/deploy/action"
 	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
+	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
 func init() {
@@ -76,9 +77,16 @@ func (p *nodeCheckProcessor) SplitTask(t Task) error {
 				peerIndex = numNodes - 1
 			}
 			// make a connectivity check action for the pair.
+			calicoOptions := checkTask.NetworkOptions.CalicoOptions
+			if calicoOptions == nil {
+				calicoOptions = &protos.CalicoOptions{
+					EncapsulationMode: "vxlan",
+					VxlanPort:         4789,
+				}
+			}
 			act, err := makeConnectivityCheckActionCalico(
 				subConfig.Node, checkTask.NodeConfigs[peerIndex].Node,
-				checkTask.NetworkOptions.CalicoOptions, checkTask.GetLogFileDir())
+				calicoOptions, checkTask.GetLogFileDir())
 			if err != nil {
 				logger.WithField("node", subConfig.Node.Name).
 					WithField("peer-node", checkTask.NodeConfigs[peerIndex].Node.Name).

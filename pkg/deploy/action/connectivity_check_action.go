@@ -153,21 +153,20 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			"tcpdump", "-nni", "any", "-c", "1",
 			"src", srcNode.Ip, "and", "dst", dstNode.Ip,
 		}
-		sendCommand := []string{"nc", "-p", fmt.Sprintf("%d", srcPort),
-			"-s", srcNode.Ip}
+		sendCommand := []string{}
 		switch checkItem.Protocol {
 		case consts.ProtocolTCP:
 			captureCommand = append(captureCommand, "and", "tcp",
-				"dst", "port", "dst", "port", fmt.Sprintf("%d", checkItem.Port),
+				"dst", "port", fmt.Sprintf("%d", checkItem.Port),
 				"and", "src", "port", fmt.Sprintf("%d", srcPort))
-			sendCommand = append(sendCommand, "-zv",
-				dstNode.Ip, fmt.Sprintf("%d", checkItem.Port))
+			sendCommand = append(sendCommand, "echo", "'test'", ">",
+				fmt.Sprintf("/dev/tcp/%s/%d", dstNode.Ip, checkItem.Port))
 		case consts.ProtocolUDP:
 			captureCommand = append(captureCommand, "and", "udp",
-				"dst", "port", "dst", "port", fmt.Sprintf("%d", checkItem.Port),
+				"dst", "port", fmt.Sprintf("%d", checkItem.Port),
 				"and", "src", "port", fmt.Sprintf("%d", srcPort))
-			sendCommand = append(sendCommand, "-zuv",
-				dstNode.Ip, fmt.Sprintf("%d", checkItem.Port))
+			sendCommand = append(sendCommand, "echo", "'test'", ">",
+				fmt.Sprintf("/dev/udp/%s/%d", dstNode.Ip, checkItem.Port))
 		default:
 			return &pb.Error{
 				Reason: "protocol not supported",

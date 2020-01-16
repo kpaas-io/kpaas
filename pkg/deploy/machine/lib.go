@@ -52,6 +52,8 @@ func (m *Machine) Run(cmd string) (stdout, stderr []byte, err error) {
 		return nil, nil, fmt.Errorf("unable to  run cmd(%v) on machine(%v), error: %v", cmd, m.Name, err)
 	}
 
+	err = session.Wait()
+
 	stderr, err = ioutil.ReadAll(errReader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to  read stderr message for cmd(%v) returned from machine(%v), error: %v", cmd, m.Name, err)
