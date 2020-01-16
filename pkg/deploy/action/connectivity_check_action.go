@@ -45,14 +45,17 @@ const (
 type ConnectivityCheckItem struct {
 	Protocol    consts.Protocol
 	Port        uint16
-	CheckResult *pb.ItemCheckResult
+	Name        string
+	Description string
+	Status      ItemStatus
+	Err         *pb.Error
 }
 
 // ConnectivityCheckActionConfig configuration of checking connectivity from soruce to destination.
 type ConnectivityCheckActionConfig struct {
 	SourceNode             *pb.Node
 	DestinationNode        *pb.Node
-	ConnectivityCheckItems []ConnectivityCheckItem
+	ConnectivityCheckItems []*ConnectivityCheckItem
 	LogFileBasePath        string
 }
 
@@ -61,7 +64,7 @@ type ConnectivityCheckAction struct {
 
 	SourceNode      *pb.Node
 	DestinationNode *pb.Node
-	CheckItems      []ConnectivityCheckItem
+	CheckItems      []*ConnectivityCheckItem
 }
 
 // NewConnectivityCheckAction creates an action to check connectivity from soruce to destination.
@@ -150,21 +153,20 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			"tcpdump", "-nni", "any", "-c", "1",
 			"src", srcNode.Ip, "and", "dst", dstNode.Ip,
 		}
-		sendCommand := []string{"nc", "-p", fmt.Sprintf("%d", srcPort),
-			"-s", srcNode.Ip}
+		sendCommand := []string{}
 		switch checkItem.Protocol {
 		case consts.ProtocolTCP:
 			captureCommand = append(captureCommand, "and", "tcp",
-				"dst", "port", "dst", "port", fmt.Sprintf("%d", checkItem.Port),
+				"dst", "port", fmt.Sprintf("%d", checkItem.Port),
 				"and", "src", "port", fmt.Sprintf("%d", srcPort))
-			sendCommand = append(sendCommand, "-zv",
-				dstNode.Ip, fmt.Sprintf("%d", checkItem.Port))
+			sendCommand = append(sendCommand, "echo", "'test'", ">",
+				fmt.Sprintf("/dev/tcp/%s/%d", dstNode.Ip, checkItem.Port))
 		case consts.ProtocolUDP:
 			captureCommand = append(captureCommand, "and", "udp",
-				"dst", "port", "dst", "port", fmt.Sprintf("%d", checkItem.Port),
+				"dst", "port", fmt.Sprintf("%d", checkItem.Port),
 				"and", "src", "port", fmt.Sprintf("%d", srcPort))
-			sendCommand = append(sendCommand, "-zuv",
-				dstNode.Ip, fmt.Sprintf("%d", checkItem.Port))
+			sendCommand = append(sendCommand, "echo", "'test'", ">",
+				fmt.Sprintf("/dev/udp/%s/%d", dstNode.Ip, checkItem.Port))
 		default:
 			return &pb.Error{
 				Reason: "protocol not supported",
@@ -173,9 +175,8 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 				FixMethods: "Use a supported protocol",
 			}
 		}
-		if checkItem.CheckResult != nil {
-			checkItem.CheckResult.Status = string(ItemDoing)
-		}
+
+		checkItem.Status = ItemDoing
 
 		executeLogBuf := act.GetExecuteLogBuffer()
 
@@ -187,7 +188,6 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 				captureCommand[0], captureCommand[1:]...).
 				WithDescription("capture test packet on " + dstNode.Name).
 				WithExecuteLogWriter(dstExecuteLogBuf)
-
 			_, _, e = dstCommand.Execute()
 			errCh <- e
 		}(captureChan)
@@ -203,18 +203,15 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			io.Copy(executeLogBuf, srcExecuteLogBuf)
 		}
 		if srcErr != nil {
-			checkErr := &pb.Error{
+			checkItem.Err = &pb.Error{
 				Reason: reasonFailedToSendPacket,
 				Detail: fmt.Sprintf(detailFailedToSendPacketFormat,
 					srcNode.Name, string(checkItem.Protocol), dstNode.Name, checkItem.Port, srcStderr),
 				FixMethods: fmt.Sprintf(fixFailedToSendPacketFormat,
 					sendCommand[0], srcNode.Name),
 			}
-			if checkItem.CheckResult != nil {
-				checkItem.CheckResult.Status = string(ItemFailed)
-				checkItem.CheckResult.Err = checkErr
-				continue
-			}
+			checkItem.Status = ItemFailed
+			continue
 		}
 
 		// wait for capture command to terminate
@@ -223,21 +220,17 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			io.Copy(act.GetExecuteLogBuffer(), dstExecuteLogBuf)
 		}
 		if dstErr != nil {
-			checkErr := &pb.Error{
+			checkItem.Err = &pb.Error{
 				Reason: "check connectivity failed",
 				Detail: fmt.Sprintf("%s cannot connect to %s %s:%d",
 					srcNode.Name, string(checkItem.Protocol), dstNode.Name, checkItem.Port),
 				FixMethods: "configure network or firewall to allow these packets",
 			}
-			if checkItem.CheckResult != nil {
-				checkItem.CheckResult.Status = string(ItemFailed)
-				checkItem.CheckResult.Err = checkErr
-			}
+			checkItem.Status = ItemFailed
+
 			// does not return here to continue to check other items
 		} else {
-			if checkItem.CheckResult != nil {
-				checkItem.CheckResult.Status = string(ItemDone)
-			}
+			checkItem.Status = ItemDone
 		}
 	} // end of for in range chekItems
 	return nil

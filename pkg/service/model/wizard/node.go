@@ -170,6 +170,9 @@ func (node *Node) SetDeployResult(deployItem constant.DeployItem, status DeployS
 	node.rwLock.Lock()
 	defer node.rwLock.Unlock()
 
+	if node.DeploymentReports == nil {
+		node.DeploymentReports = map[constant.DeployItem]*DeploymentReport{}
+	}
 	if _, exist := node.DeploymentReports[deployItem]; !exist {
 		node.DeploymentReports[deployItem] = NewDeploymentReport()
 		node.DeploymentReports[deployItem].DeployItem = deployItem

@@ -22,6 +22,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/kpaas-io/kpaas/pkg/constant"
+	"github.com/kpaas-io/kpaas/pkg/deploy/consts"
 	pb "github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
@@ -162,9 +163,14 @@ func getCheckNodesData() (request *pb.CheckNodesRequest, reply *pb.CheckNodesRep
 			},
 		},
 		// TODO NetWork Check
-		// NetworkOptions: &pb.NetworkOptions{
-		// 	NetworkType: string(consts.NetworkTypeCalico),
-		// },
+		NetworkOptions: &pb.NetworkOptions{
+			NetworkType: string(consts.NetworkTypeCalico),
+			CalicoOptions: &pb.CalicoOptions{
+				CheckConnectivityAll: true,
+				EncapsulationMode:    "vxlan",
+				VxlanPort:            4789,
+			},
+		},
 	}
 	reply = &pb.CheckNodesReply{
 		Accepted: true,
@@ -241,6 +247,18 @@ func getGetCheckNodesResultData() (request *pb.GetCheckNodesResultRequest, reply
 		&pb.CheckItem{
 			Name:        "check port-occupied",
 			Description: "检查 port-occupied 环境",
+		},
+		&pb.CheckItem{
+			Name:        "connectivity-BGP",
+			Description: "检查BGP端口连通性",
+		},
+		&pb.CheckItem{
+			Name:        "connectivity-kube-API",
+			Description: "检查kubernetes API 服务端口连通性",
+		},
+		&pb.CheckItem{
+			Name:        "connectivity-vxlan",
+			Description: "检查vxlan连通性",
 		},
 	}
 	var itemsResult []*pb.ItemCheckResult

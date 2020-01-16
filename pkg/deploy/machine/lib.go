@@ -24,6 +24,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/crypto/ssh"
 
 	"github.com/kpaas-io/kpaas/pkg/deploy"
 	mssh "github.com/kpaas-io/kpaas/pkg/deploy/machine/ssh"
@@ -49,17 +50,29 @@ func (m *Machine) Run(cmd string) (stdout, stderr []byte, err error) {
 	}
 
 	if err = session.Start(cmd); err != nil {
-		return nil, nil, fmt.Errorf("unable to  run cmd(%v) on machine(%v), error: %v", cmd, m.Name, err)
+		return nil, nil, fmt.Errorf("unable to run cmd(%v) on machine(%v), error: %v", cmd, m.Name, err)
 	}
 
 	stderr, err = ioutil.ReadAll(errReader)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to  read stderr message for cmd(%v) returned from machine(%v), error: %v", cmd, m.Name, err)
+		return nil, nil, fmt.Errorf("unable to read stderr message for cmd(%v) returned from machine(%v), error: %v", cmd, m.Name, err)
 	}
 
 	stdout, err = ioutil.ReadAll(outReader)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to  read stderr message for cmd(%v) returned from machine(%v), error: %v", cmd, m.Name, err)
+		return nil, nil, fmt.Errorf("unable to read stderr message for cmd(%v) returned from machine(%v), error: %v", cmd, m.Name, err)
+	}
+
+	err = session.Wait()
+	if err != nil {
+		if exitErr, ok := err.(*ssh.ExitError); ok {
+			return stdout, stderr, fmt.Errorf("command exited with error: %v", exitErr)
+		} else if exitMissingErr, ok := err.(*ssh.ExitMissingError); ok {
+			return stdout, stderr, fmt.Errorf("command exit status missing, error %v",
+				exitMissingErr)
+		} else {
+			return stdout, stderr, err
+		}
 	}
 
 	return

@@ -108,6 +108,21 @@ func checkActionToNodeCheckResult(checkAction *action.NodeCheckAction) *pb.NodeC
 	}
 }
 
+func connectiveCheckItemToItemCheckResult(connCheckItem *action.ConnectivityCheckItem) *pb.ItemCheckResult {
+	if connCheckItem == nil {
+		return nil
+	}
+
+	return &pb.ItemCheckResult{
+		Item: &pb.CheckItem{
+			Name:        connCheckItem.Name,
+			Description: connCheckItem.Description,
+		},
+		Status: string(itemStatusToOperationStatus(connCheckItem.Status)),
+		Err:    connCheckItem.Err,
+	}
+}
+
 func connectivityCheckToNodeCheckResult(
 	checkAction *action.ConnectivityCheckAction) *pb.NodeCheckResult {
 	if checkAction == nil {
@@ -124,8 +139,9 @@ func connectivityCheckToNodeCheckResult(
 	}
 	itemCheckResults := []*pb.ItemCheckResult{}
 	for _, item := range checkAction.CheckItems {
-		if item.CheckResult != nil {
-			itemCheckResults = append(itemCheckResults, item.CheckResult)
+		itemResult := connectiveCheckItemToItemCheckResult(item)
+		if itemResult != nil {
+			itemCheckResults = append(itemCheckResults, itemResult)
 		}
 	}
 	result.Items = itemCheckResults
