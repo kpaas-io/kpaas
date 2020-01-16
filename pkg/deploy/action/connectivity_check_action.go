@@ -18,7 +18,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -147,8 +147,6 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 	defer srcMachine.Close()
 
 	for _, checkItem := range connectivityCheckAction.CheckItems {
-		randGen := rand.New(rand.NewSource(time.Now().UnixNano()))
-		srcPort := (randGen.Uint32() % 16384) + 45000
 		captureCommand := []string{"timeout", "5",
 			"tcpdump", "-nni", "any", "-c", "1",
 			"src", srcNode.Ip, "and", "dst", dstNode.Ip,
@@ -157,14 +155,12 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 		switch checkItem.Protocol {
 		case consts.ProtocolTCP:
 			captureCommand = append(captureCommand, "and", "tcp",
-				"dst", "port", fmt.Sprintf("%d", checkItem.Port),
-				"and", "src", "port", fmt.Sprintf("%d", srcPort))
+				"dst", "port", fmt.Sprintf("%d", checkItem.Port))
 			sendCommand = append(sendCommand, "echo", "'test'", ">",
 				fmt.Sprintf("/dev/tcp/%s/%d", dstNode.Ip, checkItem.Port))
 		case consts.ProtocolUDP:
 			captureCommand = append(captureCommand, "and", "udp",
-				"dst", "port", fmt.Sprintf("%d", checkItem.Port),
-				"and", "src", "port", fmt.Sprintf("%d", srcPort))
+				"dst", "port", fmt.Sprintf("%d", checkItem.Port))
 			sendCommand = append(sendCommand, "echo", "'test'", ">",
 				fmt.Sprintf("/dev/udp/%s/%d", dstNode.Ip, checkItem.Port))
 		default:
@@ -203,15 +199,21 @@ func (e *connectivityCheckExecutor) Execute(act Action) *pb.Error {
 			io.Copy(executeLogBuf, srcExecuteLogBuf)
 		}
 		if srcErr != nil {
-			checkItem.Err = &pb.Error{
-				Reason: reasonFailedToSendPacket,
-				Detail: fmt.Sprintf(detailFailedToSendPacketFormat,
-					srcNode.Name, string(checkItem.Protocol), dstNode.Name, checkItem.Port, srcStderr),
-				FixMethods: fmt.Sprintf(fixFailedToSendPacketFormat,
-					sendCommand[0], srcNode.Name),
+			srcStderrString := string(srcStderr)
+			if strings.Contains(srcStderrString, "Connection refused") {
+				// does nothing if the stderr tells that connection refused.
+			} else {
+				checkItem.Err = &pb.Error{
+					Reason: reasonFailedToSendPacket,
+					Detail: fmt.Sprintf(detailFailedToSendPacketFormat,
+						srcNode.Name, string(checkItem.Protocol), dstNode.Name,
+						checkItem.Port, srcStderrString),
+					FixMethods: fmt.Sprintf(fixFailedToSendPacketFormat,
+						sendCommand[0], srcNode.Name),
+				}
+				checkItem.Status = ItemFailed
+				continue
 			}
-			checkItem.Status = ItemFailed
-			continue
 		}
 
 		// wait for capture command to terminate
