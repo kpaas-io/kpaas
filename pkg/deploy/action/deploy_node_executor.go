@@ -26,7 +26,12 @@ import (
 	"github.com/kpaas-io/kpaas/pkg/deploy/protos"
 )
 
+// With current desigen, a "static" instanc of each type of executor is registered globally,
+// so the executor can't hold data to avoid concurrent issues.
 type deployNodeExecutor struct {
+}
+
+type deployNodeExecutionData struct {
 	logger           *logrus.Entry
 	machine          deployMachine.IMachine
 	executeLogWriter io.Writer
@@ -43,125 +48,105 @@ type DeployNodeActionConfig struct {
 
 func (executor *deployNodeExecutor) Deploy(act Action, config *DeployNodeActionConfig) *protos.Error {
 
-	executor.action = act
-	executor.config = config
+	logger := logrus.WithFields(logrus.Fields{
+		consts.LogFieldAction: act.GetName(),
+		consts.LogFieldNode:   config.NodeCfg.GetNode().GetName(),
+	})
 
-	executor.initLogger()
-	executor.initExecuteLogWriter()
+	logger.Info("start to execute deploy node executor")
 
-	executor.logger.Info("start to execute deploy node executor")
-
-	if err := executor.connectSSH(); err != nil {
-
+	machine, err := executor.connectSSH(config.NodeCfg.GetNode(), logger)
+	if err != nil {
 		return err
 	}
-	defer executor.disconnectSSH()
+	defer machine.Close()
 
-	operations := []func() *protos.Error{
+	executorData := &deployNodeExecutionData{
+		action:           act,
+		config:           config,
+		logger:           logger,
+		executeLogWriter: act.GetExecuteLogBuffer(),
+		machine:          machine,
+	}
+
+	operations := []func(*deployNodeExecutionData) *protos.Error{
 		executor.startKubelet,
 		executor.joinCluster,
 	}
 
 	for _, operation := range operations {
-		err := operation()
+		err := operation(executorData)
 		if err != nil {
 			return err
 		}
 	}
 
-	executor.logger.Info("deploy node finished")
+	logger.Info("deploy node finished")
 
 	return nil
 }
 
-func (executor *deployNodeExecutor) connectSSH() *protos.Error {
+func (executor *deployNodeExecutor) connectSSH(node *protos.Node, logger *logrus.Entry) (deployMachine.IMachine, *protos.Error) {
 
-	executor.logger.Debug("Start to connect ssh")
+	logger.Debug("Start to connect ssh")
 
-	var err error
-	executor.machine, err = deployMachine.NewMachine(executor.config.NodeCfg.GetNode())
+	machine, err := deployMachine.NewMachine(node)
 	if err != nil {
 		pbError := &protos.Error{
-			Reason:     "Connect ssh error",                                                                                                                                   // 连接SSH失败。
-			Detail:     fmt.Sprintf("SSH connect to %s(%s) failed , error: %v.", executor.config.NodeCfg.GetNode().GetName(), executor.config.NodeCfg.GetNode().GetIp(), err), // 连接%s(%s)失败，失败原因：%v。
-			FixMethods: "Please check node reliability, make SSH service is available.",                                                                                       // 请检查节点的可用性，确保SSH服务可用。
+			Reason:     "Connect ssh error",                                                                         // 连接SSH失败。
+			Detail:     fmt.Sprintf("SSH connect to %s(%s) failed , error: %v.", node.GetName(), node.GetIp(), err), // 连接%s(%s)失败，失败原因：%v。
+			FixMethods: "Please check node reliability, make SSH service is available.",                             // 请检查节点的可用性，确保SSH服务可用。
 		}
-		executor.logger.WithField("error", pbError).Error("connect ssh error")
-		return pbError
+		logger.WithField("error", pbError).Error("connect ssh error")
+		return nil, pbError
 	}
 
-	executor.logger.Debug("ssh connected")
-	return nil
+	logger.Debug("ssh connected")
+	return machine, nil
 }
 
-func (executor *deployNodeExecutor) initLogger() {
-	executor.logger = logrus.WithFields(logrus.Fields{
-		consts.LogFieldAction: executor.action.GetName(),
-		"nodeName":            executor.config.NodeCfg.GetNode().GetName(),
-		"nodeIP":              executor.config.NodeCfg.GetNode().GetIp(),
-	})
-}
+func (executor *deployNodeExecutor) startKubelet(data *deployNodeExecutionData) *protos.Error {
 
-func (executor *deployNodeExecutor) startKubelet() *protos.Error {
-
-	executor.logger.Debug("Start to install kubelet")
+	data.logger.Debug("Start to install kubelet")
 
 	operation := worker.NewStartKubelet(
 		&worker.StartKubeletConfig{
-			Machine:          executor.machine,
-			Node:             executor.config.NodeCfg,
-			Logger:           executor.logger,
-			ExecuteLogWriter: executor.executeLogWriter,
+			Machine:          data.machine,
+			Node:             data.config.NodeCfg,
+			Logger:           data.logger,
+			ExecuteLogWriter: data.executeLogWriter,
 		},
 	)
 
 	if err := operation.Execute(); err != nil {
-		executor.logger.WithField("error", err).Error("install kubelet error")
+		data.logger.WithField("error", err).Error("install kubelet error")
 		return err
 	}
 
-	executor.logger.Info("Finish to install kubelet action")
+	data.logger.Info("Finish to install kubelet action")
 	return nil
 }
 
-func (executor *deployNodeExecutor) joinCluster() *protos.Error {
+func (executor *deployNodeExecutor) joinCluster(data *deployNodeExecutionData) *protos.Error {
 
-	executor.logger.Debug("Start to join cluster")
+	data.logger.Debug("Start to join cluster")
 
 	operation := worker.NewJoinCluster(
 		&worker.JoinClusterConfig{
-			Machine:          executor.machine,
-			Node:             executor.config.NodeCfg,
-			Logger:           executor.logger,
-			Cluster:          executor.config.ClusterConfig,
-			MasterNodes:      executor.config.MasterNodes,
-			ExecuteLogWriter: executor.executeLogWriter,
+			Machine:          data.machine,
+			Node:             data.config.NodeCfg,
+			Logger:           data.logger,
+			Cluster:          data.config.ClusterConfig,
+			MasterNodes:      data.config.MasterNodes,
+			ExecuteLogWriter: data.executeLogWriter,
 		},
 	)
 
 	if err := operation.Execute(); err != nil {
-		executor.logger.WithField("error", err).Error("join cluster error")
+		data.logger.WithField("error", err).Error("join cluster error")
 		return err
 	}
 
-	executor.logger.Info("Finish to join cluster action")
+	data.logger.Info("Finish to join cluster action")
 	return nil
-}
-
-func (executor *deployNodeExecutor) disconnectSSH() {
-
-	if executor.machine == nil {
-		return
-	}
-
-	executor.logger.Debug("Start to disconnect ssh")
-
-	executor.machine.Close()
-
-	executor.logger.Debug("ssh disconnected")
-}
-
-func (executor *deployNodeExecutor) initExecuteLogWriter() {
-
-	executor.executeLogWriter = executor.action.GetExecuteLogBuffer()
 }
