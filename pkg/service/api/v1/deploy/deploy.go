@@ -339,6 +339,7 @@ func deployNetwork() {
 			constant.DeployItemNetwork, wizard.DeployStatusPending, nil)
 	}
 	logrus.Debugf("waiting for kubernetes to be ready and kubeconfig")
+	// TODO: add timeout here?
 	for {
 		// abort deploying of network components if deploying of cluster failed.
 		if wizardData.GetDeployClusterStatus() == wizard.DeployClusterStatusFailed {
@@ -350,8 +351,11 @@ func deployNetwork() {
 			}
 			return
 		}
-		fetchKubeConfigContent()
-		if wizardData.KubeConfig != nil {
+		if wizardData.GetDeployClusterStatus() ==
+			wizard.DeployClusterStatusSuccessful ||
+			wizardData.GetDeployClusterStatus() ==
+				wizard.DeployClusterStatusWorkedButHaveError {
+			logrus.Debugf("deploying of cluster done, start deploying network...")
 			break
 		}
 		time.Sleep(5 * time.Second)
@@ -397,7 +401,7 @@ func installCalicoNetwork(options *api.CalicoOptions, clusterName string) error 
 		Cluster:   clusterName,
 		Name:      "calico",
 		Namespace: "kube-system",
-		// TODO: chart path here can be modified and put charts into docker image
+		// TODO: chart path here can be modified
 		Chart:  "charts/calico",
 		Values: calicoValues,
 	})
