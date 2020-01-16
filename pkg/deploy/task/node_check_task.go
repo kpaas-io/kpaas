@@ -65,7 +65,8 @@ func NewNodeCheckTask(taskName string, taskConfig *NodeCheckTaskConfig) (Task, e
 			CreationTimestamp: time.Now(),
 			Priority:          taskConfig.Priority,
 		},
-		NodeConfigs: taskConfig.NodeConfigs,
+		NodeConfigs:    taskConfig.NodeConfigs,
+		NetworkOptions: taskConfig.NetworkOptions,
 	}
 
 	return task, nil
