@@ -23,11 +23,9 @@ func init() {
 }
 
 type deployIngressExecutor struct {
-	deployNodeExecutor
 }
 
 func (executor *deployIngressExecutor) Execute(act Action) *protos.Error {
-
 	action, ok := act.(*DeployIngressAction)
 	if !ok {
 		return errOfTypeMismatched(new(DeployIngressAction), act)
@@ -35,7 +33,7 @@ func (executor *deployIngressExecutor) Execute(act Action) *protos.Error {
 
 	executor.addIngressMarks(action.config.NodeCfg)
 
-	return executor.deployNodeExecutor.Deploy(act, action.config)
+	return new(deployNodeExecutor).Deploy(act, action.config)
 }
 
 func (executor *deployIngressExecutor) addIngressMarks(node *protos.NodeDeployConfig) {
