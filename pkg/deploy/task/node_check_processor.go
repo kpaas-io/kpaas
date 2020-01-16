@@ -78,7 +78,7 @@ func (p *nodeCheckProcessor) SplitTask(t Task) error {
 			// make a connectivity check action for the pair.
 			act, err := makeConnectivityCheckActionCalico(
 				subConfig.Node, checkTask.NodeConfigs[peerIndex].Node,
-				checkTask.NetworkOptions.CalicoOptions)
+				checkTask.NetworkOptions.CalicoOptions, checkTask.GetLogFileDir())
 			if err != nil {
 				logger.WithField("node", subConfig.Node.Name).
 					WithField("peer-node", checkTask.NodeConfigs[peerIndex].Node.Name).

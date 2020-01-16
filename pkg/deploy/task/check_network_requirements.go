@@ -119,7 +119,7 @@ func (p *checkNetworkRequirementsProcessor) splitActionsCalico(
 			peerIndex = numNodes - 1
 		}
 		connectivityCheckAction, err := makeConnectivityCheckActionCalico(
-			node, task.Nodes[peerIndex], task.NetworkOptions.CalicoOptions)
+			node, task.Nodes[peerIndex], task.NetworkOptions.CalicoOptions, task.GetLogFileDir())
 		if err != nil {
 			return []action.Action{}, fmt.Errorf("failed to split task into actions, error %v", err)
 		}
@@ -129,8 +129,8 @@ func (p *checkNetworkRequirementsProcessor) splitActionsCalico(
 }
 
 func makeConnectivityCheckActionCalico(
-	src *pb.Node, dst *pb.Node, calicoOptions *pb.CalicoOptions) (action.Action, error) {
-	if src != nil {
+	src *pb.Node, dst *pb.Node, calicoOptions *pb.CalicoOptions, logDir string) (action.Action, error) {
+	if src == nil {
 		return nil, fmt.Errorf("source node empty")
 	}
 	if dst == nil {
@@ -140,6 +140,7 @@ func makeConnectivityCheckActionCalico(
 		return nil, fmt.Errorf("calico options empty")
 	}
 	cfg := &action.ConnectivityCheckActionConfig{
+		LogFileBasePath: logDir,
 		SourceNode:      src,
 		DestinationNode: dst,
 		ConnectivityCheckItems: []action.ConnectivityCheckItem{
