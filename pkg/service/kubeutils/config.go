@@ -77,6 +77,7 @@ func KubeConfigPathForCluster(clusterName string) (string, error) {
 	}
 
 	if masterNode == nil {
+		logEntry.Errorf("no master node ready")
 		return "", fmt.Errorf("no master node ready in cluster %s", clusterName)
 	}
 	logEntry.WithField("nodename", masterNode.Name).WithField("IP", masterNode.IP).
@@ -102,6 +103,7 @@ func KubeConfigPathForCluster(clusterName string) (string, error) {
 			},
 		}})
 	if err != nil {
+		logEntry.WithError(err).Errorf("failed to get response of fetching kubeconfig by gRPC")
 		return "", fmt.Errorf("failed to get response of fetching kubeconfig")
 	}
 	kubeConfigContent := fetchResponse.GetKubeConfig()
