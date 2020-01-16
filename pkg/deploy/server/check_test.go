@@ -166,15 +166,14 @@ func TestConnectivityCheckToNodeCheckResult(t *testing.T) {
 					},
 					Status: action.ActionDone,
 				},
-				CheckItems: []action.ConnectivityCheckItem{
-					action.ConnectivityCheckItem{
-						Protocol: consts.ProtocolTCP,
-						Port:     uint16(1234),
-						CheckResult: &pb.ItemCheckResult{
-							Item:   &pb.CheckItem{Name: "tcp-1234", Description: "check TCP port 1234"},
-							Status: string(constant.OperationStatusSuccessful),
-							Err:    nil,
-						},
+				CheckItems: []*action.ConnectivityCheckItem{
+					&action.ConnectivityCheckItem{
+						Protocol:    consts.ProtocolTCP,
+						Port:        uint16(1234),
+						Name:        "tcp-1234",
+						Description: "check TCP port 1234",
+						Status:      action.ItemDone,
+						Err:         nil,
 					},
 				},
 			},

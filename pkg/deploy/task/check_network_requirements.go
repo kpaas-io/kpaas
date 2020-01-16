@@ -143,39 +143,28 @@ func makeConnectivityCheckActionCalico(
 		LogFileBasePath: logDir,
 		SourceNode:      src,
 		DestinationNode: dst,
-		ConnectivityCheckItems: []action.ConnectivityCheckItem{
-			action.ConnectivityCheckItem{
-				Protocol: consts.ProtocolTCP,
-				Port:     uint16(179),
-				CheckResult: &pb.ItemCheckResult{
-					Item: &pb.CheckItem{
-						Name:        fmt.Sprintf("connectivity-check-BGP"),
-						Description: "check connectivity to BGP port",
-					},
-					Status: string(action.ItemPending),
-				},
+		ConnectivityCheckItems: []*action.ConnectivityCheckItem{
+			&action.ConnectivityCheckItem{
+				Protocol:    consts.ProtocolTCP,
+				Port:        uint16(179),
+				Name:        fmt.Sprintf("connectivity-check-BGP"),
+				Description: "check connectivity to BGP port",
+				Status:      action.ItemPending,
 			},
-			action.ConnectivityCheckItem{
-				Protocol: consts.ProtocolTCP,
-				Port:     uint16(6443),
-				CheckResult: &pb.ItemCheckResult{
-					Item: &pb.CheckItem{
-						Name:        fmt.Sprintf("connectivity-check-kube-API"),
-						Description: "check connectivity to kubernetes API port",
-					},
-					Status: string(action.ItemPending),
-				},
+			&action.ConnectivityCheckItem{
+				Protocol:    consts.ProtocolTCP,
+				Port:        uint16(6443),
+				Name:        fmt.Sprintf("connectivity-check-kube-API"),
+				Description: "check connectivity to kubernetes API port",
+				Status:      action.ItemPending,
 			},
-			action.ConnectivityCheckItem{
-				Protocol: consts.ProtocolUDP,
-				Port:     uint16(calicoOptions.VxlanPort),
-				CheckResult: &pb.ItemCheckResult{
-					Item: &pb.CheckItem{
-						Name:        fmt.Sprintf("connectivity-check-vxlan"),
-						Description: "check connectivity for vxlan packets",
-					},
-					Status: string(action.ItemPending),
-				},
+			&action.ConnectivityCheckItem{
+				Protocol:    consts.ProtocolUDP,
+				Port:        uint16(calicoOptions.VxlanPort),
+				Name:        fmt.Sprintf("connectivity-check-vxlan"),
+				Description: "check connectivity for vxlan packets",
+
+				Status: action.ItemPending,
 			},
 		},
 	}
