@@ -74,7 +74,7 @@ func ExecuteInitScript(item it.ItemEnum, action *NodeInitAction, initItemReport 
 		initItemReport.Status = ItemFailed
 		initItemReport.Err = new(pb.Error)
 		initItemReport.Err.Reason = ItemErrScript
-		initItemReport.Err.Detail = fmt.Sprintf("stdErr: %v, err: %v", stdErr, err.Error())
+		initItemReport.Err.Detail = fmt.Sprintf("stdErr: %v, err: %v", string(stdErr), err.Error())
 		initItemReport.Err.FixMethods = ItemHelperOperation
 		return "", initItemReport, fmt.Errorf("can not execute init %v operation command on node: %v", item, action.Node.Name)
 	}
