@@ -380,9 +380,9 @@ func CheckDistributionExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckIt
 		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
-		checkItemReport.Err.Reason = "system distribution is not supported"
+		checkItemReport.Err.Reason = "system distro is not supported"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Err.FixMethods = fmt.Sprintf("please change suitable distribution to %v", systemDistributions)
+		checkItemReport.Err.FixMethods = fmt.Sprintf("please change suitable distro to %v", systemDistributions)
 	} else {
 		logger.Debug(CheckPassed)
 		checkItemReport.Status = ItemDone
@@ -446,9 +446,9 @@ func CheckSysManagerExecutor(ncAction *NodeCheckAction, ch chan<- *NodeCheckItem
 		logger.Debugf("%v: %v", CheckFailed, err)
 		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
-		checkItemReport.Err.Reason = "system manager is not clear"
+		checkItemReport.Err.Reason = "system manager is not correct"
 		checkItemReport.Err.Detail = err.Error()
-		checkItemReport.Err.FixMethods = fmt.Sprint("please check system manager is systemd")
+		checkItemReport.Err.FixMethods = fmt.Sprint("please ensure default system manager is systemd")
 	} else {
 		logger.Debug(CheckPassed)
 		checkItemReport.Status = ItemDone
