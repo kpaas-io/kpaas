@@ -102,7 +102,7 @@ func ExecuteCheckScript(item check.ItemEnum, config *pb.NodeCheckConfig, checkIt
 		checkItemReport.Status = ItemFailed
 		checkItemReport.Err = new(pb.Error)
 		checkItemReport.Err.Reason = ItemErrOperation
-		checkItemReport.Err.Detail = fmt.Sprintf("stdErr: %v, err: %v", stdErr, err.Error())
+		checkItemReport.Err.Detail = fmt.Sprintf("stdErr: %v, err: %v", string(stdErr), err.Error())
 		checkItemReport.Err.FixMethods = ItemHelperOperation
 		return "", checkItemReport, fmt.Errorf("fail to run check %v scripts", item)
 	}
