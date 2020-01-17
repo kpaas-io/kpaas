@@ -20,28 +20,12 @@ import (
 
 type (
 	GetWizardResponse struct {
-		ClusterData         Cluster                      `json:"cluster"`                                                                                                    // Cluster Information
-		NetworkOptions      NetworkOptions               `json:"networkOptions"`                                                                                             // Network options
-		NodesData           []NodeData                   `json:"nodes"`                                                                                                      // Nodes Information
-		CheckingData        []CheckingResultResponseData `json:"checkingData"`                                                                                               // Check result
-		DeploymentData      []DeploymentResponseData     `json:"deploymentData"`                                                                                             // Deployment result
-		Progress            Progress                     `json:"progress" enums:"settingClusterInformation,settingNodesInformation,checkingNodes,deploying,deployCompleted"` // Wizard progress
-		Mode                WizardMode                   `json:"mode"`                                                                                                       // Wizard mode, normal or advanced
-		CheckResult         constant.CheckResult         `json:"checkResult" enums:"pending,running,successful,failed"`                                                      // Nodes check result
-		DeployClusterStatus DeployClusterStatus          `json:"deployClusterStatus" enums:"pending,running,successful,failed,workedButHaveError"`                           // Cluster deployment status
+		ClusterData         Cluster                      `json:"cluster"`                                                                          // Cluster Information
+		NetworkOptions      NetworkOptions               `json:"networkOptions"`                                                                   // Network options
+		NodesData           []NodeData                   `json:"nodes"`                                                                            // Nodes Information
+		CheckingData        []CheckingResultResponseData `json:"checkingData"`                                                                     // Check result
+		DeploymentData      []DeploymentResponseData     `json:"deploymentData"`                                                                   // Deployment result
+		CheckResult         constant.CheckResult         `json:"checkResult" enums:"pending,running,successful,failed"`                            // Nodes check result
+		DeployClusterStatus DeployClusterStatus          `json:"deployClusterStatus" enums:"pending,running,successful,failed,workedButHaveError"` // Cluster deployment status
 	}
-
-	Progress   string
-	WizardMode string
-)
-
-const (
-	ProgressSettingClusterInformation Progress = "settingClusterInformation"
-	ProgressSettingNodesInformation   Progress = "settingNodesInformation"
-	ProgressCheckingNodes             Progress = "checkingNodes"
-	ProgressDeploying                 Progress = "deploying"
-	ProgressDeployCompleted           Progress = "deployCompleted"
-
-	WizardModeNormal   WizardMode = "normal"
-	WizardModeAdvanced WizardMode = "advanced"
 )

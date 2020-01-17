@@ -146,7 +146,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.Cluster"
                         }
                     }
@@ -334,7 +333,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.NetworkOptions"
                         }
                     }
@@ -395,7 +393,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.NodeData"
                         }
                     }
@@ -483,7 +480,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.UpdateNodeData"
                         }
                     },
@@ -985,7 +981,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.ConnectionData"
                         }
                     }
@@ -1058,7 +1053,6 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object",
                             "$ref": "#/definitions/api.SSHCertificate"
                         }
                     }
@@ -1471,10 +1465,6 @@ var doc = `{
                         "$ref": "#/definitions/api.DeploymentResponseData"
                     }
                 },
-                "mode": {
-                    "description": "Wizard mode, normal or advanced",
-                    "type": "string"
-                },
                 "networkOptions": {
                     "description": "Network options",
                     "type": "object",
@@ -1486,17 +1476,6 @@ var doc = `{
                     "items": {
                         "$ref": "#/definitions/api.NodeData"
                     }
-                },
-                "progress": {
-                    "description": "Wizard progress",
-                    "type": "string",
-                    "enum": [
-                        "settingClusterInformation",
-                        "settingNodesInformation",
-                        "checkingNodes",
-                        "deploying",
-                        "deployCompleted"
-                    ]
                 }
             }
         },
