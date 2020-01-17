@@ -23,15 +23,13 @@ func init() {
 }
 
 type deployWorkerExecutor struct {
-	deployNodeExecutor
 }
 
 func (executor *deployWorkerExecutor) Execute(act Action) *protos.Error {
-
 	action, ok := act.(*DeployWorkerAction)
 	if !ok {
 		return errOfTypeMismatched(new(DeployWorkerAction), act)
 	}
 
-	return executor.deployNodeExecutor.Deploy(act, action.config)
+	return new(deployNodeExecutor).Deploy(act, action.config)
 }
